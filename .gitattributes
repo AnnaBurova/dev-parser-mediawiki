@@ -1,0 +1,162 @@
+# ──────────────────────────────────────────────────
+# GITATTRIBUTES
+# ──────────────────────────────────────────────────
+# Details per file setting:
+#   text ─ These files should be normalized (CRLF => LF).
+#   binary ─ These files are binary and should be left untouched.
+
+# Note: binary is a macro for -text -diff.
+
+# ──────────────────────────────────────────────────
+# AUTO-DETECT
+# ──────────────────────────────────────────────────
+
+# This will handle all files NOT defined below.
+
+*  text=auto  eol=lf  diff=text
+
+# ──────────────────────────────────────────────────
+# DOCUMENTATION
+# ──────────────────────────────────────────────────
+
+AUTHORS  text  eol=lf  diff=text
+CHANGELOG  text  eol=lf  diff=text
+CONTRIBUTING  text  eol=lf  diff=text
+COPYRIGHT  text  eol=lf  diff=text
+INSTALL  text  eol=lf  diff=markdown
+LICENSE  text  eol=lf  diff=text
+README  text  eol=lf  diff=markdown
+TODO  text  eol=lf  diff=text
+*.md  text  eol=lf  diff=markdown
+*.txt  text  eol=lf  diff=text
+
+# ──────────────────────────────────────────────────
+# TRANSLATION
+# ──────────────────────────────────────────────────
+
+*.strings  text  eol=lf  diff=text
+
+# ──────────────────────────────────────────────────
+# CONFIGS
+# ──────────────────────────────────────────────────
+
+.editorconfig  text  eol=lf  diff=text
+.gitattributes  text  eol=lf  diff=git
+.gitconfig  text  eol=lf  diff=gitconfig
+.gitignore  text  eol=lf  diff=git
+.htaccess  text  eol=lf  diff=apache
+.htpasswd  text  eol=lf  diff=text
+*.conf  text  eol=lf  diff=text
+*.config  text  eol=lf  diff=text
+*.npmignore  text  eol=lf  diff=text
+*.yaml  text  eol=lf  diff=yaml
+*.yml  text  eol=lf  diff=yaml
+
+# ──────────────────────────────────────────────────
+# SOURCE CODE
+# ──────────────────────────────────────────────────
+
+*.bat  text  eol=lf  diff=bat
+*.css  text  eol=lf  diff=css
+*.csv  text  eol=lf  diff=csv
+*.inc  text  eol=lf  diff=text
+*.ini  text  eol=lf  diff=ini
+*.js  text  eol=lf  diff=javascript
+*.json  text  eol=lf  diff=json
+*.less  text  eol=lf  diff=css
+*.php  text  eol=lf  diff=php
+*.py  text  eol=lf  diff=python
+*.sass  text  eol=lf  diff=css
+*.scss  text  eol=lf  diff=css
+*.sh  text  eol=lf  diff=sh
+*.sql  text  eol=lf  diff=sql
+*.ts  text  eol=lf  diff=typescript
+*.xml  text  eol=lf  diff=xml
+
+# ──────────────────────────────────────────────────
+# TEMPLATES
+# ──────────────────────────────────────────────────
+
+*.ejs  text  eol=lf  diff=html
+*.html  text  eol=lf  diff=html
+
+# ──────────────────────────────────────────────────
+# GRAPHICS
+# ──────────────────────────────────────────────────
+
+# All listed graphics formats are treated as binary for merge purposes except SVG, which is text.
+*.svg  text  eol=lf  diff=xml
+# Compressed SVG files (.svgz) are treated as binary because they cannot be diffed or normalized.
+*.svgz  merge=binary
+
+# Adobe Illustrator
+*.ai  merge=binary
+*.eps  merge=binary
+
+# Adobe Photoshop
+*.psb  merge=binary
+*.psd  merge=binary
+
+*.bmp  merge=binary
+*.gif  merge=binary
+*.ico  merge=binary
+*.jpeg  merge=binary
+*.jpg  merge=binary
+*.pdf  merge=binary
+*.png  merge=binary
+*.webp  merge=binary
+
+# ──────────────────────────────────────────────────
+# AUDIO
+# ──────────────────────────────────────────────────
+
+*.m4a  merge=binary
+*.mp3  merge=binary
+*.ogg  merge=binary
+
+# ──────────────────────────────────────────────────
+# VIDEO
+# ──────────────────────────────────────────────────
+
+*.3gp  merge=binary
+*.3gpp  merge=binary
+*.m4v  merge=binary
+*.mov  merge=binary
+*.mp4  merge=binary
+*.mpeg  merge=binary
+*.mpg  merge=binary
+*.webm  merge=binary
+
+# ──────────────────────────────────────────────────
+# ARCHIVES
+# ──────────────────────────────────────────────────
+
+*.7z  merge=binary
+*.bin  merge=binary
+*.gz  merge=binary
+*.rar  merge=binary
+*.tar  merge=binary
+*.zip  merge=binary
+
+# ──────────────────────────────────────────────────
+# DATABASES
+# ──────────────────────────────────────────────────
+
+*.db  merge=binary
+
+# ──────────────────────────────────────────────────
+# FONTS
+# ──────────────────────────────────────────────────
+
+*.eot  merge=binary
+*.otf  merge=binary
+*.ttf  merge=binary
+*.woff  merge=binary
+*.woff2  merge=binary
+
+# ──────────────────────────────────────────────────
+# EXECUTABLES
+# ──────────────────────────────────────────────────
+
+*.exe  merge=binary
+*.pyc  merge=binary
