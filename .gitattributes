@@ -87,76 +87,76 @@ TODO  text  eol=lf  diff=text
 # All listed graphics formats are treated as binary for merge purposes except SVG, which is text.
 *.svg  text  eol=lf  diff=xml
 # Compressed SVG files (.svgz) are treated as binary because they cannot be diffed or normalized.
-*.svgz  merge=binary
+*.svgz  binary
 
 # Adobe Illustrator
-*.ai  merge=binary
-*.eps  merge=binary
+*.ai  binary
+*.eps  binary
 
 # Adobe Photoshop
-*.psb  merge=binary
-*.psd  merge=binary
+*.psb  binary
+*.psd  binary
 
-*.bmp  merge=binary
-*.gif  merge=binary
-*.ico  merge=binary
-*.jpeg  merge=binary
-*.jpg  merge=binary
-*.pdf  merge=binary
-*.png  merge=binary
-*.webp  merge=binary
+*.bmp  binary
+*.gif  binary
+*.ico  binary
+*.jpeg  binary
+*.jpg  binary
+*.pdf  binary
+*.png  binary
+*.webp  binary
 
 # ──────────────────────────────────────────────────
 # AUDIO
 # ──────────────────────────────────────────────────
 
-*.m4a  merge=binary
-*.mp3  merge=binary
-*.ogg  merge=binary
+*.m4a  binary
+*.mp3  binary
+*.ogg  binary
 
 # ──────────────────────────────────────────────────
 # VIDEO
 # ──────────────────────────────────────────────────
 
-*.3gp  merge=binary
-*.3gpp  merge=binary
-*.m4v  merge=binary
-*.mov  merge=binary
-*.mp4  merge=binary
-*.mpeg  merge=binary
-*.mpg  merge=binary
-*.webm  merge=binary
+*.3gp  binary
+*.3gpp  binary
+*.m4v  binary
+*.mov  binary
+*.mp4  binary
+*.mpeg  binary
+*.mpg  binary
+*.webm  binary
 
 # ──────────────────────────────────────────────────
 # ARCHIVES
 # ──────────────────────────────────────────────────
 
-*.7z  merge=binary
-*.bin  merge=binary
-*.gz  merge=binary
-*.rar  merge=binary
-*.tar  merge=binary
-*.zip  merge=binary
+*.7z  binary
+*.bin  binary
+*.gz  binary
+*.rar  binary
+*.tar  binary
+*.zip  binary
 
 # ──────────────────────────────────────────────────
 # DATABASES
 # ──────────────────────────────────────────────────
 
-*.db  merge=binary
+*.db  binary
 
 # ──────────────────────────────────────────────────
 # FONTS
 # ──────────────────────────────────────────────────
 
-*.eot  merge=binary
-*.otf  merge=binary
-*.ttf  merge=binary
-*.woff  merge=binary
-*.woff2  merge=binary
+*.eot  binary
+*.otf  binary
+*.ttf  binary
+*.woff  binary
+*.woff2  binary
 
 # ──────────────────────────────────────────────────
 # EXECUTABLES
 # ──────────────────────────────────────────────────
 
-*.exe  merge=binary
-*.pyc  merge=binary
+*.exe  binary
+*.pyc  binary
