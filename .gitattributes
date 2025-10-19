@@ -51,6 +51,7 @@ TODO  text  eol=lf  diff=text
 *.npmignore  text  eol=lf  diff=text
 *.sqbpro  text  eol=lf  diff=xml
 *.sublime-settings  text  eol=lf  diff=json
+*.toml  text  eol=lf  diff=toml
 *.yaml  text  eol=lf  diff=yaml
 *.yml  text  eol=lf  diff=yaml
 
