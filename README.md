@@ -2,18 +2,32 @@
 
 ## 📖 Overview
 
-## 🧩 Planned Additions
+---
 
-- See the [TODO list](TODO) for planned scripts and configurations to be added.
-- Record of changes, updates, and version history can be found in the [CHANGELOG](CHANGELOG).
+## 🧩 Features
 
-## 🚀 Usage
+---
 
-Follow the [Installation Guides](INSTALL.md) to set up scripts and configurations.
+## ⚙️ Dependencies
+
+---
+
+## 🚀 Getting Started
+
+- [Installation Guide](INSTALL.md) — for setup instructions and configurations.
+
+---
+
+## 📋 Development Notes
+
+- [TODO list](TODO) — Planned improvements
+- [CHANGELOG](CHANGELOG.md) — Version history
+- [CONTRIBUTING](CONTRIBUTING.md) — Style and contribution rules
+
+---
 
 ## 🪪 License
 
 - [COPYRIGHT](COPYRIGHT) — Copyright information for original and included materials.
 - [LICENSE](LICENSE) — The license governing the use of this repository (MIT).
-- [AUTHORS](AUTHORS) — List of contributors and credit for external resources.
-- [CONTRIBUTING](CONTRIBUTING) — Guidelines for contributing to this repository.
+- [AUTHORS](AUTHORS) — List of contributors and credits for external resources.
