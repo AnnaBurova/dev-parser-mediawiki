@@ -61,6 +61,19 @@ def read_config(
             location="mwparser.read_config : settings=None"
         )
 
+    # ensure the type checker knows settings is a dict
+    NewtCons.validate_input(settings, dict,
+        location="mwparser.read_config : settings")
+    assert isinstance(settings, dict)
+
+    required_keys = ("BASE_URL", "action", "list", "aplimit", "format")
+    missing = [k for k in required_keys if k not in settings]
+    if missing:
+        NewtCons.error_msg(
+            f"Missing config keys: {', '.join(missing)}",
+            location="mwparser.allpages.read_config"
+        )
+
     return settings
 
 
