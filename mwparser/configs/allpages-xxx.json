@@ -1,0 +1,7 @@
+{
+  "BASE_URL" : "",
+  "action": "query",
+  "list": "allpages",
+  "aplimit": "max",
+  "format": "json"
+}
