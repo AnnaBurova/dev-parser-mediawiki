@@ -1,6 +1,6 @@
-# 🧾 Changelog — *MediaWIKI Parser (NewtCode)*
+# 🧾 Changelog — *Parser MediaWiki (NewtCode)*
 
-All notable changes to this project are documented here.
+All notable changes to this project are documented here.  
 This project follows [Semantic Versioning](https://semver.org/) (`MAJOR.MINOR.PATCH`).
 
 ---
@@ -12,7 +12,7 @@ This project follows [Semantic Versioning](https://semver.org/) (`MAJOR.MINOR.PA
 ### 🧩 Initial Setup
 
 - Created project structure (`.gitignore`, `.gitattributes`).
-- Initialized the *MediaWIKI Parser* repository.
+- Initialized the *Parser MediaWiki* repository.
 - Prepared the foundation for future modules and documentation.
 
-> 🪄 *The very first commit of the XXX project.*
+> 🪄 *The very first commit of the Parser MediaWiki project.*
