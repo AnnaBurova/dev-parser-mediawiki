@@ -33,7 +33,7 @@ def check_location(
     else:
         NewtCons.error_msg(
             f"Something wrong, check folder: {dir_}",
-            location="mwparser.allpages.check_location"
+            location="mwparser.check_location"
         )
 
 
@@ -46,7 +46,7 @@ def read_config(
     if not choose_config:
         NewtCons.error_msg(
             "No config selected, exiting",
-            location="mwparser.allpages.read_config : choose_config=None"
+            location="mwparser.read_config : choose_config=None"
         )
     # ensure the type checker knows choose_config is not None
     assert choose_config is not None
@@ -58,7 +58,7 @@ def read_config(
     if settings is None:
         NewtCons.error_msg(
             "Failed to read config JSON, exiting",
-            location="mwparser.allpages.read_config : settings=None"
+            location="mwparser.read_config : settings=None"
         )
 
     return settings
