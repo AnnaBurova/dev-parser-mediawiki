@@ -38,7 +38,7 @@ def check_location(
 
 
 def read_config(
-        ) -> list | dict:
+        ) -> dict:
     """Read configuration from a selected JSON file."""
 
     choose_config = NewtFiles.choose_file_from_folder(os.path.join(dir_parser, "configs"))
