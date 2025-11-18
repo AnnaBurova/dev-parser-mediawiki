@@ -66,12 +66,18 @@ def read_config(
         location="mwparser.read_config : settings")
     assert isinstance(settings, dict)
 
-    required_keys = ("BASE_URL", "action", "list", "aplimit", "format")
-    missing = [k for k in required_keys if k not in settings]
-    if missing:
+    required_keys = ("FOLDER_LINK", "BASE_URL", "action", "list", "aplimit")
+    missing_keys = [k for k in required_keys if k not in settings]
+    if missing_keys:
         NewtCons.error_msg(
-            f"Missing config keys: {', '.join(missing)}",
-            location="mwparser.allpages.read_config"
+            f"Missing config keys: {', '.join(missing_keys)}",
+            location="mwparser.allpages.read_config : missing_keys"
+        )
+    extra_keys = [k for k in settings if k not in required_keys]
+    if extra_keys:
+        NewtCons.error_msg(
+            f"Unexpected config keys: {', '.join(extra_keys)}",
+            location="mwparser.allpages.read_config : extra_keys"
         )
 
     return settings
