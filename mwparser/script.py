@@ -56,10 +56,13 @@ def read_config(
 
     config_path = os.path.join(dir_parser, "configs", choose_config)
     settings = NewtFiles.read_json_from_file(config_path)
+    print()
 
     # ensure the type checker knows settings is a dict
-    NewtCons.validate_input(settings, dict,
-        location="mwparser.read_config : settings")
+    NewtCons.validate_input(
+        settings, dict,
+        location="mwparser.read_config : settings"
+        )
     assert isinstance(settings, dict)
 
     required_keys = ("FOLDER_LINK", "BASE_URL", "action", "list", "aplimit")
@@ -67,21 +70,22 @@ def read_config(
     if missing_keys:
         NewtCons.error_msg(
             f"Missing config keys: {', '.join(missing_keys)}",
-            location="mwparser.allpages.read_config : missing_keys"
+            location="mwparser.read_config : missing_keys"
         )
     extra_keys = [k for k in settings if k not in required_keys]
     if extra_keys:
         NewtCons.error_msg(
             f"Unexpected config keys: {', '.join(extra_keys)}",
-            location="mwparser.allpages.read_config : extra_keys"
+            location="mwparser.read_config : extra_keys"
         )
 
     return settings
 
 
-if __name__ == "__main__":
-    check_location()
-    settings = read_config()
+def get_json_from_url(
+        settings: dict
+        ) -> dict:
+    """Fetch JSON data from a URL based on settings and save to file."""
 
     headers = {
         "User-Agent": "MyGuildWarsBot/1.1 (burova.anna+parser+bot@gmail.com)",
@@ -99,12 +103,13 @@ if __name__ == "__main__":
     FOLDER_LINK = os.path.join(settings["FOLDER_LINK"], "data", "raw", "pages")
 
     data_from_url = NewtNet.fetch_data_from_url(BASE_URL, params, headers, mode="alert")
+    print()
 
     # ensure the type checker knows settings is not None and is a dict
     if data_from_url is None:
         NewtCons.error_msg(
             "Failed to read config JSON, exiting",
-            location="mwparser.read_config : data_from_url=None"
+            location="mwparser.get_json_from_url : data_from_url=None"
         )
     # ensure the type checker knows choose_config is not None
     assert data_from_url is not None
@@ -115,14 +120,30 @@ if __name__ == "__main__":
     if json_from_url is None:
         NewtCons.error_msg(
             "Failed to read config JSON, exiting",
-            location="mwparser.read_config : json_from_url=None"
+            location="mwparser.get_json_from_url : json_from_url=None"
         )
-    # ensure the type checker knows choose_config is not None
+    # ensure the type checker knows json_from_url is not None
     assert json_from_url is not None
+
+    # ensure the type checker knows json_from_url is a dict
+    if not isinstance(json_from_url, dict):
+        NewtCons.error_msg(
+            "Expected dict from JSON conversion, exiting",
+            location="mwparser.get_json_from_url : json_from_url is not dict"
+        )
+    assert isinstance(json_from_url, dict)
 
     NewtFiles.save_json_to_file(
         os.path.join(dir_, FOLDER_LINK, "allpages-sample.json"),
         json_from_url,
     )
+    print()
+
+    return json_from_url
+
+if __name__ == "__main__":
+    check_location()
+    settings = read_config()
+    json_data = get_json_from_url(settings)
 
     print("=== END ===")
