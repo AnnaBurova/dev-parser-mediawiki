@@ -7,6 +7,11 @@
 ```
 dev-parser-mediawiki/  # Root repository
 │
+├── mwparser/          # Main Python package
+│   ├── configs/       # Configuration files
+│   │   └── allpages-xxx.json
+│   └── script.py
+│
 ├── CHANGELOG.md       # Version history and release notes
 ├── CONTRIBUTING.md    # Guidelines for contributors
 ├── INSTALL.md         # Installation and development setup guide
