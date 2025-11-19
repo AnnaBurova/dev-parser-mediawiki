@@ -54,13 +54,6 @@ def read_config(
     config_path = os.path.join(dir_parser, "configs", choose_config)
     settings = NewtFiles.read_json_from_file(config_path)
 
-    # ensure the type checker knows settings is not None and is a dict
-    if settings is None:
-        NewtCons.error_msg(
-            "Failed to read config JSON, exiting",
-            location="mwparser.read_config : settings=None"
-        )
-
     # ensure the type checker knows settings is a dict
     NewtCons.validate_input(settings, dict,
         location="mwparser.read_config : settings")
