@@ -96,7 +96,7 @@ if __name__ == "__main__":
         # "apcontinue": "Grawl",
     }
     BASE_URL = settings["BASE_URL"]
-    FOLDER_LINK = settings["FOLDER_LINK"]
+    FOLDER_LINK = os.path.join(settings["FOLDER_LINK"], "data", "raw", "pages")
 
     data_from_url = NewtNet.fetch_data_from_url(BASE_URL, params, headers, mode="alert")
 
