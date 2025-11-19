@@ -41,7 +41,7 @@ def check_location(
 
 def check_dict_keys(
         data: dict,
-        expected: tuple,
+        expected: set[str],
         ) -> None:
     """Check if the dictionary has the expected keys."""
 
@@ -84,7 +84,7 @@ def read_config(
         )
     assert isinstance(settings, dict)
 
-    required_keys = ("FOLDER_LINK", "BASE_URL", "action", "list", "aplimit")
+    required_keys = {"FOLDER_LINK", "BASE_URL", "action", "list", "aplimit"}
     check_dict_keys(settings, required_keys)
 
     return settings
