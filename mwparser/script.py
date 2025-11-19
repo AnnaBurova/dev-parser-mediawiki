@@ -23,6 +23,7 @@ sys.path.append(dir_)
 
 choose_config = "allpages-xxx.json"
 must_location = os.path.join("D:\\", "VS_Code")
+check_config_folder = True
 
 
 def check_location(
@@ -42,7 +43,8 @@ def read_config(
         ) -> dict:
     """Read configuration from a selected JSON file."""
 
-    choose_config = NewtFiles.choose_file_from_folder(os.path.join(dir_parser, "configs"))
+    if check_config_folder:
+        choose_config = NewtFiles.choose_file_from_folder(os.path.join(dir_parser, "configs"))
 
     if not choose_config:
         NewtCons.error_msg(
