@@ -39,6 +39,25 @@ def check_location(
         )
 
 
+def check_dict_keys(
+        data: dict,
+        expected: tuple,
+        ) -> None:
+    """Check if the dictionary has the expected keys."""
+
+    data_keys = set(data.keys())
+    expected_keys = set(expected)
+    missing_keys = expected_keys - data_keys
+    extra_keys = data_keys - expected_keys
+
+    if missing_keys or extra_keys:
+        NewtCons.error_msg(
+            f"Missing keys: {', '.join(missing_keys)}",
+            f"Unexpected keys: {', '.join(extra_keys)}",
+            location="mwparser.check_dict_keys"
+        )
+
+
 def read_config(
         ) -> dict:
     """Read configuration from a selected JSON file."""
@@ -66,18 +85,7 @@ def read_config(
     assert isinstance(settings, dict)
 
     required_keys = ("FOLDER_LINK", "BASE_URL", "action", "list", "aplimit")
-    missing_keys = [k for k in required_keys if k not in settings]
-    if missing_keys:
-        NewtCons.error_msg(
-            f"Missing config keys: {', '.join(missing_keys)}",
-            location="mwparser.read_config : missing_keys"
-        )
-    extra_keys = [k for k in settings if k not in required_keys]
-    if extra_keys:
-        NewtCons.error_msg(
-            f"Unexpected config keys: {', '.join(extra_keys)}",
-            location="mwparser.read_config : extra_keys"
-        )
+    check_dict_keys(settings, required_keys)
 
     return settings
 
