@@ -143,21 +143,10 @@ def get_json_from_url(
 
     json_from_url = NewtFiles.convert_str_to_json(data_from_url)
 
-    # ensure the type checker knows settings is not None and is a dict
-    if json_from_url is None:
-        NewtCons.error_msg(
-            "Failed to read config JSON, exiting",
-            location="mwparser.get_json_from_url : json_from_url=None"
-        )
-    # ensure the type checker knows json_from_url is not None
-    assert json_from_url is not None
-
-    # ensure the type checker knows json_from_url is a dict
-    if not isinstance(json_from_url, dict):
-        NewtCons.error_msg(
-            "Expected dict from JSON conversion, exiting",
-            location="mwparser.get_json_from_url : json_from_url is not dict"
-        )
+    NewtCons.validate_input(
+        json_from_url, dict,
+        location="mwparser.get_json_from_url : json_from_url != dict"
+    )
     assert isinstance(json_from_url, dict)
 
     NewtFiles.save_json_to_file(
