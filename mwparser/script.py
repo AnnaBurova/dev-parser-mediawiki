@@ -155,20 +155,19 @@ def get_json_from_url(
     return json_from_url
 
 
-def save_json_allpages(
-        settings: dict,
-        json_data: dict
-        ) -> None:
+def restructure_json_allpages(
+        json_data_dict: dict
+        ) -> list[str]:
     """Process and save all pages from JSON data."""
 
     required_keys_json = {"query", "continue", "batchcomplete", "limits"}
-    check_dict_keys(json_data, required_keys_json)
+    check_dict_keys(json_data_dict, required_keys_json)
     required_keys_query = {"allpages"}
-    check_dict_keys(json_data["query"], required_keys_query)
+    check_dict_keys(json_data_dict["query"], required_keys_query)
 
     allpages_list = []
     mw_apcontinue = ""
-    for page in json_data["query"]["allpages"]:
+    for page in json_data_dict["query"]["allpages"]:
         required_keys_allpages = {"pageid", "ns", "title"}
         check_dict_keys(page, required_keys_allpages)
         if page["ns"] != 0:
@@ -192,6 +191,6 @@ if __name__ == "__main__":
     check_location()
     settings = read_config()
     json_data = get_json_from_url(settings)
-    save_json_allpages(settings, json_data)
+    list_data = restructure_json_allpages(json_data)
 
     print("=== END ===")
