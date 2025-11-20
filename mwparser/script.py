@@ -78,9 +78,6 @@ def get_blocked_list(
         if line:
             blocked_set.add(line)
 
-    print(blocked_list)
-    print(blocked_set)
-
     return blocked_set
 
 
