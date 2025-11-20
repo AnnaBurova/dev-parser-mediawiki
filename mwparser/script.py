@@ -115,11 +115,7 @@ def set_args_for_url(
         # "apcontinue": "Grawl",
     }
 
-    base_url = settings["BASE_URL"]
-
-    folder_link = os.path.join(settings["FOLDER_LINK"], folder_raw_pages)
-
-    return (headers, params, base_url, folder_link)
+    return (headers, params)
 
 
 def get_json_from_url(
@@ -127,14 +123,14 @@ def get_json_from_url(
         ) -> dict:
     """Fetch JSON data from a URL based on settings and save to file."""
 
-    headers, params, base_url, folder_link = args_for_url
+    headers, params = args_for_url
 
     if apcontinue is not None:
         apcontinue = apcontinue.replace(" ", "%20")
         apcontinue = apcontinue.replace("/", "%2F")
         params.update({"apcontinue": apcontinue})
 
-    data_from_url = NewtNet.fetch_data_from_url(base_url, params, headers, mode="alert")
+    data_from_url = NewtNet.fetch_data_from_url(settings["BASE_URL"], params, headers, mode="alert")
     print()
 
     # ensure the type checker knows settings is not None and is a dict
@@ -155,7 +151,7 @@ def get_json_from_url(
     assert isinstance(json_from_url, dict)
 
     NewtFiles.save_json_to_file(
-        os.path.join(dir_, folder_link, "allpages-last-result.json"),
+        os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, "allpages-last-result.json"),
         json_from_url,
     )
     print()
@@ -196,9 +192,8 @@ def save_list_data(
         ) -> None:
     """Save the restructured list data to a file."""
 
-    folder_link = os.path.join(settings["FOLDER_LINK"], folder_raw_pages)
     NewtFiles.save_text_to_file(
-        os.path.join(dir_, folder_link, file_allpages_list),
+        os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, file_allpages_list),
         "\n".join(list_data_str),
         append=append
     )
