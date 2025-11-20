@@ -22,9 +22,14 @@ dir_ = os.path.dirname(os.path.dirname(dir_parser))
 # Add the project root directory to sys.path
 sys.path.append(dir_)
 
-choose_config = "allpages-xxx.json"
 must_location = os.path.join("D:\\", "VS_Code")
+
+choose_config = "allpages-xxx.json"
 check_config_folder = True
+
+folder_raw_pages = os.path.join("data", "raw", "pages")
+folder_lists = os.path.join("data", "lists")
+file_allpages_list = "allpages-list.txt"
 
 
 def check_location(
@@ -112,7 +117,7 @@ def set_args_for_url(
 
     base_url = settings["BASE_URL"]
 
-    folder_link = os.path.join(settings["FOLDER_LINK"], "data", "raw", "pages")
+    folder_link = os.path.join(settings["FOLDER_LINK"], folder_raw_pages)
 
     return (headers, params, base_url, folder_link)
 
@@ -150,7 +155,7 @@ def get_json_from_url(
     assert isinstance(json_from_url, dict)
 
     NewtFiles.save_json_to_file(
-        os.path.join(dir_, folder_link, "allpages-sample.json"),
+        os.path.join(dir_, folder_link, "allpages-last-result.json"),
         json_from_url,
     )
     print()
@@ -191,9 +196,9 @@ def save_list_data(
         ) -> None:
     """Save the restructured list data to a file."""
 
-    folder_link = os.path.join(settings["FOLDER_LINK"], "data", "raw", "pages")
+    folder_link = os.path.join(settings["FOLDER_LINK"], folder_raw_pages)
     NewtFiles.save_text_to_file(
-        os.path.join(dir_, folder_link, "allpages-list.txt"),
+        os.path.join(dir_, folder_link, file_allpages_list),
         "\n".join(list_data_str),
         append=append
     )
