@@ -107,10 +107,12 @@ def get_json_from_url(
         "maxlag": "1",
         # "apcontinue": "Grawl",
     }
-    BASE_URL = settings["BASE_URL"]
-    FOLDER_LINK = os.path.join(settings["FOLDER_LINK"], "data", "raw", "pages")
 
-    data_from_url = NewtNet.fetch_data_from_url(BASE_URL, params, headers, mode="alert")
+    base_url = settings["BASE_URL"]
+
+    folder_link = os.path.join(settings["FOLDER_LINK"], "data", "raw", "pages")
+
+    data_from_url = NewtNet.fetch_data_from_url(base_url, params, headers, mode="alert")
     print()
 
     # ensure the type checker knows settings is not None and is a dict
@@ -142,7 +144,7 @@ def get_json_from_url(
     assert isinstance(json_from_url, dict)
 
     NewtFiles.save_json_to_file(
-        os.path.join(dir_, FOLDER_LINK, "allpages-sample.json"),
+        os.path.join(dir_, folder_link, "allpages-sample.json"),
         json_from_url,
     )
     print()
@@ -175,9 +177,9 @@ def save_json_allpages(
         allpages_list.append(f"Page ID: {page['pageid']:010d}, Title: {page['title']}")
         mw_apcontinue = page["title"]
 
-    FOLDER_LINK = os.path.join(settings["FOLDER_LINK"], "data", "raw", "pages")
+    folder_link = os.path.join(settings["FOLDER_LINK"], "data", "raw", "pages")
     NewtFiles.save_text_to_file(
-        os.path.join(dir_, FOLDER_LINK, "allpages-list.txt"),
+        os.path.join(dir_, folder_link, "allpages-list.txt"),
         "\n".join(allpages_list),
         append=True
     )
