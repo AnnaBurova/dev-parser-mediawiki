@@ -92,10 +92,9 @@ def read_config(
     return settings
 
 
-def get_json_from_url(
-        settings: dict
-        ) -> dict:
-    """Fetch JSON data from a URL based on settings and save to file."""
+def set_args_for_url(
+        ) -> tuple:
+    """Set arguments for URL request based on settings."""
 
     headers = {
         "User-Agent": "MyGuildWarsBot/1.1 (burova.anna+parser+bot@gmail.com)",
@@ -114,6 +113,21 @@ def get_json_from_url(
     base_url = settings["BASE_URL"]
 
     folder_link = os.path.join(settings["FOLDER_LINK"], "data", "raw", "pages")
+
+    return (headers, params, base_url, folder_link)
+
+
+def get_json_from_url(
+        apcontinue: str | None = None
+        ) -> dict:
+    """Fetch JSON data from a URL based on settings and save to file."""
+
+    headers, params, base_url, folder_link = args_for_url
+
+    if apcontinue is not None:
+        apcontinue = apcontinue.replace(" ", "%20")
+        apcontinue = apcontinue.replace("/", "%2F")
+        params.update({"apcontinue": apcontinue})
 
     data_from_url = NewtNet.fetch_data_from_url(base_url, params, headers, mode="alert")
     print()
@@ -200,7 +214,8 @@ def save_list_data(
 if __name__ == "__main__":
     check_location()
     settings = read_config()
-    json_data = get_json_from_url(settings)
+    args_for_url = set_args_for_url()
+    json_data = get_json_from_url()
     list_data = restructure_json_allpages(json_data)
     save_list_data(list_data, False)
 
