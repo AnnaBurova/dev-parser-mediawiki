@@ -104,7 +104,7 @@ def read_config(
     NewtCons.validate_input(
         settings, dict,
         location="mwparser.read_config : settings"
-        )
+    )
     assert isinstance(settings, dict)
 
     required_keys = {"FOLDER_LINK", "BASE_URL", "action", "list", "aplimit"}
@@ -135,18 +135,25 @@ def set_args_for_url(
 
 
 def get_json_from_url(
-        apcontinue: str | None = None
+        apcontinue: str | None = None,
+        mw_apcontinue: str | None = None
         ) -> dict:
     """Fetch JSON data from a URL based on settings and save to file."""
 
     headers, params = args_for_url
 
     if apcontinue is not None:
-        apcontinue = apcontinue.replace(" ", "%20")
-        apcontinue = apcontinue.replace("/", "%2F")
+        if apcontinue in blocked_set and mw_apcontinue is not None:
+            apcontinue = mw_apcontinue
+
+        print(apcontinue)
+
         params.update({"apcontinue": apcontinue})
 
-    data_from_url = NewtNet.fetch_data_from_url(settings["BASE_URL"], params, headers, mode="alert")
+    data_from_url = NewtNet.fetch_data_from_url(
+        settings["BASE_URL"], params, headers,
+        mode="alert"
+    )
     print()
 
     # ensure the type checker knows settings is not None and is a dict
@@ -227,5 +234,19 @@ if __name__ == "__main__":
     blocked_set = get_blocked_list()
     list_data, mw_apcontinue = restructure_json_allpages(json_data)
     save_list_data(list_data, False)
+    try:
+        while True:
+            required_keys = {"apcontinue", "continue"}
+            check_dict_keys(json_data["continue"], required_keys)
+            json_data = get_json_from_url(
+                json_data["continue"]["apcontinue"],
+                mw_apcontinue
+            )
+            list_data, mw_apcontinue = restructure_json_allpages(json_data)
+            save_list_data(list_data)
+    except Exception as e:
+        print(f"Script encountered an error: {e}")
+    except SystemExit:
+        print(f"Finished fetching all pages")
 
     print("=== END ===")
