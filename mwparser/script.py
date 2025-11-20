@@ -149,9 +149,44 @@ def get_json_from_url(
 
     return json_from_url
 
+
+def save_json_allpages(
+        settings: dict,
+        json_data: dict
+        ) -> None:
+    """Process and save all pages from JSON data."""
+
+    required_keys_json = {"query", "continue", "batchcomplete", "limits"}
+    check_dict_keys(json_data, required_keys_json)
+    required_keys_query = {"allpages"}
+    check_dict_keys(json_data["query"], required_keys_query)
+
+    allpages_list = []
+    mw_apcontinue = ""
+    for page in json_data["query"]["allpages"]:
+        required_keys_allpages = {"pageid", "ns", "title"}
+        check_dict_keys(page, required_keys_allpages)
+        if page["ns"] != 0:
+            NewtCons.error_msg(
+                f"Unexpected namespace value: {page['ns']} for page ID {page['pageid']}",
+                location="mwparser.______ : page['ns']"
+            )
+        # print(f"Page ID: {page['pageid']:010d}, Title: {page['title']}")
+        allpages_list.append(f"Page ID: {page['pageid']:010d}, Title: {page['title']}")
+        mw_apcontinue = page["title"]
+
+    FOLDER_LINK = os.path.join(settings["FOLDER_LINK"], "data", "raw", "pages")
+    NewtFiles.save_text_to_file(
+        os.path.join(dir_, FOLDER_LINK, "allpages-list.txt"),
+        "\n".join(allpages_list),
+        append=True
+    )
+    print()
+
 if __name__ == "__main__":
     check_location()
     settings = read_config()
     json_data = get_json_from_url(settings)
+    save_json_allpages(settings, json_data)
 
     print("=== END ===")
