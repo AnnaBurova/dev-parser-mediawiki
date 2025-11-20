@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import sys
 import os
+
 import newtutils.console as NewtCons
 import newtutils.files as NewtFiles
 import newtutils.network as NewtNet
@@ -52,6 +53,7 @@ def check_dict_keys(
 
     if missing_keys or extra_keys:
         NewtCons.error_msg(
+            f"Data keys: {', '.join(data_keys)}",
             f"Missing keys: {', '.join(missing_keys)}",
             f"Unexpected keys: {', '.join(extra_keys)}",
             location="mwparser.check_dict_keys"
@@ -99,6 +101,7 @@ def get_json_from_url(
         "User-Agent": "MyGuildWarsBot/1.1 (burova.anna+parser+bot@gmail.com)",
         "Accept-Encoding": "gzip",
     }
+
     params = {
         "action": settings["action"],
         "list": settings["list"],
