@@ -65,6 +65,25 @@ def check_dict_keys(
         )
 
 
+def get_blocked_list(
+        ) -> set[str]:
+    """Read blocked list from file and return as a set."""
+
+    file_blocked = os.path.join(settings["FOLDER_LINK"], folder_lists, "blocked.txt")
+    blocked_list = NewtFiles.read_text_from_file(file_blocked)
+
+    blocked_set = set()
+    for line in blocked_list.splitlines():
+        line = line.strip()
+        if line:
+            blocked_set.add(line)
+
+    print(blocked_list)
+    print(blocked_set)
+
+    return blocked_set
+
+
 def read_config(
         ) -> dict:
     """Read configuration from a selected JSON file."""
@@ -161,7 +180,7 @@ def get_json_from_url(
 
 def restructure_json_allpages(
         json_data_dict: dict
-        ) -> list[str]:
+        ) -> tuple[list[str], str]:
     """Process and save all pages from JSON data."""
 
     required_keys_json = {"query", "continue", "batchcomplete", "limits"}
@@ -174,16 +193,19 @@ def restructure_json_allpages(
     for page in json_data_dict["query"]["allpages"]:
         required_keys_allpages = {"pageid", "ns", "title"}
         check_dict_keys(page, required_keys_allpages)
+
         if page["ns"] != 0:
             NewtCons.error_msg(
                 f"Unexpected namespace value: {page['ns']} for page ID {page['pageid']}",
                 location="mwparser.______ : page['ns']"
             )
-        # print(f"Page ID: {page['pageid']:010d}, Title: {page['title']}")
-        allpages_list.append(f"Page ID: {page['pageid']:010d}, Title: {page['title']}")
-        mw_apcontinue = page["title"]
 
-    return allpages_list
+        allpages_list.append(f"Page ID: {page['pageid']:010d}, Title: {page['title']}")
+
+        if page["title"] not in blocked_set:
+            mw_apcontinue = page["title"]
+
+    return (allpages_list, mw_apcontinue)
 
 
 def save_list_data(
@@ -205,7 +227,8 @@ if __name__ == "__main__":
     settings = read_config()
     args_for_url = set_args_for_url()
     json_data = get_json_from_url()
-    list_data = restructure_json_allpages(json_data)
+    blocked_set = get_blocked_list()
+    list_data, mw_apcontinue = restructure_json_allpages(json_data)
     save_list_data(list_data, False)
 
     print("=== END ===")
