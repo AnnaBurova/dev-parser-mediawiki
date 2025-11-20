@@ -30,6 +30,7 @@ check_config_folder = True
 folder_raw_pages = os.path.join("data", "raw", "pages")
 folder_lists = os.path.join("data", "lists")
 file_allpages_list = "allpages-list.txt"
+file_blocked = "blocked.txt"
 
 
 def check_location(
@@ -69,8 +70,8 @@ def get_blocked_list(
         ) -> set[str]:
     """Read blocked list from file and return as a set."""
 
-    file_blocked = os.path.join(settings["FOLDER_LINK"], folder_lists, "blocked.txt")
-    blocked_list = NewtFiles.read_text_from_file(file_blocked)
+    file_blocked_path = os.path.join(settings["FOLDER_LINK"], folder_lists, file_blocked)
+    blocked_list = NewtFiles.read_text_from_file(file_blocked_path)
 
     blocked_set = set()
     for line in blocked_list.splitlines():
