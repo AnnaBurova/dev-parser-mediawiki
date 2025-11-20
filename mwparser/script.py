@@ -179,18 +179,29 @@ def restructure_json_allpages(
         allpages_list.append(f"Page ID: {page['pageid']:010d}, Title: {page['title']}")
         mw_apcontinue = page["title"]
 
+    return allpages_list
+
+
+def save_list_data(
+        list_data_str: list[str],
+        append: bool = True
+        ) -> None:
+    """Save the restructured list data to a file."""
+
     folder_link = os.path.join(settings["FOLDER_LINK"], "data", "raw", "pages")
     NewtFiles.save_text_to_file(
         os.path.join(dir_, folder_link, "allpages-list.txt"),
-        "\n".join(allpages_list),
-        append=True
+        "\n".join(list_data_str),
+        append=append
     )
     print()
+
 
 if __name__ == "__main__":
     check_location()
     settings = read_config()
     json_data = get_json_from_url(settings)
     list_data = restructure_json_allpages(json_data)
+    save_list_data(list_data, False)
 
     print("=== END ===")
