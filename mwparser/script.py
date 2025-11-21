@@ -62,7 +62,8 @@ def check_dict_keys(
             f"Data keys: {', '.join(data_keys)}",
             f"Missing keys: {', '.join(missing_keys)}",
             f"Unexpected keys: {', '.join(extra_keys)}",
-            location="mwparser.check_dict_keys"
+            location="mwparser.check_dict_keys",
+            stop=False
         )
 
 
