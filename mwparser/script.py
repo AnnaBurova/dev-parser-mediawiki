@@ -155,7 +155,7 @@ def get_json_from_url(
 
     data_from_url = NewtNet.fetch_data_from_url(
         settings["BASE_URL"], params, headers,
-        mode="alert"
+        mode="alert", repeat_on_fail=False
     )
     print()
 
