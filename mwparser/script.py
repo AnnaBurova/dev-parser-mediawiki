@@ -73,6 +73,7 @@ def get_blocked_list(
 
     file_blocked_path = os.path.join(settings["FOLDER_LINK"], folder_lists, file_blocked)
     blocked_list = NewtFiles.read_text_from_file(file_blocked_path)
+    print()
 
     blocked_set = set()
     for line in blocked_list.splitlines():
@@ -132,7 +133,7 @@ def set_args_for_url(
         "aplimit": settings["aplimit"],
         "format": "json",
         "maxlag": "1",
-        # "apcontinue": "Grawl",
+        # "apcontinue": "",
     }
 
     return (headers, params)
@@ -185,11 +186,11 @@ def get_json_from_url(
     )
     assert isinstance(json_from_url, dict)
 
-    NewtFiles.save_json_to_file(
-        os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, "allpages-last-result.json"),
-        json_from_url,
-    )
-    print()
+    # NewtFiles.save_json_to_file(
+    #     os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, "allpages-last-result.json"),
+    #     json_from_url,
+    # )
+    # print()
 
     return json_from_url
 
@@ -246,8 +247,12 @@ if __name__ == "__main__":
     blocked_set = get_blocked_list()
     list_data, mw_apcontinue = restructure_json_allpages(json_data)
     save_list_data(list_data, False)
+
     try:
         while True:
+            if "continue" not in json_data or not mw_apcontinue:
+                break
+
             required_keys = {"apcontinue", "continue"}
             check_dict_keys(json_data["continue"], required_keys)
             json_data = get_json_from_url(
@@ -256,9 +261,10 @@ if __name__ == "__main__":
             )
             list_data, mw_apcontinue = restructure_json_allpages(json_data)
             save_list_data(list_data)
+
     except Exception as e:
         print(f"Script encountered an error: {e}")
     except SystemExit:
-        print(f"Finished fetching all pages")
+        print(f"SystemExit on fetching all pages")
 
     print("=== END ===")
