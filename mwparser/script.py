@@ -159,6 +159,14 @@ def get_json_from_url(
 
     # ensure the type checker knows settings is not None and is a dict
     if data_from_url is None:
+        if apcontinue is not None:
+            file_blocked_path = os.path.join(settings["FOLDER_LINK"], folder_lists, file_blocked)
+            NewtFiles.save_text_to_file(
+                file_blocked_path,
+                apcontinue,
+                append=True
+            )
+
         NewtCons.error_msg(
             "Failed to read config JSON, exiting",
             location="mwparser.get_json_from_url : data_from_url=None"
