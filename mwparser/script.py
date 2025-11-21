@@ -86,6 +86,8 @@ def read_config(
         ) -> dict:
     """Read configuration from a selected JSON file."""
 
+    global choose_config
+
     if check_config_folder:
         choose_config = NewtFiles.choose_file_from_folder(os.path.join(dir_parser, "configs"))
 
