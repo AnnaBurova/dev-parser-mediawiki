@@ -32,7 +32,7 @@ check_apcontinue = False
 
 folder_raw_pages = os.path.join("data", "raw", "pages")
 folder_lists = os.path.join("data", "lists")
-file_allpages_list = "allpages-list.txt"
+file_allpages_list = "allpages-list.csv"
 file_blocked = "blocked.txt"
 
 
@@ -116,6 +116,7 @@ def read_config(
     assert isinstance(settings, dict)
 
     config_type = choose_config.split("-")
+
     if config_type[0] == "allpages":
         required_keys = {"FOLDER_LINK", "BASE_URL"}
         check_dict_keys(settings, required_keys)
@@ -132,6 +133,7 @@ def read_config(
         settings["rvprop"] = "content"
         settings["rvslots"] = "main"
         settings["config_type"] = "pageids"
+
     else:
         NewtCons.error_msg(
             f"Unexpected config type: {config_type[0]}",
@@ -157,6 +159,7 @@ def set_args_for_url(
         "format": "json",
         "maxlag": "1",
     }
+
     if check_apcontinue:
         params.update({"apcontinue": set_apcontinue})
 
@@ -241,7 +244,7 @@ def restructure_json_allpages(
                 location="mwparser.______ : page['ns']"
             )
 
-        allpages_list.append(f"Page ID: {page['pageid']:010d}, Title: {page['title']}")
+        allpages_list.append(f"{page['pageid']:010d};{page['title']}")
 
         if page["title"].replace(" ", "_") not in blocked_set:
             mw_apcontinue = page["title"].replace(" ", "_")
