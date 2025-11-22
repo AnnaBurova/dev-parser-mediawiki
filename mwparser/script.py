@@ -62,9 +62,9 @@ def check_dict_keys(
 
     if missing_keys or extra_keys:
         NewtCons.error_msg(
-            f"Data keys: {', '.join(data_keys)}",
-            f"Missing keys: {', '.join(missing_keys)}",
-            f"Unexpected keys: {', '.join(extra_keys)}",
+            f"Data keys: {', '.join(sorted(data_keys))}",
+            f"Missing keys: {', '.join(sorted(missing_keys))}",
+            f"Unexpected keys: {', '.join(sorted(extra_keys))}",
             location="mwparser.check_dict_keys",
             stop=False
         )
@@ -223,8 +223,8 @@ def restructure_json_allpages(
 
         allpages_list.append(f"Page ID: {page['pageid']:010d}, Title: {page['title']}")
 
-        if page["title"] not in blocked_set:
-            mw_apcontinue = page["title"]
+        if page["title"].replace(" ", "_") not in blocked_set:
+            mw_apcontinue = page["title"].replace(" ", "_")
 
     return (allpages_list, mw_apcontinue)
 
@@ -260,7 +260,7 @@ if __name__ == "__main__":
             required_keys = {"apcontinue", "continue"}
             check_dict_keys(json_data["continue"], required_keys)
             json_data = get_json_from_url(
-                json_data["continue"]["apcontinue"],
+                json_data["continue"]["apcontinue"].replace(" ", "_"),
                 mw_apcontinue
             )
             list_data, mw_apcontinue = restructure_json_allpages(json_data)
