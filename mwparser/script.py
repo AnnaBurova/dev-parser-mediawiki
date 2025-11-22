@@ -243,8 +243,8 @@ if __name__ == "__main__":
     check_location()
     settings = read_config()
     args_for_url = set_args_for_url()
-    json_data = get_json_from_url()
     blocked_set = get_blocked_list()
+    json_data = get_json_from_url()
     list_data, mw_apcontinue = restructure_json_allpages(json_data)
     save_list_data(list_data, False)
 
