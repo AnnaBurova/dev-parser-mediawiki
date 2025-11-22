@@ -115,8 +115,28 @@ def read_config(
     )
     assert isinstance(settings, dict)
 
-    required_keys = {"FOLDER_LINK", "BASE_URL", "action", "list", "aplimit"}
-    check_dict_keys(settings, required_keys)
+    config_type = choose_config.split("-")
+    if config_type[0] == "allpages":
+        required_keys = {"FOLDER_LINK", "BASE_URL"}
+        check_dict_keys(settings, required_keys)
+        settings["action"] = "query"
+        settings["list"] = "allpages"
+        settings["aplimit"] = "max"
+        settings["config_type"] = "allpages"
+
+    elif config_type[0] == "pageids":
+        required_keys = {"FOLDER_LINK", "BASE_URL", "pageids"}
+        check_dict_keys(settings, required_keys)
+        settings["action"] = "query"
+        settings["prop"] = "revisions"
+        settings["rvprop"] = "content"
+        settings["rvslots"] = "main"
+        settings["config_type"] = "pageids"
+    else:
+        NewtCons.error_msg(
+            f"Unexpected config type: {config_type[0]}",
+            location="mwparser.read_config : config_type"
+        )
 
     return settings
 
