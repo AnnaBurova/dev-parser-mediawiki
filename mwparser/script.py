@@ -27,6 +27,9 @@ must_location = os.path.join("D:\\", "VS_Code")
 choose_config = "allpages-xxx.json"
 check_config_folder = True
 
+set_apcontinue = ""
+check_apcontinue = False
+
 folder_raw_pages = os.path.join("data", "raw", "pages")
 folder_lists = os.path.join("data", "lists")
 file_allpages_list = "allpages-list.txt"
@@ -133,8 +136,9 @@ def set_args_for_url(
         "aplimit": settings["aplimit"],
         "format": "json",
         "maxlag": "1",
-        # "apcontinue": "",
     }
+    if check_apcontinue:
+        params.update({"apcontinue": set_apcontinue})
 
     return (headers, params)
 
