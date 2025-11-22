@@ -120,7 +120,6 @@ def read_config(
     if config_type[0] == "allpages":
         required_keys = {"FOLDER_LINK", "BASE_URL"}
         check_dict_keys(settings, required_keys)
-        settings["action"] = "query"
         settings["list"] = "allpages"
         settings["aplimit"] = "max"
         settings["config_type"] = "allpages"
@@ -128,7 +127,6 @@ def read_config(
     elif config_type[0] == "pageids":
         required_keys = {"FOLDER_LINK", "BASE_URL", "pageids"}
         check_dict_keys(settings, required_keys)
-        settings["action"] = "query"
         settings["prop"] = "revisions"
         settings["rvprop"] = "content"
         settings["rvslots"] = "main"
@@ -153,15 +151,22 @@ def set_args_for_url(
     }
 
     params = {
-        "action": settings["action"],
-        "list": settings["list"],
-        "aplimit": settings["aplimit"],
+        "action": "query",
         "format": "json",
         "maxlag": "1",
     }
 
-    if check_apcontinue:
-        params.update({"apcontinue": set_apcontinue})
+    if settings["config_type"] == "allpages":
+        params.update({"list": settings["list"]})
+        params.update({"aplimit": settings["aplimit"]})
+
+        if check_apcontinue:
+            params.update({"apcontinue": set_apcontinue})
+
+    elif settings["config_type"] == "pageids":
+        params.update({"prop": settings["prop"]})
+        params.update({"rvprop": settings["rvprop"]})
+        params.update({"rvslots": settings["rvslots"]})
 
     return (headers, params)
 
