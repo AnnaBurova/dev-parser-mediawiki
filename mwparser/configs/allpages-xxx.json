@@ -1,7 +1,4 @@
 {
   "FOLDER_LINK" : "folder_name",
-  "BASE_URL" : "https://example.com/api.php",
-  "action": "query",
-  "list": "allpages",
-  "aplimit": "max"
+  "BASE_URL" : "https://example.com/api.php"
 }
