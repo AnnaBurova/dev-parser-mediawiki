@@ -249,10 +249,9 @@ def restructure_json_allpages(
                 location="mwparser.restructure_json_allpages : page['ns']"
             )
 
-        allpages_list.append(f"{page['pageid']:010d};{page['title']}")
-
         if page["title"].replace(" ", "_") not in blocked_set:
             mw_apcontinue = page["title"].replace(" ", "_")
+            allpages_list.append(f"{page['pageid']:010d};{page['title']}")
 
     return (allpages_list, mw_apcontinue)
 
