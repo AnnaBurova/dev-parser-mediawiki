@@ -246,7 +246,7 @@ def restructure_json_allpages(
         if page["ns"] != 0:
             NewtCons.error_msg(
                 f"Unexpected namespace value: {page['ns']} for page ID {page['pageid']}",
-                location="mwparser.______ : page['ns']"
+                location="mwparser.restructure_json_allpages : page['ns']"
             )
 
         allpages_list.append(f"{page['pageid']:010d};{page['title']}")
