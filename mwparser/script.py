@@ -35,7 +35,6 @@ check_apnamespace = True
 
 folder_raw_pages = os.path.join("data", "raw", "pages")
 folder_lists = os.path.join("data", "lists")
-file_allpages_list = "allpages-list.csv"
 file_blocked = "blocked.txt"
 
 
@@ -141,6 +140,60 @@ def read_config(
             f"Unexpected config type: {config_type[0]}",
             location="mwparser.read_config : config_type[0]"
         )
+
+    if check_apnamespace:
+        namespace_types = NewtFiles.read_json_from_file(
+            os.path.join(dir_parser, "configs", "namespace_types.json")
+        )
+        # ensure the type checker knows namespace_types is a dict
+        NewtCons.validate_input(
+            namespace_types, dict,
+            location="mwparser.read_config : namespace_types"
+        )
+        assert isinstance(namespace_types, dict)
+
+        # Display numbered list
+        print("\nAvailable namespaces:", len(namespace_types))
+        for nr, name in namespace_types.items():
+            print(f"{nr:>3}: {name}")
+        print("999: Exit / Cancel")
+
+        index = 999
+        # Loop until valid input
+        while index not in namespace_types:
+            try:
+                choice = input("\nEnter namespace number (999 to exit): ").strip()
+                print(f"[INPUT]: {choice}")
+
+                if choice == "999":
+                    print("Selection cancelled.")
+                    sys.exit()
+
+                if not choice.isdigit():
+                    print("Invalid input. Please enter a number.")
+                    continue
+
+                index = int(choice)
+                if index in namespace_types:
+                    apnamespace_nr = index
+                    print(f"Selected namespace: {namespace_types[index]}\n")
+
+                else:
+                    print("Number out of range. Try again.")
+
+            except KeyboardInterrupt:
+                print("\nSelection cancelled by user.")
+                sys.exit()
+
+            except Exception as e:
+                NewtCons.error_msg(
+                    f"Exception: {e}",
+                    location="mwparser.read_config : config_type",
+                    stop=False
+                )
+                sys.exit()
+
+    settings["file_name"] = f"allpages-{apnamespace_nr:05d}.csv"
 
     return settings
 
@@ -264,7 +317,7 @@ def save_list_data(
     """Save the restructured list data to a file."""
 
     NewtFiles.save_text_to_file(
-        os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, file_allpages_list),
+        os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, settings["file_name"]),
         "\n".join(list_data_str),
         append=append
     )
