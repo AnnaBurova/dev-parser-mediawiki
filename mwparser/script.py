@@ -158,9 +158,9 @@ def read_config(
             print(f"{nr:>3}: {name}")
         print("999: Exit / Cancel")
 
-        index = 999
+        choice = 999
         # Loop until valid input
-        while index not in namespace_types:
+        while choice not in namespace_types:
             try:
                 choice = input("\nEnter namespace number (999 to exit): ").strip()
                 print(f"[INPUT]: {choice}")
@@ -173,10 +173,9 @@ def read_config(
                     print("Invalid input. Please enter a number.")
                     continue
 
-                index = int(choice)
-                if index in namespace_types:
-                    apnamespace_nr = index
-                    print(f"Selected namespace: {namespace_types[index]}\n")
+                if choice in namespace_types:
+                    apnamespace_nr = int(choice)
+                    print(f"Selected namespace: {namespace_types[choice]}\n")
 
                 else:
                     print("Number out of range. Try again.")
