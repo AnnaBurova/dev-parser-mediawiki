@@ -30,6 +30,9 @@ check_config_folder = True
 set_apcontinue = ""
 check_apcontinue = False
 
+apnamespace_nr = 0
+check_apnamespace = True
+
 folder_raw_pages = os.path.join("data", "raw", "pages")
 folder_lists = os.path.join("data", "lists")
 file_allpages_list = "allpages-list.csv"
@@ -92,6 +95,7 @@ def read_config(
     """Read configuration from a selected JSON file."""
 
     global choose_config
+    global apnamespace_nr
 
     if check_config_folder:
         choose_config = NewtFiles.choose_file_from_folder(os.path.join(dir_parser, "configs"))
@@ -142,6 +146,7 @@ def read_config(
 
 
 def set_args_for_url(
+        apnamespace: int
         ) -> tuple:
     """Set headers and parameters for the URL request based on settings."""
 
@@ -159,6 +164,7 @@ def set_args_for_url(
     if settings["config_type"] == "allpages":
         params.update({"list": settings["list"]})
         params.update({"aplimit": settings["aplimit"]})
+        params.update({"apnamespace": str(apnamespace)})
 
         if check_apcontinue:
             params.update({"apcontinue": set_apcontinue})
@@ -237,7 +243,7 @@ def restructure_json_allpages(
         required_keys_allpages = {"pageid", "ns", "title"}
         check_dict_keys(page, required_keys_allpages)
 
-        if page["ns"] != 0:
+        if page["ns"] != apnamespace_nr:
             NewtCons.error_msg(
                 f"Unexpected namespace value: {page['ns']} for page ID {page['pageid']}",
                 f"Page: {page}",
@@ -268,7 +274,7 @@ def save_list_data(
 if __name__ == "__main__":
     check_location()
     settings = read_config()
-    args_for_url = set_args_for_url()
+    args_for_url = set_args_for_url(apnamespace_nr)
     blocked_set = get_blocked_list()
     json_data = get_json_from_url()
     list_data, mw_apcontinue = restructure_json_allpages(json_data)
