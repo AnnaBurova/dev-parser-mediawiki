@@ -24,7 +24,7 @@ sys.path.append(dir_)
 
 must_location = os.path.join("D:\\", "VS_Code")
 
-choose_config = "allpages-xxx.json"
+choose_config = "xxx.json"
 check_config_folder = True
 
 set_apcontinue = ""
