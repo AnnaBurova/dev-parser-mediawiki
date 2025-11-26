@@ -135,7 +135,7 @@ def read_config(
     else:
         NewtCons.error_msg(
             f"Unexpected config type: {config_type[0]}",
-            location="mwparser.read_config : config_type"
+            location="mwparser.read_config : config_type[0]"
         )
 
     return settings
@@ -143,7 +143,7 @@ def read_config(
 
 def set_args_for_url(
         ) -> tuple:
-    """Set arguments for URL request based on settings."""
+    """Set headers and parameters for the URL request based on settings."""
 
     headers = {
         "User-Agent": "MyGuildWarsBot/1.1 (burova.anna+parser+bot@gmail.com)",
@@ -218,12 +218,6 @@ def get_json_from_url(
     )
     assert isinstance(json_from_url, dict)
 
-    # NewtFiles.save_json_to_file(
-    #     os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, "allpages-last-result.json"),
-    #     json_from_url,
-    # )
-    # print()
-
     return json_from_url
 
 
@@ -246,6 +240,7 @@ def restructure_json_allpages(
         if page["ns"] != 0:
             NewtCons.error_msg(
                 f"Unexpected namespace value: {page['ns']} for page ID {page['pageid']}",
+                f"Page: {page}",
                 location="mwparser.restructure_json_allpages : page['ns']"
             )
 
