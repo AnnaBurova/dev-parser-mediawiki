@@ -168,11 +168,12 @@ def read_config(
     )
     assert isinstance(settings, dict)
 
+    required_keys = {"FOLDER_LINK", "BASE_URL"}
+    check_dict_keys(settings, required_keys)
+
     config_type = choose_config.split("-")
 
     if config_type[0] == "allpages":
-        required_keys = {"FOLDER_LINK", "BASE_URL"}
-        check_dict_keys(settings, required_keys)
         settings["list"] = "allpages"
         settings["aplimit"] = "max"
         settings["config_type"] = "allpages"
