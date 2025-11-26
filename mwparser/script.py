@@ -72,6 +72,56 @@ def check_dict_keys(
         )
 
 
+def select_from_input(
+        select_dict: dict[str, str]
+        ) -> str | None:
+    """Select an option from input based on a provided dictionary."""
+
+    # Display numbered list
+    print()
+    print("Available list:", len(select_dict))
+    for nr, name in select_dict.items():
+        print(f"{nr:>3}: {name}")
+    print("999: Exit / Cancel")
+
+    choice = 999
+    # Loop until valid input
+    while choice not in select_dict:
+        try:
+            choice = input("\nEnter number from list (999 to exit): ").strip()
+            print(f"[INPUT]: {choice}")
+
+            if choice == "999":
+                NewtCons.error_msg(
+                    "Selection cancelled.",
+                    location="mwparser.select_from_input : choice = 999"
+                )
+
+            if not choice.isdigit():
+                print("Invalid input. Please enter a number.")
+                continue
+
+            if choice in select_dict:
+                print(f"Selected option: {select_dict[choice]}")
+                print()
+                return choice
+
+            else:
+                print("Number out of range. Try again.")
+
+        except KeyboardInterrupt:
+            NewtCons.error_msg(
+                "Selection cancelled by user.",
+                location="mwparser.select_from_input : KeyboardInterrupt"
+            )
+
+        except Exception as e:
+            NewtCons.error_msg(
+                f"Exception: {e}",
+                location="mwparser.select_from_input : Exception"
+            )
+
+
 def get_blocked_list(
         ) -> set[str]:
     """Read blocked list from file and return as a set."""
@@ -152,45 +202,14 @@ def read_config(
         )
         assert isinstance(namespace_types, dict)
 
-        # Display numbered list
-        print("\nAvailable namespaces:", len(namespace_types))
-        for nr, name in namespace_types.items():
-            print(f"{nr:>3}: {name}")
-        print("999: Exit / Cancel")
-
-        choice = 999
-        # Loop until valid input
-        while choice not in namespace_types:
-            try:
-                choice = input("\nEnter namespace number (999 to exit): ").strip()
-                print(f"[INPUT]: {choice}")
-
-                if choice == "999":
-                    print("Selection cancelled.")
-                    sys.exit()
-
-                if not choice.isdigit():
-                    print("Invalid input. Please enter a number.")
-                    continue
-
-                if choice in namespace_types:
-                    apnamespace_nr = int(choice)
-                    print(f"Selected namespace: {namespace_types[choice]}\n")
-
-                else:
-                    print("Number out of range. Try again.")
-
-            except KeyboardInterrupt:
-                print("\nSelection cancelled by user.")
-                sys.exit()
-
-            except Exception as e:
-                NewtCons.error_msg(
-                    f"Exception: {e}",
-                    location="mwparser.read_config : config_type",
-                    stop=False
-                )
-                sys.exit()
+        apnamespace_nr = select_from_input(namespace_types)
+        if apnamespace_nr is None:
+            NewtCons.error_msg(
+                "No namespace selected, exiting",
+                location="mwparser.read_config : apnamespace_nr=None"
+            )
+        else:
+            apnamespace_nr = int(apnamespace_nr)
 
     settings["file_name"] = f"allpages-{apnamespace_nr:05d}.csv"
 
