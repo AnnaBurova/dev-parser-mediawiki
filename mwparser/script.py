@@ -237,6 +237,8 @@ def set_args_for_url(
         "action": "query",
         "format": "json",
         "maxlag": "1",
+        "utf8": "true",
+        "formatversion": "2",
     }
 
     if settings["config_type"] == "allpages":
