@@ -171,12 +171,19 @@ def read_config(
     required_keys = {"FOLDER_LINK", "BASE_URL"}
     check_dict_keys(settings, required_keys)
 
-    config_type = choose_config.split("-")
+    config_type_list = {
+        "1": "allpages",
+    }
 
-    if config_type[0] == "allpages":
+    config_type_nr = select_from_input(config_type_list)
+    assert config_type_nr is not None
+
+    config_type = config_type_list[config_type_nr]
+    settings["config_type"] = config_type
+
+    if config_type == "allpages":
         settings["list"] = "allpages"
         settings["aplimit"] = "max"
-        settings["config_type"] = "allpages"
 
     elif config_type[0] == "pageids":
         required_keys = {"FOLDER_LINK", "BASE_URL", "pageids"}
@@ -184,12 +191,11 @@ def read_config(
         settings["prop"] = "revisions"
         settings["rvprop"] = "content"
         settings["rvslots"] = "main"
-        settings["config_type"] = "pageids"
 
     else:
         NewtCons.error_msg(
-            f"Unexpected config type: {config_type[0]}",
-            location="mwparser.read_config : config_type[0]"
+            f"Unexpected config type: {config_type}",
+            location="mwparser.read_config : config_type"
         )
 
     if check_apnamespace:
