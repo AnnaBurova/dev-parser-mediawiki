@@ -31,6 +31,8 @@ check_config_folder = True
 set_apcontinue = ""
 check_apcontinue = False
 
+namespace_types = {}
+
 apnamespace_nr = 0
 check_apnamespace = True
 
@@ -151,6 +153,7 @@ def read_config(
     """Read configuration from a selected JSON file."""
 
     global choose_config
+    global namespace_types
     global apnamespace_nr
 
     if check_config_folder:
@@ -188,21 +191,21 @@ def read_config(
     config_type = config_type_list[config_type_nr]
     settings["config_type"] = config_type
 
+    namespace_types = NewtFiles.read_json_from_file(
+        os.path.join(dir_, settings["FOLDER_LINK"], "data", "lists", "namespace_types.json")
+    )
+    # ensure the type checker knows namespace_types is a dict
+    NewtCons.validate_input(
+        namespace_types, dict,
+        location="mwparser.read_config : namespace_types"
+    )
+    assert isinstance(namespace_types, dict)
+
     if config_type == "allpages":
         settings["list"] = "allpages"
         settings["aplimit"] = "max"
 
         if check_apnamespace:
-            namespace_types = NewtFiles.read_json_from_file(
-                os.path.join(dir_, settings["FOLDER_LINK"], "data", "lists", "namespace_types.json")
-            )
-            # ensure the type checker knows namespace_types is a dict
-            NewtCons.validate_input(
-                namespace_types, dict,
-                location="mwparser.read_config : namespace_types"
-            )
-            assert isinstance(namespace_types, dict)
-
             apnamespace_nr = select_from_input(namespace_types)
             if apnamespace_nr is None:
                 NewtCons.error_msg(
