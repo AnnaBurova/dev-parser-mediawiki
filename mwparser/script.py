@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import sys
 import os
+from datetime import datetime, timedelta, timezone
 
 import newtutils.console as NewtCons
 import newtutils.files as NewtFiles
@@ -32,6 +33,11 @@ check_apcontinue = False
 
 apnamespace_nr = 0
 check_apnamespace = True
+
+time_now = datetime.now(timezone.utc)
+time_start = time_now - timedelta(days=0, hours=0)
+time_start = time_start.strftime('%Y-%m-%dT%H:%M:%SZ')
+time_end = time_now - timedelta(days=7, hours=0)
 
 folder_raw_pages = os.path.join("data", "raw", "pages")
 folder_lists = os.path.join("data", "lists")
