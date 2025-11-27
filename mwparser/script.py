@@ -38,6 +38,7 @@ time_now = datetime.now(timezone.utc)
 time_start = time_now - timedelta(days=0, hours=0)
 time_start = time_start.strftime('%Y-%m-%dT%H:%M:%SZ')
 time_end = time_now - timedelta(days=7, hours=0)
+time_end = time_end.strftime('%Y-%m-%dT%H:%M:%SZ')
 
 folder_raw_pages = os.path.join("data", "raw", "pages")
 folder_lists = os.path.join("data", "lists")
