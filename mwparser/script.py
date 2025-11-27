@@ -191,6 +191,28 @@ def read_config(
         settings["list"] = "allpages"
         settings["aplimit"] = "max"
 
+        if check_apnamespace:
+            namespace_types = NewtFiles.read_json_from_file(
+                os.path.join(dir_, settings["FOLDER_LINK"], "data", "lists", "namespace_types.json")
+            )
+            # ensure the type checker knows namespace_types is a dict
+            NewtCons.validate_input(
+                namespace_types, dict,
+                location="mwparser.read_config : namespace_types"
+            )
+            assert isinstance(namespace_types, dict)
+
+            apnamespace_nr = select_from_input(namespace_types)
+            if apnamespace_nr is None:
+                NewtCons.error_msg(
+                    "No namespace selected, exiting",
+                    location="mwparser.read_config : apnamespace_nr=None"
+                )
+            else:
+                apnamespace_nr = int(apnamespace_nr)
+
+        settings["file_name"] = os.path.join("allpages", f"{apnamespace_nr:05d}.csv")
+
     elif config_type[0] == "pageids":
         required_keys = {"FOLDER_LINK", "BASE_URL", "pageids"}
         check_dict_keys(settings, required_keys)
@@ -203,28 +225,6 @@ def read_config(
             f"Unexpected config type: {config_type}",
             location="mwparser.read_config : config_type"
         )
-
-    if check_apnamespace:
-        namespace_types = NewtFiles.read_json_from_file(
-            os.path.join(dir_, settings["FOLDER_LINK"], "data", "lists", "namespace_types.json")
-        )
-        # ensure the type checker knows namespace_types is a dict
-        NewtCons.validate_input(
-            namespace_types, dict,
-            location="mwparser.read_config : namespace_types"
-        )
-        assert isinstance(namespace_types, dict)
-
-        apnamespace_nr = select_from_input(namespace_types)
-        if apnamespace_nr is None:
-            NewtCons.error_msg(
-                "No namespace selected, exiting",
-                location="mwparser.read_config : apnamespace_nr=None"
-            )
-        else:
-            apnamespace_nr = int(apnamespace_nr)
-
-    settings["file_name"] = f"allpages-{apnamespace_nr:05d}.csv"
 
     return settings
 
