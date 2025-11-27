@@ -344,6 +344,7 @@ def restructure_json_allpages(
     check_dict_keys(json_data_dict["query"], required_keys_query)
 
     allpages_list = []
+    allpages_list.append("pageid;title")
     mw_apcontinue = ""
     for page in json_data_dict["query"]["allpages"]:
         required_keys_allpages = {"pageid", "ns", "title"}
