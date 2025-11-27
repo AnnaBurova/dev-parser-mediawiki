@@ -440,8 +440,8 @@ if __name__ == "__main__":
                 check_dict_keys(json_data["continue"], required_keys)
 
                 json_data = get_json_from_url(
-                    json_data["continue"]["apcontinue"].replace(" ", "_"),
-                    mw_apcontinue
+                    apcontinue = json_data["continue"]["apcontinue"].replace(" ", "_"),
+                    mw_apcontinue = mw_apcontinue
                 )
                 list_data, mw_apcontinue = restructure_json_allpages(json_data)
 
