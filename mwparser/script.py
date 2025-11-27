@@ -388,7 +388,9 @@ def restructure_json_recentchanges(
                 stop=False
             )
 
-        recentchanges_list.append(f"{page['timestamp']};{page['type']};{page['pageid']:010d};{page['title']};{page['ns']}")
+        recentchanges_list.append(
+            f"{page['timestamp']};{page['type']};{page['pageid']:010d};{page['title'].replace('"', "")};{page['ns']}"
+        )
 
     return recentchanges_list
 
