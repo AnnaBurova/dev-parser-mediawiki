@@ -183,6 +183,7 @@ def read_config(
 
     config_type_list = {
         "1": "allpages",
+        "2": "recentchanges",
     }
 
     config_type_nr = select_from_input(config_type_list)
@@ -216,6 +217,14 @@ def read_config(
                 apnamespace_nr = int(apnamespace_nr)
 
         settings["file_name"] = os.path.join("allpages", f"{apnamespace_nr:05d}.csv")
+
+    elif config_type == "recentchanges":
+        settings["list"] = "recentchanges"
+        settings["rcnamespace"] = "*"
+        settings["rclimit"] = "max"
+        settings["rcstart"] = time_start
+        settings["rcend"] = time_end
+        settings["file_name"] = os.path.join("recentchanges.csv")
 
     elif config_type[0] == "pageids":
         required_keys = {"FOLDER_LINK", "BASE_URL", "pageids"}
@@ -258,6 +267,13 @@ def set_args_for_url(
 
         if check_apcontinue:
             params.update({"apcontinue": set_apcontinue})
+
+    elif settings["config_type"] == "recentchanges":
+        params.update({"list": settings["list"]})
+        params.update({"rcnamespace": settings["rcnamespace"]})
+        params.update({"rclimit": settings["rclimit"]})
+        params.update({"rcstart": settings["rcstart"]})
+        params.update({"rcend": settings["rcend"]})
 
     elif settings["config_type"] == "pageids":
         params.update({"prop": settings["prop"]})
@@ -347,6 +363,36 @@ def restructure_json_allpages(
     return (allpages_list, mw_apcontinue)
 
 
+def restructure_json_recentchanges(
+        json_data_dict: dict
+        ) -> list[str]:
+    """Process and save all pages from JSON data."""
+
+    required_keys_json = {"query", "continue", "batchcomplete", "limits"}
+    check_dict_keys(json_data_dict, required_keys_json)
+    required_keys_query = {"recentchanges"}
+    check_dict_keys(json_data_dict["query"], required_keys_query)
+
+    recentchanges_list = []
+    recentchanges_list.append("timestamp;pageid;title;ns")
+
+    for page in json_data_dict["query"]["recentchanges"]:
+        required_keys_recentchanges = {"type", "ns", "title", "pageid", "revid", "old_revid", "rcid", "timestamp"}
+        check_dict_keys(page, required_keys_recentchanges)
+
+        if str(page["ns"]) not in namespace_types:
+            NewtCons.error_msg(
+                f"Unexpected namespace value: {page['ns']} for page ID {page['title']}",
+                f"Page: {page}",
+                location="mwparser.restructure_json_recentchanges : page['ns']",
+                stop=False
+            )
+
+        recentchanges_list.append(f"{page['timestamp']};{page['pageid']:010d};{page['title']};{page['ns']}")
+
+    return recentchanges_list
+
+
 def save_list_data(
         list_data_str: list[str],
         append: bool = True
@@ -367,7 +413,19 @@ if __name__ == "__main__":
     args_for_url = set_args_for_url(apnamespace_nr)
     blocked_set = get_blocked_list()
     json_data = get_json_from_url()
-    list_data, mw_apcontinue = restructure_json_allpages(json_data)
+
+    if settings["config_type"] == "allpages":
+        list_data, mw_apcontinue = restructure_json_allpages(json_data)
+
+    elif settings["config_type"] == "recentchanges":
+        list_data = restructure_json_recentchanges(json_data)
+
+    else:
+        NewtCons.error_msg(
+            f"Unexpected config type: {settings['config_type']}",
+            location="mwparser.main : settings['config_type']"
+        )
+
     save_list_data(list_data, False)
 
     try:
