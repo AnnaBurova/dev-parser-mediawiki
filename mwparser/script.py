@@ -375,7 +375,7 @@ def restructure_json_recentchanges(
     check_dict_keys(json_data_dict["query"], required_keys_query)
 
     recentchanges_list = []
-    recentchanges_list.append("timestamp;type;pageid;title;ns")
+    recentchanges_list.append("timestamp;pageid;ns;type;title")
 
     for page in json_data_dict["query"]["recentchanges"]:
         required_keys_recentchanges = {"type", "ns", "title", "pageid", "revid", "old_revid", "rcid", "timestamp"}
@@ -390,7 +390,7 @@ def restructure_json_recentchanges(
             )
 
         recentchanges_list.append(
-            f"{page['timestamp']};{page['type']};{page['pageid']:010d};{page['title'].replace('"', "")};{page['ns']}"
+            f"{page['timestamp']};{page['pageid']:010d};{page['ns']:03d};{page['type']:>4};{page['title'].replace('"', "")}"
         )
 
     return recentchanges_list
