@@ -429,21 +429,25 @@ if __name__ == "__main__":
     save_list_data(list_data, False)
 
     try:
-        while True:
-            if "continue" not in json_data or not mw_apcontinue:
-                break
+        if settings["config_type"] == "allpages":
+            while True:
+                if "continue" not in json_data or not mw_apcontinue:
+                    break
 
-            required_keys = {"apcontinue", "continue"}
-            check_dict_keys(json_data["continue"], required_keys)
-            json_data = get_json_from_url(
-                json_data["continue"]["apcontinue"].replace(" ", "_"),
-                mw_apcontinue
-            )
-            list_data, mw_apcontinue = restructure_json_allpages(json_data)
-            save_list_data(list_data)
+                required_keys = {"apcontinue", "continue"}
+                check_dict_keys(json_data["continue"], required_keys)
+
+                json_data = get_json_from_url(
+                    json_data["continue"]["apcontinue"].replace(" ", "_"),
+                    mw_apcontinue
+                )
+                list_data, mw_apcontinue = restructure_json_allpages(json_data)
+
+                save_list_data(list_data)
 
     except Exception as e:
         print(f"Script encountered an error: {e}")
+
     except SystemExit:
         print(f"SystemExit on fetching all pages")
 
