@@ -426,41 +426,9 @@ def save_list_data(
     print()
 
 
-def remove_duplicated_lines(
+def loop_next_pages(
         ) -> None:
-    """Remove duplicated lines from the recentchanges file."""
-
-    file_path = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, settings["file_name"])
-    lines = NewtFiles.read_csv_from_file(file_path)
-    unique_lines = [list(t) for t in dict.fromkeys(map(tuple, lines))]
-
-    NewtFiles.save_csv_to_file(
-        file_path,
-        unique_lines
-    )
-    print()
-
-
-if __name__ == "__main__":
-    check_location()
-    settings = read_config()
-    args_for_url = set_args_for_url(apnamespace_nr)
-    blocked_set = get_blocked_list()
-    json_data = get_json_from_url()
-
-    if settings["config_type"] == "allpages":
-        list_data, mw_apcontinue = restructure_json_allpages(json_data)
-
-    elif settings["config_type"] == "recentchanges":
-        list_data = restructure_json_recentchanges(json_data)
-
-    else:
-        NewtCons.error_msg(
-            f"Unexpected config type: {settings['config_type']}",
-            location="mwparser.main : settings['config_type']"
-        )
-
-    save_list_data(list_data, False)
+    """Loop to fetch next pages based on the config type."""
 
     try:
         if settings["config_type"] == "allpages":
@@ -502,6 +470,42 @@ if __name__ == "__main__":
         print(f"SystemExit on fetching all pages")
 
 
+def remove_duplicated_lines(
+        ) -> None:
+    """Remove duplicated lines from the recentchanges file."""
+
+    file_path = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, settings["file_name"])
+    lines = NewtFiles.read_csv_from_file(file_path)
+    unique_lines = [list(t) for t in dict.fromkeys(map(tuple, lines))]
+
+    NewtFiles.save_csv_to_file(
+        file_path,
+        unique_lines
+    )
+    print()
+
+
+if __name__ == "__main__":
+    check_location()
+    settings = read_config()
+    args_for_url = set_args_for_url(apnamespace_nr)
+    blocked_set = get_blocked_list()
+    json_data = get_json_from_url()
+
+    if settings["config_type"] == "allpages":
+        list_data, mw_apcontinue = restructure_json_allpages(json_data)
+
+    elif settings["config_type"] == "recentchanges":
+        list_data = restructure_json_recentchanges(json_data)
+
+    else:
+        NewtCons.error_msg(
+            f"Unexpected config type: {settings['config_type']}",
+            location="mwparser.main : settings['config_type']"
+        )
+
+    save_list_data(list_data, False)
+    loop_next_pages()
     remove_duplicated_lines()
 
     print("=== END ===")
