@@ -21,15 +21,18 @@ time_start = time_start.strftime('%Y-%m-%dT%H:%M:%SZ')
 time_end = time_now - timedelta(days=7, hours=0)
 time_end = time_end.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-class Tee:
-    def __init__(self, a, b): self.a, self.b = a, b
-    def write(self, s): self.a.write(s); self.b.write(s)
-    def flush(self): self.a.flush(); self.b.flush()
+save_log = True
 
-old = sys.stdout
-f = open(time_file_name+".log", "a", encoding="utf-8", newline="\n")
-sys.stdout = Tee(old, f)
-sys.stderr = sys.stdout
+if save_log:
+    class Tee:
+        def __init__(self, a, b): self.a, self.b = a, b
+        def write(self, s): self.a.write(s); self.b.write(s)
+        def flush(self): self.a.flush(); self.b.flush()
+
+    old = sys.stdout
+    f = open(time_file_name+".txt", "a", encoding="utf-8", newline="\n")
+    sys.stdout = Tee(old, f)
+    sys.stderr = sys.stdout
 
 dir_parser = os.path.dirname(os.path.realpath(__file__))
 # print(dir_parser)  # D:\VS_Code\dev-parser-mediawiki\mwparser
