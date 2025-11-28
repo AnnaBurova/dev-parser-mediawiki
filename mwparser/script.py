@@ -360,7 +360,7 @@ def restructure_json_allpages(
     check_dict_keys(json_data_dict["query"], required_keys_query)
 
     allpages_list = []
-    allpages_list.append("pageid;title")
+    allpages_list.append(["pageid", "title"])
     mw_apcontinue = ""
     for page in json_data_dict["query"]["allpages"]:
         required_keys_allpages = {"pageid", "ns", "title"}
@@ -375,7 +375,10 @@ def restructure_json_allpages(
 
         if page["title"].replace(" ", "_") not in blocked_set:
             mw_apcontinue = page["title"].replace(" ", "_")
-            allpages_list.append(f"{page['pageid']:010d};{page['title']}")
+            allpages_list.append([
+                f"{page['pageid']:010d}",
+                page["title"],
+            ])
 
     return (allpages_list, mw_apcontinue)
 
@@ -391,7 +394,7 @@ def restructure_json_recentchanges(
     check_dict_keys(json_data_dict["query"], required_keys_query)
 
     recentchanges_list = []
-    recentchanges_list.append("timestamp;pageid;ns;type;title")
+    recentchanges_list.append(["timestamp", "pageid", "ns", "type", "title"])
 
     for page in json_data_dict["query"]["recentchanges"]:
         required_keys_recentchanges = {"type", "ns", "title", "pageid", "revid", "old_revid", "rcid", "timestamp"}
@@ -405,22 +408,26 @@ def restructure_json_recentchanges(
                 stop=False
             )
 
-        recentchanges_list.append(
-            f"{page['timestamp']};{page['pageid']:010d};{page['ns']:03d};{page['type']:>4};{page['title'].replace('"', "")}"
-        )
+        recentchanges_list.append([
+            page['timestamp'],
+            f"{page['pageid']:010d}",
+            f"{page['ns']:03d}",
+            f"{page['type']:>4}",
+            page["title"],
+        ])
 
     return recentchanges_list
 
 
 def save_list_data(
-        list_data_str: list[str],
+        list_data_list: list[str],
         append: bool = True
         ) -> None:
     """Save the restructured list data to a file."""
 
-    NewtFiles.save_text_to_file(
+    NewtFiles.save_csv_to_file(
         os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, settings["file_name"]),
-        "\n".join(list_data_str),
+        list_data_list,
         append=append
     )
     print()
