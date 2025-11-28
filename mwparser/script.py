@@ -285,7 +285,8 @@ def set_args_for_url(
 
 def get_json_from_url(
         apcontinue: str | None = None,
-        mw_apcontinue: str | None = None
+        mw_apcontinue: str | None = None,
+        rccontinue: str | None = None
         ) -> dict:
     """Fetch JSON data from a URL based on settings and save to file."""
 
@@ -298,6 +299,11 @@ def get_json_from_url(
         print(apcontinue)
 
         params.update({"apcontinue": apcontinue})
+
+    if rccontinue is not None:
+        print(rccontinue)
+
+        params.update({"rccontinue": rccontinue})
 
     data_from_url = NewtNet.fetch_data_from_url(
         settings["BASE_URL"], params, headers,
@@ -445,6 +451,22 @@ if __name__ == "__main__":
                     mw_apcontinue = mw_apcontinue
                 )
                 list_data, mw_apcontinue = restructure_json_allpages(json_data)
+
+                save_list_data(list_data)
+
+        elif settings["config_type"] == "recentchanges":
+            while True:
+                if "continue" not in json_data:
+                    break
+
+                required_keys = {"rccontinue", "continue"}
+                check_dict_keys(json_data["continue"], required_keys)
+
+                json_data = get_json_from_url(
+                    rccontinue = json_data["continue"]["rccontinue"]
+                )
+
+                list_data = restructure_json_recentchanges(json_data)
 
                 save_list_data(list_data)
 
