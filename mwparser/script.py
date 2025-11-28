@@ -416,6 +416,21 @@ def save_list_data(
     print()
 
 
+def remove_duplicated_lines(
+        ) -> None:
+    """Remove duplicated lines from the recentchanges file."""
+
+    file_path = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, settings["file_name"])
+    lines = NewtFiles.read_csv_from_file(file_path)
+    unique_lines = [list(t) for t in dict.fromkeys(map(tuple, lines))]
+
+    NewtFiles.save_csv_to_file(
+        file_path,
+        unique_lines
+    )
+    print()
+
+
 if __name__ == "__main__":
     check_location()
     settings = read_config()
@@ -475,5 +490,8 @@ if __name__ == "__main__":
 
     except SystemExit:
         print(f"SystemExit on fetching all pages")
+
+
+    remove_duplicated_lines()
 
     print("=== END ===")
