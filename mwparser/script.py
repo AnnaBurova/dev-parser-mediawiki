@@ -14,6 +14,13 @@ import newtutils.console as NewtCons
 import newtutils.files as NewtFiles
 import newtutils.network as NewtNet
 
+time_now = datetime.now(timezone.utc)
+time_file_name = time_now.strftime('%Y-%m-%d-%H-%M-%S')
+time_start = time_now - timedelta(days=0, hours=0)
+time_start = time_start.strftime('%Y-%m-%dT%H:%M:%SZ')
+time_end = time_now - timedelta(days=7, hours=0)
+time_end = time_end.strftime('%Y-%m-%dT%H:%M:%SZ')
+
 dir_parser = os.path.dirname(os.path.realpath(__file__))
 # print(dir_parser)  # D:\VS_Code\dev-parser-mediawiki\mwparser
 
@@ -35,12 +42,6 @@ namespace_types = {}
 
 apnamespace_nr = 0
 check_apnamespace = True
-
-time_now = datetime.now(timezone.utc)
-time_start = time_now - timedelta(days=0, hours=0)
-time_start = time_start.strftime('%Y-%m-%dT%H:%M:%SZ')
-time_end = time_now - timedelta(days=7, hours=0)
-time_end = time_end.strftime('%Y-%m-%dT%H:%M:%SZ')
 
 folder_raw_pages = os.path.join("data", "raw", "pages")
 folder_lists = os.path.join("data", "lists")
