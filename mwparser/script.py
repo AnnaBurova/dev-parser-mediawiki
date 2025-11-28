@@ -434,6 +434,8 @@ def save_list_data(
 
 
 def loop_next_pages(
+        json_data: dict,
+        mw_apcontinue: str | None = None
         ) -> None:
     """Loop to fetch next pages based on the config type."""
 
@@ -501,9 +503,13 @@ if __name__ == "__main__":
 
     if settings["config_type"] == "allpages":
         list_data, mw_apcontinue = restructure_json_allpages(json_data)
+        save_list_data(list_data, False)
+        loop_next_pages(json_data, mw_apcontinue)
 
     elif settings["config_type"] == "recentchanges":
         list_data = restructure_json_recentchanges(json_data)
+        save_list_data(list_data, False)
+        loop_next_pages(json_data)
 
     else:
         NewtCons.error_msg(
@@ -511,8 +517,6 @@ if __name__ == "__main__":
             location="mwparser.main : settings['config_type']"
         )
 
-    save_list_data(list_data, False)
-    loop_next_pages()
     remove_duplicated_lines()
 
     print("=== END ===")
