@@ -332,7 +332,7 @@ def get_json_from_url(
             file_blocked_path = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, file_blocked)
             NewtFiles.save_text_to_file(
                 file_blocked_path,
-                apcontinue,
+                apcontinue.replace(" ", "_"),
                 append=True
             )
 
@@ -379,6 +379,7 @@ def restructure_json_allpages(
             )
 
         if page["title"].replace(" ", "_") not in blocked_set:
+            mw_apcontinue = page["title"]
             left_part, sep_part, right_part = page["title"].partition(':')
             assert isinstance(namespace_types, dict)
             if sep_part and left_part in set(namespace_types.values()):
