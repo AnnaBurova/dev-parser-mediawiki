@@ -377,7 +377,11 @@ def restructure_json_allpages(
             )
 
         if page["title"].replace(" ", "_") not in blocked_set:
-            mw_apcontinue = page["title"].replace(" ", "_")
+            left_part, sep_part, right_part = page["title"].partition(':')
+            assert isinstance(namespace_types, dict)
+            if sep_part and left_part in set(namespace_types.values()):
+                mw_apcontinue = right_part.replace(" ", "_")
+
             allpages_list.append([
                 f"{page['pageid']:010d}",
                 page["title"],
