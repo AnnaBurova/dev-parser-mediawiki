@@ -206,7 +206,7 @@ def read_config(
     settings["config_type"] = config_type
 
     namespace_types = NewtFiles.read_json_from_file(
-        os.path.join(dir_, settings["FOLDER_LINK"], "data", "lists", "namespace_types.json")
+        os.path.join(dir_, settings["FOLDER_LINK"], "data", "schemas", "namespace_types.json")
     )
     # ensure the type checker knows namespace_types is a dict
     NewtCons.validate_input(
