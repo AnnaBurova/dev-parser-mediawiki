@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import sys
 import os
+import shutil
 from datetime import datetime, timedelta, timezone
 
 import newtutils.console as NewtCons
@@ -58,6 +59,7 @@ check_apnamespace = True
 
 folder_raw_pages = os.path.join("data", "raw", "pages")
 folder_lists = os.path.join("data", "lists")
+folder_logs = os.path.join("data", "logs")
 file_blocked = "blocked.txt"
 
 
@@ -527,3 +529,15 @@ if __name__ == "__main__":
     remove_duplicated_lines()
 
     print("=== END ===")
+
+    if save_log:
+        sys.stdout = old
+        f.close()
+
+        if settings["config_type"] == "allpages":
+            file_target_name = f"{settings["config_type"]}-{apnamespace_nr:03d}.txt"
+        else:
+            file_target_name = f"{settings["config_type"]}.txt"
+
+        path_target = os.path.join(dir_, settings["FOLDER_LINK"], folder_logs, file_target_name)
+        shutil.move(time_file_name+".txt", path_target)
