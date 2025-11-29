@@ -150,7 +150,7 @@ def get_blocked_list(
         ) -> set[str]:
     """Read blocked list from file and return as a set."""
 
-    file_blocked_path = os.path.join(settings["FOLDER_LINK"], folder_lists, file_blocked)
+    file_blocked_path = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, file_blocked)
     blocked_list = NewtFiles.read_text_from_file(file_blocked_path)
     print()
 
@@ -329,7 +329,7 @@ def get_json_from_url(
     # ensure the type checker knows settings is not None and is a dict
     if data_from_url is None:
         if apcontinue is not None:
-            file_blocked_path = os.path.join(settings["FOLDER_LINK"], folder_lists, file_blocked)
+            file_blocked_path = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, file_blocked)
             NewtFiles.save_text_to_file(
                 file_blocked_path,
                 apcontinue,
