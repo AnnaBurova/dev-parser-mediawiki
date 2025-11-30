@@ -218,9 +218,6 @@ def read_config(
     assert isinstance(namespace_types, dict)
 
     if config_type == "allpages":
-        settings["list"] = "allpages"
-        settings["aplimit"] = "max"
-
         if check_apnamespace:
             apnamespace_nr = select_from_input(namespace_types)
             if apnamespace_nr is None:
@@ -276,8 +273,8 @@ def set_args_for_url(
     }
 
     if settings["config_type"] == "allpages":
-        params.update({"list": settings["list"]})
-        params.update({"aplimit": settings["aplimit"]})
+        params.update({"list": "allpages"})
+        params.update({"aplimit": "max"})
         params.update({"apnamespace": str(apnamespace)})
 
         if check_apcontinue:
