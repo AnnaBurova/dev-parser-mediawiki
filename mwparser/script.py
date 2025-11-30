@@ -291,28 +291,27 @@ def set_args_for_url(
 
 
 def get_json_from_url(
-        apcontinue: str | None = None,
-        mw_apcontinue: str | None = None,
-        rccontinue: str | None = None
+        continue_param: str | None = None,
+        continue_mw: str | None = None
         ) -> dict:
     """Fetch JSON data from a URL based on settings and save to file."""
 
     headers, params = args_for_url
 
     if settings["config_type"] == "allpages":
-        if apcontinue is not None:
-            print(apcontinue)
+        if continue_param is not None:
+            print(continue_param)
 
-            if apcontinue in blocked_set and mw_apcontinue is not None:
-                apcontinue = mw_apcontinue
+            if continue_param in blocked_set and continue_mw is not None:
+                continue_param = continue_mw
 
-            params.update({"apcontinue": apcontinue})
+            params.update({"apcontinue": continue_param})
 
     elif settings["config_type"] == "recentchanges":
-        if rccontinue is not None:
-            print(rccontinue)
+        if continue_param is not None:
+            print(continue_param)
 
-            params.update({"rccontinue": rccontinue})
+            params.update({"rccontinue": continue_param})
 
     data_from_url = NewtNet.fetch_data_from_url(
         settings["BASE_URL"], params, headers,
@@ -453,8 +452,8 @@ def loop_next_pages(
                 check_dict_keys(json_data["continue"], required_keys)
 
                 json_data = get_json_from_url(
-                    apcontinue = json_data["continue"]["apcontinue"].replace(" ", "_"),
-                    mw_apcontinue = mw_apcontinue
+                    continue_param = json_data["continue"]["apcontinue"].replace(" ", "_"),
+                    continue_mw = mw_apcontinue
                 )
                 list_data, mw_apcontinue = restructure_json_allpages(json_data)
 
@@ -469,7 +468,7 @@ def loop_next_pages(
                 check_dict_keys(json_data["continue"], required_keys)
 
                 json_data = get_json_from_url(
-                    rccontinue = json_data["continue"]["rccontinue"]
+                    continue_param = json_data["continue"]["rccontinue"]
                 )
 
                 list_data = restructure_json_recentchanges(json_data)
