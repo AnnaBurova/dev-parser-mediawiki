@@ -307,18 +307,20 @@ def get_json_from_url(
 
     headers, params = args_for_url
 
-    if apcontinue is not None:
-        if apcontinue in blocked_set and mw_apcontinue is not None:
-            apcontinue = mw_apcontinue
+    if settings["config_type"] == "allpages":
+        if apcontinue is not None:
+            print(apcontinue)
 
-        print(apcontinue)
+            if apcontinue in blocked_set and mw_apcontinue is not None:
+                apcontinue = mw_apcontinue
 
-        params.update({"apcontinue": apcontinue})
+            params.update({"apcontinue": apcontinue})
 
-    if rccontinue is not None:
-        print(rccontinue)
+    elif settings["config_type"] == "recentchanges":
+        if rccontinue is not None:
+            print(rccontinue)
 
-        params.update({"rccontinue": rccontinue})
+            params.update({"rccontinue": rccontinue})
 
     data_from_url = NewtNet.fetch_data_from_url(
         settings["BASE_URL"], params, headers,
