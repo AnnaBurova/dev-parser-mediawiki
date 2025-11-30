@@ -231,11 +231,6 @@ def read_config(
         settings["file_name"] = os.path.join("allpages", f"{apnamespace_nr:05d}.csv")
 
     elif config_type == "recentchanges":
-        settings["list"] = "recentchanges"
-        settings["rcnamespace"] = "*"
-        settings["rclimit"] = "max"
-        settings["rcstart"] = time_start
-        settings["rcend"] = time_end
         settings["file_name"] = os.path.join("recentchanges.csv")
 
     elif config_type[0] == "pageids":
@@ -281,11 +276,11 @@ def set_args_for_url(
             params.update({"apcontinue": set_apcontinue})
 
     elif settings["config_type"] == "recentchanges":
-        params.update({"list": settings["list"]})
-        params.update({"rcnamespace": settings["rcnamespace"]})
-        params.update({"rclimit": settings["rclimit"]})
-        params.update({"rcstart": settings["rcstart"]})
-        params.update({"rcend": settings["rcend"]})
+        params.update({"list": "recentchanges"})
+        params.update({"rcnamespace": "*"})
+        params.update({"rclimit": "max"})
+        params.update({"rcstart": str(time_start)})
+        params.update({"rcend": str(time_end)})
 
     elif settings["config_type"] == "pageids":
         params.update({"prop": settings["prop"]})
