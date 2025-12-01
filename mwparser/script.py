@@ -590,6 +590,14 @@ def loop_next_pages(
 
                 save_list_data(list_data)
 
+        elif settings["config_type"] == "pageids":
+            while True:
+                if json_data == {}:
+                    break
+
+                restructure_json_pageids(json_data)
+                json_data = get_json_from_url()
+
     except Exception as e:
         print(f"Script encountered an error: {e}")
 
