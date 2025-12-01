@@ -508,19 +508,19 @@ if __name__ == "__main__":
         list_data, mw_apcontinue = restructure_json_allpages(json_data)
         save_list_data(list_data, False)
         loop_next_pages(json_data, mw_apcontinue)
+        remove_duplicated_lines()
 
     elif settings["config_type"] == "recentchanges":
         list_data = restructure_json_recentchanges(json_data)
         save_list_data(list_data, False)
         loop_next_pages(json_data)
+        remove_duplicated_lines()
 
     else:
         NewtCons.error_msg(
             f"Unexpected config type: {settings['config_type']}",
             location="mwparser.main : settings['config_type']"
         )
-
-    remove_duplicated_lines()
 
     print("=== END ===")
 
