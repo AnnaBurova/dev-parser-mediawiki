@@ -646,7 +646,10 @@ if __name__ == "__main__":
         sys.stdout = old
         f.close()
 
-        if settings["config_type"] == "allpages":
+        if settings["config_type"] in (
+                "allpages",
+                "pageids",
+                ):
             file_target_name = f"{settings["config_type"]}-{apnamespace_nr:03d}.txt"
         else:
             file_target_name = f"{settings["config_type"]}.txt"
