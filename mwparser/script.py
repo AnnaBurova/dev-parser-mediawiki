@@ -631,6 +631,9 @@ if __name__ == "__main__":
         loop_next_pages(json_data)
         remove_duplicated_lines()
 
+    elif settings["config_type"] == "pageids":
+        loop_next_pages(json_data)
+
     else:
         NewtCons.error_msg(
             f"Unexpected config type: {settings['config_type']}",
