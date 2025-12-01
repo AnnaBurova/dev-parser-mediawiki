@@ -298,9 +298,9 @@ def set_args_for_url(
         params.update({"rcend": str(time_end)})
 
     elif settings["config_type"] == "pageids":
-        params.update({"prop": settings["prop"]})
-        params.update({"rvprop": settings["rvprop"]})
-        params.update({"rvslots": settings["rvslots"]})
+        params.update({"prop": "revisions"})
+        params.update({"rvprop": "content"})
+        params.update({"rvslots": "*"})
 
     return (headers, params)
 
