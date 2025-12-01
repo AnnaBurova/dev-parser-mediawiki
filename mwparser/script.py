@@ -457,6 +457,86 @@ def restructure_json_recentchanges(
     return recentchanges_list
 
 
+def restructure_json_pageids(
+        json_data_dict: dict
+        ) -> None:
+
+    global namespace_types
+    assert isinstance(namespace_types, dict)
+
+    file_blocked_path = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, file_blocked)
+
+    required_keys_json = {"query", "batchcomplete"}
+    check_dict_keys(json_data_dict, required_keys_json)
+    required_keys_query = {"pages"}
+    check_dict_keys(json_data_dict["query"], required_keys_query)
+
+    for page in json_data_dict["query"]["pages"]:
+        required_keys_page = {"pageid", "ns", "title", "revisions"}
+        check_dict_keys(page, required_keys_page)
+
+        if page["ns"] != apnamespace_nr:
+            NewtCons.error_msg(
+                f"Unexpected namespace value: {page['ns']} for page ID {page['pageid']}",
+                f"Page: {page}",
+                location="mwparser.restructure_json_pageids : page['ns']"
+            )
+
+        if page['title'].replace(" ", "_") in blocked_set:
+            continue
+
+        text_for_file = ""
+        text_for_file += f"Namespace ::: {apnamespace_nr} ::: {namespace_types[str(apnamespace_nr)]}\n"
+        text_for_file += f"Page ID   ::: {page['pageid']}\n"
+        text_for_file += f"Title     ::: {page['title']}\n\n"
+
+        for revision in page["revisions"]:
+            required_keys_revision = {"slots"}
+            check_dict_keys(revision, required_keys_revision)
+            required_keys_main = {"main"}
+            check_dict_keys(revision["slots"], required_keys_main)
+            required_keys_content = {"contentmodel", "contentformat", "content"}
+            check_dict_keys(revision["slots"]["main"], required_keys_content)
+
+            if revision["slots"]["main"]["contentmodel"] != "wikitext":
+                NewtCons.error_msg(
+                    f"Unexpected Contentmodel : {revision["slots"]["main"]["contentmodel"]}",
+                    f"Title: {page['title']}",
+                    f"Page: {page['pageid']}",
+                    location="mwparser.restructure_json_pageids : revision[slots][main][contentmodel]",
+                    stop=False
+                )
+                NewtFiles.save_text_to_file(
+                    file_blocked_path,
+                    page['title'].replace(" ", "_"),
+                    append=True
+                )
+                continue
+            if revision["slots"]["main"]["contentformat"] != "text/x-wiki":
+                NewtCons.error_msg(
+                    f"Unexpected Contentformat : {revision["slots"]["main"]["contentformat"]}",
+                    f"Title: {page['title']}",
+                    f"Page: {page['pageid']}",
+                    location="mwparser.restructure_json_pageids : revision[slots][main][contentformat]"
+                )
+                NewtFiles.save_text_to_file(
+                    file_blocked_path,
+                    page['title'].replace(" ", "_"),
+                    append=True
+                )
+                continue
+
+            text_for_file += f"{revision["slots"]["main"]["content"]}\n\n"
+
+        text_for_file += "=== END ===\n"
+
+        file_pageid = os.path.join(dir_, settings["FOLDER_LINK"], folder_raw_pages, f"{apnamespace_nr:05d}", f"{page['pageid']:010d}.txt")
+        NewtFiles.save_text_to_file(
+            file_pageid,
+            text_for_file
+        )
+
+
 def save_list_data(
         list_data_list: list[str],
         append: bool = True
