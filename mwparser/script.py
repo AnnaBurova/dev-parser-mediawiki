@@ -58,6 +58,8 @@ namespace_types = {}
 apnamespace_nr = 0
 check_apnamespace = True
 
+settings_index_start = 0
+
 folder_raw_pages = os.path.join("data", "raw", "pages")
 folder_lists = os.path.join("data", "lists")
 folder_logs = os.path.join("data", "logs")
@@ -251,6 +253,7 @@ def read_config(
 
         # skip header
         settings["allpages_ids"] = sorted([int(row[0]) for row in list_allpages[1:]])
+        settings["index_start"] = settings_index_start
 
     else:
         NewtCons.error_msg(
