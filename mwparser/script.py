@@ -321,11 +321,11 @@ def get_json_from_url(
 
     # ensure the type checker knows settings is not None and is a dict
     if data_from_url is None:
-        if apcontinue is not None:
+        if continue_param is not None:
             file_blocked_path = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, file_blocked)
             NewtFiles.save_text_to_file(
                 file_blocked_path,
-                apcontinue.replace(" ", "_"),
+                continue_param.replace(" ", "_"),
                 append=True
             )
 
