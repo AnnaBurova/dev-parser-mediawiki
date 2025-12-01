@@ -328,6 +328,26 @@ def get_json_from_url(
 
             params.update({"rccontinue": continue_param})
 
+    elif settings["config_type"] == "pageids":
+        index_start = settings["index_start"]
+
+        if len(settings["allpages_ids"]) < index_start:
+            print("No more pages to process.")
+            return {}
+
+        # it must be 50 ids max
+        index_end = index_start + 50
+        settings["index_start"] = index_end
+
+        params.update({"pageids": '|'.join(
+            map(str, settings["allpages_ids"][index_start:index_end])
+        )})
+
+        print()
+        print(f"Processing page IDs from index {index_start} to {index_end - 1}")
+        print(f"Progress: {index_start / 50} / {len(settings['allpages_ids']) / 50}")
+        print()
+
     data_from_url = NewtNet.fetch_data_from_url(
         settings["BASE_URL"], params, headers,
         mode="alert", repeat_on_fail=False
