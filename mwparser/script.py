@@ -1,4 +1,5 @@
 """
+Updated on 2025-12
 Created on 2025-11
 
 @author: NewtCode Anna Burova
@@ -223,7 +224,7 @@ def read_config(
             if apnamespace_nr is None:
                 NewtCons.error_msg(
                     "No namespace selected, exiting",
-                    location="mwparser.read_config : apnamespace_nr=None"
+                    location="mwparser.read_config.allpages : apnamespace_nr=None"
                 )
             else:
                 apnamespace_nr = int(apnamespace_nr)
