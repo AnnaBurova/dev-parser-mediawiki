@@ -200,6 +200,7 @@ def read_config(
     config_type_list = {
         "1": "allpages",
         "2": "recentchanges",
+        "3": "pageids",
     }
 
     config_type_nr = select_from_input(config_type_list)
@@ -234,12 +235,22 @@ def read_config(
     elif config_type == "recentchanges":
         settings["file_name"] = os.path.join("recentchanges.csv")
 
-    elif config_type[0] == "pageids":
-        required_keys = {"FOLDER_LINK", "BASE_URL", "pageids"}
-        check_dict_keys(settings, required_keys)
-        settings["prop"] = "revisions"
-        settings["rvprop"] = "content"
-        settings["rvslots"] = "main"
+    elif config_type == "pageids":
+        if check_apnamespace:
+            apnamespace_nr = select_from_input(namespace_types)
+            if apnamespace_nr is None:
+                NewtCons.error_msg(
+                    "No namespace selected, exiting",
+                    location="mwparser.read_config.pageids : apnamespace_nr=None"
+                )
+            else:
+                apnamespace_nr = int(apnamespace_nr)
+
+        file_allpages = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, "allpages", f"{apnamespace_nr:05d}.csv")
+        list_allpages = NewtFiles.read_csv_from_file(file_allpages)
+
+        # skip header
+        settings["allpages_ids"] = sorted([int(row[0]) for row in list_allpages[1:]])
 
     else:
         NewtCons.error_msg(
