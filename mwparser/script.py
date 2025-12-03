@@ -61,6 +61,7 @@ check_apnamespace = True
 settings_index_start = 0
 
 folder_raw_pages = os.path.join("data", "raw", "pages")
+folder_raw_redirect = os.path.join("data", "raw", "redirect")
 folder_lists = os.path.join("data", "lists")
 folder_logs = os.path.join("data", "logs")
 file_blocked = "blocked.txt"
@@ -485,6 +486,8 @@ def restructure_json_pageids(
         if page['title'].replace(" ", "_") in blocked_set:
             continue
 
+        folder_pages = folder_raw_pages
+
         text_for_file = ""
         text_for_file += f"Namespace ::: {apnamespace_nr} ::: {namespace_types[str(apnamespace_nr)]}\n"
         text_for_file += f"Page ID   ::: {page['pageid']}\n"
@@ -526,11 +529,17 @@ def restructure_json_pageids(
                 )
                 continue
 
+            if len(revision["slots"]["main"]["content"]) < 20:
+                continue
+
+            if revision["slots"]["main"]["content"].lower().startswith("#redirect"):
+                folder_pages = folder_raw_redirect
+
             text_for_file += f"{revision["slots"]["main"]["content"]}\n\n"
 
         text_for_file += "=== END ===\n"
 
-        file_pageid = os.path.join(dir_, settings["FOLDER_LINK"], folder_raw_pages, f"{apnamespace_nr:05d}", f"{page['pageid']:010d}.txt")
+        file_pageid = os.path.join(dir_, settings["FOLDER_LINK"], folder_pages, f"{apnamespace_nr:05d}", f"{page['pageid']:010d}.txt")
         NewtFiles.save_text_to_file(
             file_pageid,
             text_for_file
