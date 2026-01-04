@@ -167,6 +167,65 @@ def get_blocked_list(
     return blocked_set
 
 
+def check_todo(
+        ) -> None:
+
+    todo_list = []
+    folder_config = os.path.join(dir_parser, "configs")
+    for file in os.listdir(folder_config):
+        if not os.path.isfile(os.path.join(folder_config, file)):
+            continue
+
+        if file == "xxx.json":
+            continue
+
+        if file.endswith(".json"):
+            config_path = os.path.join(folder_config, file)
+            settings = NewtFiles.read_json_from_file(config_path)
+
+            NewtCons.validate_input(
+                settings, dict,
+                location="mwparser.check_todo : settings"
+            )
+            assert isinstance(settings, dict)
+
+            namespace_types = os.path.join(dir_, settings["FOLDER_LINK"], "data", "schemas", "namespace_types.json")
+            if not os.path.isfile(namespace_types):
+                NewtCons.error_msg(
+                    f"Missing namespace_types.json for config: {file}",
+                    location="mwparser.check_todo : namespace_types.json missing"
+                )
+            n_types = NewtFiles.read_json_from_file(namespace_types)
+            assert isinstance(n_types, dict)
+
+            folder_logs = os.path.join(dir_, settings["FOLDER_LINK"], "data", "logs")
+
+            for n_type in n_types.keys():
+                file_ap = os.path.join(folder_logs, f"allpages-{int(n_type):03d}.txt")
+                if not os.path.isfile(file_ap):
+                    todo_list.append(f"Proj: {file} missing allpages file: {n_type}")
+
+            for n_type in n_types.keys():
+                file_pi = os.path.join(folder_logs, f"pageids-{int(n_type):03d}.txt")
+                if not os.path.isfile(file_pi):
+                    todo_list.append(f"Proj: {file} missing pageids file: {n_type}")
+
+            file_rc = os.path.join(folder_logs, "recentchanges.txt")
+            if not os.path.isfile(file_rc):
+                todo_list.append(f"Proj: {file} missing file: recentchanges.txt")
+
+            file_pr = os.path.join(folder_logs, "pagesrecent.txt")
+            if not os.path.isfile(file_pr):
+                todo_list.append(f"Proj: {file} missing file: pagesrecent.txt")
+
+    todo_list.reverse()
+    print()
+    print("=== TODO LIST ===")
+    for todo in todo_list:
+        print(todo)
+    print()
+
+
 def read_config(
         ) -> dict:
     """Read configuration from a selected JSON file."""
@@ -640,6 +699,7 @@ def remove_duplicated_lines(
 
 if __name__ == "__main__":
     check_location()
+    check_todo()
     settings = read_config()
     args_for_url = set_args_for_url(apnamespace_nr)
     blocked_set = get_blocked_list()
