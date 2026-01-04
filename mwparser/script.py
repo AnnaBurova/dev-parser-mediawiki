@@ -263,6 +263,7 @@ def read_config(
         "1": "allpages",
         "2": "recentchanges",
         "3": "pageids",
+        "4": "pagesrecent",
     }
 
     config_type_nr = select_from_input(config_type_list)
@@ -315,6 +316,12 @@ def read_config(
         settings["allpages_ids"] = sorted([int(row[0]) for row in list_allpages[1:]])
         settings["index_start"] = settings_index_start
 
+    elif config_type == "pagesrecent":
+        file_recentchanges = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, "recentchanges.csv")
+        list_recentchanges = NewtFiles.read_csv_from_file(file_recentchanges)
+        settings["recentchanges"] = sorted(list(set([int(row[1]) for row in list_recentchanges[1:] if int(row[1]) > 0])))
+        settings["index_start"] = settings_index_start
+
     else:
         NewtCons.error_msg(
             f"Unexpected config type: {config_type}",
@@ -362,6 +369,11 @@ def set_args_for_url(
         params.update({"rvprop": "content"})
         params.update({"rvslots": "*"})
 
+    elif settings["config_type"] == "pagesrecent":
+        params.update({"prop": "revisions"})
+        params.update({"rvprop": "content"})
+        params.update({"rvslots": "*"})
+
     return (headers, params)
 
 
@@ -397,15 +409,33 @@ def get_json_from_url(
 
         # it must be 50 ids max
         index_end = index_start + 50
-        settings["index_start"] = index_end
-
         params.update({"pageids": '|'.join(
             map(str, settings["allpages_ids"][index_start:index_end])
         )})
+        settings["index_start"] = index_end
 
         print()
         print(f"Processing page IDs from index {index_start} to {index_end - 1}")
         print(f"Progress: {index_start / 50} / {len(settings['allpages_ids']) / 50}")
+        print()
+
+    elif settings["config_type"] == "pagesrecent":
+        index_start = settings["index_start"]
+
+        if len(settings["recentchanges"]) < index_start:
+            print("No more pages to process.")
+            return {}
+
+        # it must be 50 ids max
+        index_end = index_start + 50
+        params.update({"pageids": '|'.join(
+            map(str, settings["recentchanges"][index_start:index_end])
+        )})
+        settings["index_start"] = index_end
+
+        print()
+        print(f"Processing page IDs from index {index_start} to {index_end - 1}")
+        print(f"Progress: {index_start / 50} / {len(settings['recentchanges']) / 50}")
         print()
 
     data_from_url = NewtNet.fetch_data_from_url(
@@ -531,6 +561,7 @@ def restructure_json_pageids(
         ) -> None:
 
     global namespace_types
+    global apnamespace_nr
     assert isinstance(namespace_types, dict)
 
     file_blocked_path = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, file_blocked)
@@ -541,8 +572,21 @@ def restructure_json_pageids(
     check_dict_keys(json_data_dict["query"], required_keys_query)
 
     for page in json_data_dict["query"]["pages"]:
+        if settings["config_type"] == "pagesrecent":
+            if "missing" in page:
+                NewtCons.error_msg(
+                    f"Page ID {page['pageid']} data is missing",
+                    f"Page: {page}",
+                    location="mwparser.restructure_json_pageids.pagesrecent : 'missing' in page",
+                    stop=False
+                )
+                continue
+
         required_keys_page = {"pageid", "ns", "title", "revisions"}
         check_dict_keys(page, required_keys_page)
+
+        if settings["config_type"] == "pagesrecent":
+            apnamespace_nr = page["ns"]
 
         if page["ns"] != apnamespace_nr:
             NewtCons.error_msg(
@@ -675,6 +719,14 @@ def loop_next_pages(
                 restructure_json_pageids(json_data)
                 json_data = get_json_from_url()
 
+        elif settings["config_type"] == "pagesrecent":
+            while True:
+                if json_data == {}:
+                    break
+
+                restructure_json_pageids(json_data)
+                json_data = get_json_from_url()
+
     except Exception as e:
         print(f"Script encountered an error: {e}")
 
@@ -718,6 +770,9 @@ if __name__ == "__main__":
         remove_duplicated_lines()
 
     elif settings["config_type"] == "pageids":
+        loop_next_pages(json_data)
+
+    elif settings["config_type"] == "pagesrecent":
         loop_next_pages(json_data)
 
     else:
