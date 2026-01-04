@@ -681,4 +681,5 @@ if __name__ == "__main__":
             file_target_name = f"{settings["config_type"]}.txt"
 
         path_target = os.path.join(dir_, settings["FOLDER_LINK"], folder_logs, file_target_name)
+        NewtFiles._ensure_dir_exists(path_target)
         shutil.move(time_file_name+".txt", path_target)
