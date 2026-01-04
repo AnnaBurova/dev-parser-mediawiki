@@ -436,6 +436,15 @@ def restructure_json_recentchanges(
     recentchanges_list.append(["timestamp", "pageid", "ns", "type", "title"])
 
     for page in json_data_dict["query"]["recentchanges"]:
+        if "pageid" not in page:
+            NewtCons.error_msg(
+                "No pageid for page log",
+                f"Page: {page}",
+                location="mwparser.restructure_json_recentchanges : 'pageid' not in page",
+                stop=False
+            )
+            continue
+
         required_keys_recentchanges = {"type", "ns", "title", "pageid", "revid", "old_revid", "rcid", "timestamp"}
         check_dict_keys(page, required_keys_recentchanges)
 
