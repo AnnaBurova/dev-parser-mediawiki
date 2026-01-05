@@ -403,6 +403,10 @@ def get_json_from_url(
     elif settings["config_type"] == "pageids":
         index_start = settings["index_start"]
 
+        if len(settings['allpages_ids']) == 0:
+            print("No pages to process.")
+            return {}
+
         if len(settings["allpages_ids"]) < index_start:
             print("No more pages to process.")
             return {}
@@ -422,6 +426,10 @@ def get_json_from_url(
     elif settings["config_type"] == "pagesrecent":
         index_start = settings["index_start"]
 
+        if len(settings['recentchanges']) == 0:
+            print("No pages to process.")
+            return {}
+
         if len(settings["recentchanges"]) < index_start:
             print("No more pages to process.")
             return {}
@@ -440,7 +448,7 @@ def get_json_from_url(
 
     data_from_url = NewtNet.fetch_data_from_url(
         settings["BASE_URL"], params, headers,
-        mode="alert", repeat_on_fail=False
+        mode="manual", repeat_on_fail=True
     )
     print()
 
