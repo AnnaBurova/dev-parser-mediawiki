@@ -62,6 +62,7 @@ settings_index_start = 0
 
 folder_raw_pages = os.path.join("data", "raw", "pages")
 folder_raw_redirect = os.path.join("data", "raw", "redirect")
+folder_raw_removed = os.path.join("data", "raw", "removed")
 folder_lists = os.path.join("data", "lists")
 folder_logs = os.path.join("data", "logs")
 file_blocked = "blocked.txt"
@@ -588,6 +589,13 @@ def restructure_json_pageids(
                     location="mwparser.restructure_json_pageids.pagesrecent : 'missing' in page",
                     stop=False
                 )
+                for missing_folder in (folder_raw_pages, folder_raw_redirect):
+                    for missing_apname in namespace_types.keys():
+                        missing_file = os.path.join(dir_, settings["FOLDER_LINK"], missing_folder, f"{int(missing_apname):05d}", f"{page['pageid']:010d}.txt")
+                        missing_target = os.path.join(dir_, settings["FOLDER_LINK"], folder_raw_removed, f"{int(missing_apname):05d}-{page['pageid']:010d}.txt")
+                        if NewtFiles._check_file_exists(missing_file):
+                            NewtFiles._ensure_dir_exists(missing_target)
+                            shutil.move(missing_file, missing_target)
                 continue
 
         required_keys_page = {"pageid", "ns", "title", "revisions"}
