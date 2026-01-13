@@ -261,8 +261,8 @@ def read_config(
 
     config_type_list = {
         "1": "allpages",
-        "2": "recentchanges",
-        "3": "pageids",
+        "2": "pageids",
+        "3": "recentchanges",
         "4": "pagesrecent",
     }
 
