@@ -643,6 +643,7 @@ def restructure_json_pageids(
                     append=True
                 )
                 continue
+
             if revision["slots"]["main"]["contentformat"] != "text/x-wiki":
                 NewtCons.error_msg(
                     f"Unexpected Contentformat : {revision["slots"]["main"]["contentformat"]}",
@@ -658,7 +659,7 @@ def restructure_json_pageids(
                 continue
 
             if len(revision["slots"]["main"]["content"]) < 20:
-                continue
+                folder_pages = folder_raw_removed
 
             if revision["slots"]["main"]["content"].lower().startswith("#redirect"):
                 folder_pages = folder_raw_redirect
