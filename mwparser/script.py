@@ -581,7 +581,10 @@ def restructure_json_pageids(
     check_dict_keys(json_data_dict["query"], required_keys_query)
 
     for page in json_data_dict["query"]["pages"]:
-        if settings["config_type"] == "pagesrecent":
+        if settings["config_type"] in (
+                "pageids",
+                "pagesrecent",
+                ):
             if "missing" in page:
                 NewtCons.error_msg(
                     f"Page ID {page['pageid']} data is missing",
