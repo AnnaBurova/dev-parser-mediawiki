@@ -757,7 +757,20 @@ def remove_duplicated_lines(
 
     file_path = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, settings["file_name"])
     lines = NewtFiles.read_csv_from_file(file_path)
-    unique_lines = [list(t) for t in dict.fromkeys(map(tuple, lines))]
+
+    # Separate header from data
+    header = lines[0] if lines else []
+    data_lines = lines[1:] if len(lines) > 1 else []
+
+    # Ensure header does not exist in data_lines
+    data_lines = [line for line in data_lines if line != header]
+
+    # Remove duplicates from data only
+    unique_lines = [list(t) for t in dict.fromkeys(map(tuple, data_lines))]
+    unique_lines.sort()
+
+    # Prepend header back
+    unique_lines = [header] + unique_lines
 
     NewtFiles.save_csv_to_file(
         file_path,
