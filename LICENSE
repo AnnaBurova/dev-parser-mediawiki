@@ -31,3 +31,5 @@ https://docs.python.org/3/license.html
 - sys - interpreter and runtime
 - os - file system and environment
 - datetime - date and time objects
+- shutil - file operations
+- re - regular expressions
