@@ -389,17 +389,15 @@ def get_json_from_url(
 
     if settings["config_type"] == "allpages":
         if continue_param is not None:
-            print(continue_param)
-
             if continue_param in blocked_set and continue_mw is not None:
                 continue_param = continue_mw
 
+            print(continue_param)
             params.update({"apcontinue": continue_param})
 
     elif settings["config_type"] == "recentchanges":
         if continue_param is not None:
             print(continue_param)
-
             params.update({"rccontinue": continue_param})
 
     elif settings["config_type"] == "pageids":
@@ -487,8 +485,13 @@ def restructure_json_allpages(
         ) -> tuple[list[str], str]:
     """Process and save all pages from JSON data."""
 
-    required_keys_json = {"query", "continue", "batchcomplete", "limits"}
-    check_dict_keys(json_data_dict, required_keys_json)
+    if "continue" in json_data_dict:
+        required_keys_json = {"query", "continue", "batchcomplete", "limits"}
+        check_dict_keys(json_data_dict, required_keys_json)
+    else:
+        required_keys_json = {"query", "batchcomplete", "limits"}
+        check_dict_keys(json_data_dict, required_keys_json)
+
     required_keys_query = {"allpages"}
     check_dict_keys(json_data_dict["query"], required_keys_query)
 
@@ -526,8 +529,14 @@ def restructure_json_recentchanges(
         ) -> list[str]:
     """Process and save all pages from JSON data."""
 
-    required_keys_json = {"query", "continue", "batchcomplete", "limits"}
-    check_dict_keys(json_data_dict, required_keys_json)
+
+    if "continue" in json_data_dict:
+        required_keys_json = {"query", "continue", "batchcomplete", "limits"}
+        check_dict_keys(json_data_dict, required_keys_json)
+    else:
+        required_keys_json = {"query", "batchcomplete", "limits"}
+        check_dict_keys(json_data_dict, required_keys_json)
+
     required_keys_query = {"recentchanges"}
     check_dict_keys(json_data_dict["query"], required_keys_query)
 
@@ -575,6 +584,9 @@ def restructure_json_pageids(
     assert isinstance(namespace_types, dict)
 
     file_blocked_path = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, file_blocked)
+
+    if "query" not in json_data_dict:
+        return
 
     required_keys_json = {"query", "batchcomplete"}
     check_dict_keys(json_data_dict, required_keys_json)
@@ -662,7 +674,7 @@ def restructure_json_pageids(
                 )
                 continue
 
-            if len(revision["slots"]["main"]["content"]) < 20:
+            if len(revision["slots"]["main"]["content"]) < 6:
                 folder_pages = folder_raw_removed
 
             if revision["slots"]["main"]["content"].lower().startswith("#redirect"):
