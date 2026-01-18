@@ -10,6 +10,7 @@ from __future__ import annotations
 import sys
 import os
 import shutil
+import re
 from datetime import datetime, timedelta, timezone
 
 import newtutils.console as NewtCons
@@ -814,11 +815,13 @@ if __name__ == "__main__":
             location="mwparser.main : settings['config_type']"
         )
 
-    print("=== END ===")
+    print("=== END ===", end="")
 
     if save_log:
         sys.stdout = old
         f.close()
+
+        print()
 
         if settings["config_type"] in (
                 "allpages",
@@ -829,5 +832,18 @@ if __name__ == "__main__":
             file_target_name = f"{settings["config_type"]}.txt"
 
         path_target = os.path.join(dir_, settings["FOLDER_LINK"], folder_logs, file_target_name)
+
+        edit_responce_time_text = NewtFiles.read_text_from_file(time_file_name+".txt")
+        edit_responce_time_text = re.sub(
+            r"Status:\s*200\s*\|\s*Response\s*time:\s*\d\.\d{3}\s*seconds",
+            "Status: 200 | Response time: 1.000 seconds",
+            edit_responce_time_text,
+        )
+        NewtFiles.save_text_to_file(time_file_name+".txt", edit_responce_time_text)
+
+        print("Log moved to", path_target)
+
         NewtFiles._ensure_dir_exists(path_target)
         shutil.move(time_file_name+".txt", path_target)
+
+        print()
