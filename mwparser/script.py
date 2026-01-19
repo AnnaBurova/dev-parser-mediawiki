@@ -564,6 +564,9 @@ def restructure_json_recentchanges(
                 stop=False
             )
 
+        if page['pageid'] == 0:
+            continue
+
         recentchanges_list.append([
             page['timestamp'],
             f"{page['pageid']:010d}",
