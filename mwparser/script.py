@@ -513,69 +513,55 @@ def get_json_from_url(
     assert data_from_url is not None
 
     if len(data_from_url) > 500000:
-        # Need to try to split request into two pieces, to be sure it will return all data
+        # Need to try to split request into pieces, to be sure it will return all data
+        data_from_url_chunks = {'batchcomplete': True, 'query': {'pages': []}}
 
-        # PART 1 -------
-        index_split_end = index_end - 25
-        params.update({"titles": '|'.join(
-            map(str, settings["allpages_titles"][index_start:index_split_end])
-        )})
+        if settings["config_type"] == "pageids":
+            for index_range in range(index_start, index_end):
+                params.update({"pageids": str(settings["allpages_ids"][index_range])})
 
-        data_from_url = NewtNet.fetch_data_from_url(
-            settings["BASE_URL"], params, headers,
-            mode="manual", repeat_on_fail=True
-        )
-        print()
+                data_from_url_small = NewtNet.fetch_data_from_url(
+                    settings["BASE_URL"], params, headers,
+                    mode="manual", repeat_on_fail=True
+                )
+                print()
 
-        # ensure the type checker knows settings is not None and is a dict
-        if data_from_url is None:
-            if continue_param is not None:
-                file_blocked_path = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, file_blocked)
-                NewtFiles.save_text_to_file(
-                    file_blocked_path,
-                    continue_param.replace(" ", "_"),
-                    append=True
+                # ensure the type checker knows settings is not None and is a dict
+                if data_from_url_small is None:
+                    if continue_param is not None:
+                        file_blocked_path = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, file_blocked)
+                        NewtFiles.save_text_to_file(
+                            file_blocked_path,
+                            continue_param.replace(" ", "_"),
+                            append=True
+                        )
+
+                    NewtCons.error_msg(
+                        "Failed to read config JSON, exiting",
+                        location="mwparser.get_json_from_url : data_from_url=None"
+                    )
+                # ensure the type checker knows choose_config is not None
+                assert data_from_url_small is not None
+                json_from_url_small = NewtFiles.convert_str_to_json(data_from_url_small)
+                NewtCons.validate_input(
+                    json_from_url_small, dict,
+                    location="mwparser.get_json_from_url : json_from_url_small != dict"
+                )
+                assert isinstance(json_from_url_small, dict)
+                data_from_url_chunks['query']['pages'].extend(
+                    json_from_url_small.get('query', {}).get('pages', [])
                 )
 
+        else:
             NewtCons.error_msg(
-                "Failed to read config JSON, exiting",
-                location="mwparser.get_json_from_url : data_from_url=None"
+                "Data from URL is too large, but cannot split further.",
+                location="mwparser.get_json_from_url : len(data_from_url) > 500000"
             )
-        # ensure the type checker knows choose_config is not None
-        assert data_from_url is not None
 
-        # PART 2 -------
-        index_split_start = index_start + 25
-        params.update({"titles": '|'.join(
-            map(str, settings["allpages_titles"][index_split_start:index_end])
-        )})
+        json_from_url = data_from_url_chunks
 
-        data_from_url = NewtNet.fetch_data_from_url(
-            settings["BASE_URL"], params, headers,
-            mode="manual", repeat_on_fail=True
-        )
-        print()
-
-        # ensure the type checker knows settings is not None and is a dict
-        if data_from_url is None:
-            if continue_param is not None:
-                file_blocked_path = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, file_blocked)
-                NewtFiles.save_text_to_file(
-                    file_blocked_path,
-                    continue_param.replace(" ", "_"),
-                    append=True
-                )
-
-            NewtCons.error_msg(
-                "Failed to read config JSON, exiting",
-                location="mwparser.get_json_from_url : data_from_url=None"
-            )
-        # ensure the type checker knows choose_config is not None
-        assert data_from_url is not None
-
-        # END SPLIT -------
-
-    json_from_url = NewtFiles.convert_str_to_json(data_from_url)
+    else:
+        json_from_url = NewtFiles.convert_str_to_json(data_from_url)
 
     NewtCons.validate_input(
         json_from_url, dict,
