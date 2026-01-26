@@ -771,7 +771,7 @@ def loop_next_pages(
         print(f"Script encountered an error: {e}")
 
     except SystemExit:
-        print(f"SystemExit on fetching all pages")
+        print("SystemExit on fetching all pages")
 
 
 def remove_duplicated_lines(
