@@ -344,7 +344,7 @@ def set_args_for_url(
     params = {
         "action": "query",
         "format": "json",
-        "maxlag": "1",
+        "maxlag": "2",
         "utf8": "true",
         "formatversion": "2",
     }
