@@ -912,28 +912,16 @@ def loop_next_pages(
 
                 save_list_data(list_data)
 
-        elif settings["config_type"] == "pageids":
+        elif settings["config_type"] in (
+                "pageids",
+                "pagesrecent",
+                "savefiles",
+                ):
             while True:
                 if json_data == {}:
                     break
 
                 restructure_json_pageids(json_data)
-                json_data = get_json_from_url()
-
-        elif settings["config_type"] == "pagesrecent":
-            while True:
-                if json_data == {}:
-                    break
-
-                restructure_json_pageids(json_data)
-                json_data = get_json_from_url()
-
-        elif settings["config_type"] == "savefiles":
-            while True:
-                if json_data == {}:
-                    break
-
-                restructure_json_savefiles(json_data)
                 json_data = get_json_from_url()
 
     except Exception as e:
