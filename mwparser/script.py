@@ -991,13 +991,11 @@ if __name__ == "__main__":
         loop_next_pages(json_data)
         remove_duplicated_lines()
 
-    elif settings["config_type"] == "pageids":
-        loop_next_pages(json_data)
-
-    elif settings["config_type"] == "pagesrecent":
-        loop_next_pages(json_data)
-
-    elif settings["config_type"] == "savefiles":
+    elif settings["config_type"] in (
+            "pageids",
+            "pagesrecent",
+            "savefiles",
+            ):
         loop_next_pages(json_data)
 
     else:
