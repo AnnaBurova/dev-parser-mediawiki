@@ -29,7 +29,12 @@ if save_log:
     class Tee:
         def __init__(self, a, b): self.a, self.b = a, b
         def write(self, s): self.a.write(s); self.b.write(s)
-        def flush(self): self.a.flush(); self.b.flush()
+        def flush(self):
+            self.a.flush()
+            try:
+                self.b.flush()
+            except ValueError:
+                pass  # File already closed
 
     old = sys.stdout
     f = open(time_file_name+".txt", "a", encoding="utf-8", newline="\n")
