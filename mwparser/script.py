@@ -400,6 +400,8 @@ def get_json_from_url(
 
     elif settings["config_type"] == "pageids":
         index_start = settings["index_start"]
+        # max 50 pages per MediaWiki Settings for no admin users
+        index_max = 50
 
         if len(settings['allpages_ids']) == 0:
             print("No pages to process.")
@@ -409,8 +411,7 @@ def get_json_from_url(
             print("No more pages to process.")
             return {}
 
-        # it must be 50 ids max
-        index_end = index_start + 50
+        index_end = index_start + index_max
         params.update({"pageids": '|'.join(
             map(str, settings["allpages_ids"][index_start:index_end])
         )})
@@ -418,11 +419,14 @@ def get_json_from_url(
 
         print()
         print(f"Processing page IDs from index {index_start} to {index_end - 1}")
-        print(f"Progress: {index_start / 50} / {len(settings['allpages_ids']) / 50}")
+        print(f"Progress current page: {index_start / index_max}")
+        print(f"Progress max pages: {len(settings['allpages_ids']) / index_max}")
         print()
 
     elif settings["config_type"] == "pagesrecent":
         index_start = settings["index_start"]
+        # max 50 pages per MediaWiki Settings for no admin users
+        index_max = 50
 
         if len(settings['recentchanges']) == 0:
             print("No pages to process.")
@@ -432,8 +436,7 @@ def get_json_from_url(
             print("No more pages to process.")
             return {}
 
-        # it must be 50 ids max
-        index_end = index_start + 50
+        index_end = index_start + index_max
         params.update({"pageids": '|'.join(
             map(str, settings["recentchanges"][index_start:index_end])
         )})
@@ -441,7 +444,8 @@ def get_json_from_url(
 
         print()
         print(f"Processing page IDs from index {index_start} to {index_end - 1}")
-        print(f"Progress: {index_start / 50} / {len(settings['recentchanges']) / 50}")
+        print(f"Progress current page: {index_start / index_max}")
+        print(f"Progress max pages: {len(settings['recentchanges']) / index_max}")
         print()
 
     data_from_url = NewtNet.fetch_data_from_url(
