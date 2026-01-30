@@ -16,31 +16,6 @@ import newtutils.console as NewtCons
 import newtutils.files as NewtFiles
 import newtutils.network as NewtNet
 
-time_now = datetime.now(timezone.utc)
-time_file_name = time_now.strftime('%Y-%m-%d-%H-%M-%S')
-time_start = time_now - timedelta(days=0, hours=0)
-time_start = time_start.strftime('%Y-%m-%dT%H:%M:%SZ')
-time_end = time_now - timedelta(days=7, hours=0)
-time_end = time_end.strftime('%Y-%m-%dT%H:%M:%SZ')
-
-save_log = True
-
-if save_log:
-    class Tee:
-        def __init__(self, a, b): self.a, self.b = a, b
-        def write(self, s): self.a.write(s); self.b.write(s)
-        def flush(self):
-            self.a.flush()
-            try:
-                self.b.flush()
-            except ValueError:
-                pass  # File already closed
-
-    old = sys.stdout
-    f = open(time_file_name+".txt", "a", encoding="utf-8", newline="\n")
-    sys.stdout = Tee(old, f)
-    sys.stderr = sys.stdout
-
 dir_parser = os.path.dirname(os.path.realpath(__file__))
 # print(dir_parser)  # D:\VS_Code\dev-parser-mediawiki\mwparser
 
@@ -51,6 +26,18 @@ dir_ = os.path.dirname(os.path.dirname(dir_parser))
 sys.path.append(dir_)
 
 must_location = os.path.join("D:\\", "VS_Code")
+
+time_now = datetime.now(timezone.utc)
+time_file_name = time_now.strftime('%Y-%m-%d-%H-%M-%S')
+time_start = time_now - timedelta(days=0, hours=0)
+time_start = time_start.strftime('%Y-%m-%dT%H:%M:%SZ')
+time_end = time_now - timedelta(days=19, hours=0)
+time_end = time_end.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+save_log = True
+
+if save_log:
+    setup_data = NewtFiles.setup_logging(dir_)
 
 choose_config = "xxx.json"
 check_config_folder = True
@@ -72,19 +59,6 @@ folder_raw_images = os.path.join("data", "raw", "images")
 folder_lists = os.path.join("data", "lists")
 folder_logs = os.path.join("data", "logs")
 file_blocked = "blocked.txt"
-
-
-def check_location(
-        ) -> None:
-    """Check if the provided location exists and is a directory."""
-
-    if dir_ == must_location:
-        print("=== START ===")
-    else:
-        NewtCons.error_msg(
-            f"Something wrong, check folder: {dir_}",
-            location="mwparser.check_location"
-        )
 
 
 def check_dict_keys(
@@ -704,8 +678,8 @@ def restructure_json_pageids(
                     for missing_apname in namespace_types.keys():
                         missing_file = os.path.join(dir_, settings["FOLDER_LINK"], missing_folder, f"{int(missing_apname):05d}", f"{page['pageid']:010d}.txt")
                         missing_target = os.path.join(dir_, settings["FOLDER_LINK"], folder_raw_removed, f"{int(missing_apname):05d}-{page['pageid']:010d}.txt")
-                        if NewtFiles._check_file_exists(missing_file):
-                            NewtFiles._ensure_dir_exists(missing_target)
+                        if NewtFiles.check_file_exists(missing_file):
+                            NewtFiles.ensure_dir_exists(missing_target)
                             shutil.move(missing_file, missing_target)
                 continue
 
@@ -954,7 +928,7 @@ def remove_duplicated_lines(
 
 
 if __name__ == "__main__":
-    check_location()
+    NewtCons.check_location(dir_, must_location)
     check_todo()
     settings = read_config()
     args_for_url = set_args_for_url(apnamespace_nr)
@@ -986,14 +960,9 @@ if __name__ == "__main__":
             location="mwparser.main : settings['config_type']"
         )
 
-    print("=== END ===", end="")
+    print("=== END ===")
 
     if save_log:
-        sys.stdout = old
-        f.close()
-
-        print()
-
         if settings["config_type"] in (
                 "allpages",
                 "pageids",
@@ -1004,9 +973,4 @@ if __name__ == "__main__":
 
         path_target = os.path.join(dir_, settings["FOLDER_LINK"], folder_logs, file_target_name)
 
-        print("Log moved to", path_target)
-
-        NewtFiles._ensure_dir_exists(path_target)
-        shutil.move(time_file_name+".txt", path_target)
-
-        print()
+        NewtFiles.cleanup_logging(setup_data, path_target)
