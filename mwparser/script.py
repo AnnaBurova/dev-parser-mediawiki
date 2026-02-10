@@ -866,30 +866,27 @@ if __name__ == "__main__":
     blocked_set = get_blocked_list()
     json_data = get_json_from_url()
 
-    if settings["config_type"] == "allpages":
-        list_data, mw_apcontinue = restructure_json_allpages(json_data)
-        save_list_data(list_data, False)
-        loop_next_pages(json_data, mw_apcontinue)
-        remove_duplicated_lines()
+    match settings["config_type"]:
+        case "allpages":
+            list_data, mw_apcontinue = restructure_json_allpages(json_data)
+            save_list_data(list_data, False)
+            loop_next_pages(json_data, mw_apcontinue)
+            remove_duplicated_lines()
 
-    elif settings["config_type"] == "recentchanges":
-        list_data = restructure_json_recentchanges(json_data)
-        save_list_data(list_data, False)
-        loop_next_pages(json_data)
-        remove_duplicated_lines()
+        case "recentchanges":
+            list_data = restructure_json_recentchanges(json_data)
+            save_list_data(list_data, False)
+            loop_next_pages(json_data)
+            remove_duplicated_lines()
 
-    elif settings["config_type"] in (
-            "pageids",
-            "pagesrecent",
-            "savefiles",
-            ):
-        loop_next_pages(json_data)
+        case "pageids" | "pagesrecent" | "savefiles":
+            loop_next_pages(json_data)
 
-    else:
-        NewtCons.error_msg(
-            f"Unexpected config type: {settings['config_type']}",
-            location="mwparser.main : settings['config_type']"
-        )
+        case _:
+            NewtCons.error_msg(
+                f"Unexpected config type: {settings['config_type']}",
+                location="mwparser.main : settings['config_type']"
+            )
 
     print("=== END ===")
 
