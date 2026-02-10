@@ -34,11 +34,6 @@ time_start = time_start.strftime('%Y-%m-%dT%H:%M:%SZ')
 time_end = time_now - timedelta(days=19, hours=0)
 time_end = time_end.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-save_log = True
-
-if save_log:
-    setup_data = NewtFiles.setup_logging(dir_)
-
 choose_config = "xxx.json"
 check_config_folder = True
 
@@ -59,6 +54,12 @@ folder_raw_images = os.path.join("data", "raw", "images")
 folder_lists = os.path.join("data", "lists")
 folder_logs = os.path.join("data", "logs")
 file_blocked = "blocked.txt"
+
+save_log = True
+# save_log = False
+
+if save_log:
+    setup_data = NewtFiles.setup_logging(dir_)
 
 
 def check_dict_keys(
