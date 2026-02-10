@@ -63,55 +63,6 @@ if save_log:
     setup_data = NewtFiles.setup_logging(dir_)
 
 
-def select_from_input(
-        select_dict: dict[str, str]
-        ) -> str | None:
-    """Select an option from input based on a provided dictionary."""
-
-    # Display numbered list
-    print("Available list:", len(select_dict))
-    for nr, name in select_dict.items():
-        print(f"{nr:>3}: {name}")
-    print("999: Exit / Cancel")
-
-    choice = 999
-    # Loop until valid input
-    while choice not in select_dict:
-        try:
-            choice = input("\nEnter number from list (999 to exit): ").strip()
-            print(f"[INPUT]: {choice}")
-
-            if choice == "999":
-                NewtCons.error_msg(
-                    "Selection cancelled.",
-                    location="mwparser.select_from_input : choice = 999"
-                )
-
-            if not choice.isdigit():
-                print("Invalid input. Please enter a number.")
-                continue
-
-            if choice in select_dict:
-                print(f"Selected option: {select_dict[choice]}")
-                print()
-                return choice
-
-            else:
-                print("Number out of range. Try again.")
-
-        except KeyboardInterrupt:
-            NewtCons.error_msg(
-                "Selection cancelled by user.",
-                location="mwparser.select_from_input : KeyboardInterrupt"
-            )
-
-        except Exception as e:
-            NewtCons.error_msg(
-                f"Exception: {e}",
-                location="mwparser.select_from_input : Exception"
-            )
-
-
 def get_blocked_list(
         ) -> set[str]:
     """Read blocked list from file and return as a set."""
@@ -229,7 +180,7 @@ def read_config(
         "5": "savefiles",
     }
 
-    config_type_nr = select_from_input(config_type_list)
+    config_type_nr = NewtCons.select_from_input(config_type_list)
     assert config_type_nr is not None
 
     config_type = config_type_list[config_type_nr]
@@ -251,7 +202,7 @@ def read_config(
         "savefiles",
     ):
         if check_apnamespace:
-            apnamespace_nr = select_from_input(namespace_types)
+            apnamespace_nr = NewtCons.select_from_input(namespace_types)
             if apnamespace_nr is None:
                 NewtCons.error_msg(
                     "No namespace selected, exiting",
