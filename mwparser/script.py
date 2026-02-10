@@ -13,6 +13,7 @@ import shutil
 from datetime import datetime, timedelta, timezone
 
 import newtutils.console as NewtCons
+import newtutils.utility as NewtUtil
 import newtutils.files as NewtFiles
 import newtutils.network as NewtNet
 
@@ -60,27 +61,6 @@ save_log = True
 
 if save_log:
     setup_data = NewtFiles.setup_logging(dir_)
-
-
-def check_dict_keys(
-        data: dict,
-        expected: set[str],
-        ) -> None:
-    """Check if the dictionary has the expected keys."""
-
-    data_keys = set(data.keys())
-    expected_keys = set(expected)
-    missing_keys = expected_keys - data_keys
-    extra_keys = data_keys - expected_keys
-
-    if missing_keys or extra_keys:
-        NewtCons.error_msg(
-            f"Data keys: {', '.join(sorted(data_keys))}",
-            f"Missing keys: {', '.join(sorted(missing_keys))}",
-            f"Unexpected keys: {', '.join(sorted(extra_keys))}",
-            location="mwparser.check_dict_keys",
-            stop=False
-        )
 
 
 def select_from_input(
@@ -239,7 +219,7 @@ def read_config(
     assert isinstance(settings, dict)
 
     required_keys = {"FOLDER_LINK", "BASE_URL"}
-    check_dict_keys(settings, required_keys)
+    NewtUtil.check_dict_keys(settings, required_keys)
 
     config_type_list = {
         "1": "allpages",
@@ -554,20 +534,20 @@ def restructure_json_allpages(
 
     if "continue" in json_data_dict:
         required_keys_json = {"query", "continue", "batchcomplete", "limits"}
-        check_dict_keys(json_data_dict, required_keys_json)
+        NewtUtil.check_dict_keys(json_data_dict, required_keys_json)
     else:
         required_keys_json = {"query", "batchcomplete", "limits"}
-        check_dict_keys(json_data_dict, required_keys_json)
+        NewtUtil.check_dict_keys(json_data_dict, required_keys_json)
 
     required_keys_query = {"allpages"}
-    check_dict_keys(json_data_dict["query"], required_keys_query)
+    NewtUtil.check_dict_keys(json_data_dict["query"], required_keys_query)
 
     allpages_list = []
     allpages_list.append(["pageid", "title"])
     mw_apcontinue = ""
     for page in json_data_dict["query"]["allpages"]:
         required_keys_allpages = {"pageid", "ns", "title"}
-        check_dict_keys(page, required_keys_allpages)
+        NewtUtil.check_dict_keys(page, required_keys_allpages)
 
         if page["ns"] != apnamespace_nr:
             NewtCons.error_msg(
@@ -596,16 +576,15 @@ def restructure_json_recentchanges(
         ) -> list[str]:
     """Process and save all pages from JSON data."""
 
-
     if "continue" in json_data_dict:
         required_keys_json = {"query", "continue", "batchcomplete", "limits"}
-        check_dict_keys(json_data_dict, required_keys_json)
+        NewtUtil.check_dict_keys(json_data_dict, required_keys_json)
     else:
         required_keys_json = {"query", "batchcomplete", "limits"}
-        check_dict_keys(json_data_dict, required_keys_json)
+        NewtUtil.check_dict_keys(json_data_dict, required_keys_json)
 
     required_keys_query = {"recentchanges"}
-    check_dict_keys(json_data_dict["query"], required_keys_query)
+    NewtUtil.check_dict_keys(json_data_dict["query"], required_keys_query)
 
     recentchanges_list = []
     recentchanges_list.append(["timestamp", "pageid", "ns", "type", "title"])
@@ -621,7 +600,7 @@ def restructure_json_recentchanges(
             continue
 
         required_keys_recentchanges = {"type", "ns", "title", "pageid", "revid", "old_revid", "rcid", "timestamp"}
-        check_dict_keys(page, required_keys_recentchanges)
+        NewtUtil.check_dict_keys(page, required_keys_recentchanges, stop=False)
 
         if str(page["ns"]) not in namespace_types:
             NewtCons.error_msg(
@@ -659,9 +638,9 @@ def restructure_json_pageids(
         return
 
     required_keys_json = {"query", "batchcomplete"}
-    check_dict_keys(json_data_dict, required_keys_json)
+    NewtUtil.check_dict_keys(json_data_dict, required_keys_json)
     required_keys_query = {"pages"}
-    check_dict_keys(json_data_dict["query"], required_keys_query)
+    NewtUtil.check_dict_keys(json_data_dict["query"], required_keys_query)
 
     for page in json_data_dict["query"]["pages"]:
         if settings["config_type"] in (
@@ -685,7 +664,7 @@ def restructure_json_pageids(
                 continue
 
         required_keys_page = {"pageid", "ns", "title", "revisions"}
-        check_dict_keys(page, required_keys_page)
+        NewtUtil.check_dict_keys(page, required_keys_page, stop=False)
 
         if settings["config_type"] == "pagesrecent":
             apnamespace_nr = page["ns"]
@@ -709,11 +688,11 @@ def restructure_json_pageids(
 
         for revision in page["revisions"]:
             required_keys_revision = {"slots"}
-            check_dict_keys(revision, required_keys_revision)
+            NewtUtil.check_dict_keys(revision, required_keys_revision)
             required_keys_main = {"main"}
-            check_dict_keys(revision["slots"], required_keys_main)
+            NewtUtil.check_dict_keys(revision["slots"], required_keys_main)
             required_keys_content = {"contentmodel", "contentformat", "content"}
-            check_dict_keys(revision["slots"]["main"], required_keys_content)
+            NewtUtil.check_dict_keys(revision["slots"]["main"], required_keys_content)
 
             if revision["slots"]["main"]["contentmodel"] != "wikitext":
                 NewtCons.error_msg(
@@ -769,16 +748,16 @@ def restructure_json_savefiles(
         return
 
     required_keys_json = {"batchcomplete", "query"}
-    check_dict_keys(json_data_dict, required_keys_json)
+    NewtUtil.check_dict_keys(json_data_dict, required_keys_json)
     required_keys_query = {"pages"}
-    check_dict_keys(json_data_dict["query"], required_keys_query)
+    NewtUtil.check_dict_keys(json_data_dict["query"], required_keys_query)
 
     for image_info in json_data_dict["query"]["pages"]:
         if "imageinfo" not in image_info:
             continue
 
         required_keys_image = {"pageid", "ns", "title", "imagerepository", "imageinfo"}
-        check_dict_keys(image_info, required_keys_image)
+        NewtUtil.check_dict_keys(image_info, required_keys_image, stop=False)
 
         if len(image_info["imageinfo"]) != 1:
             NewtCons.error_msg(
@@ -788,7 +767,7 @@ def restructure_json_savefiles(
             continue
 
         required_keys_imageinfo = {"url", "descriptionurl", "descriptionshorturl"}
-        check_dict_keys(image_info["imageinfo"][0], required_keys_imageinfo)
+        NewtUtil.check_dict_keys(image_info["imageinfo"][0], required_keys_imageinfo, stop=False)
 
         url_filename = os.path.basename(image_info["imageinfo"][0]["url"])
         filename = f"{image_info['pageid']:010d}-{url_filename}"
@@ -847,7 +826,7 @@ def loop_next_pages(
                     break
 
                 required_keys = {"apcontinue", "continue"}
-                check_dict_keys(json_data["continue"], required_keys)
+                NewtUtil.check_dict_keys(json_data["continue"], required_keys, stop=False)
 
                 json_data = get_json_from_url(
                     continue_param = json_data["continue"]["apcontinue"].replace(" ", "_"),
@@ -863,7 +842,7 @@ def loop_next_pages(
                     break
 
                 required_keys = {"rccontinue", "continue"}
-                check_dict_keys(json_data["continue"], required_keys)
+                NewtUtil.check_dict_keys(json_data["continue"], required_keys, stop=False)
 
                 json_data = get_json_from_url(
                     continue_param = json_data["continue"]["rccontinue"]
