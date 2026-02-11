@@ -90,7 +90,8 @@ def get_blocked_list(
 
 
 def check_todo(
-        ) -> list[tuple[str, str, str | None]]:
+        ) -> list[tuple[str, str, str]]:
+    """ Check for missing log files based on existing config files and return a list of tasks to do. """
 
     todo_list = []
     path_config = os.path.join(DIR_PROJECT, "configs")
@@ -153,16 +154,16 @@ def check_todo(
 
         for wiki_data_type in WIKI_DATA_TYPE_DICT.values():
             if wiki_data_type in ("allpages", "pageids"):
-                for ns_key in ns_dict.keys():
+                for ns_key, ns_value in ns_dict.items():
                     name_wiki_log_file = f"{wiki_data_type}-{int(ns_key):0{max_key_len}d}.txt"
                     path_wiki_log_file = os.path.join(path_logs, name_wiki_log_file)
                     if not os.path.isfile(path_wiki_log_file):
-                        todo_list.append((file, wiki_data_type, ns_key))
+                        todo_list.append((file, wiki_data_type, ns_key, ns_value))
             else:
                 name_wiki_log_file = f"{wiki_data_type}.txt"
                 path_wiki_log_file = os.path.join(path_logs, name_wiki_log_file)
                 if not os.path.isfile(path_wiki_log_file):
-                    todo_list.append((file, wiki_data_type, None))
+                    todo_list.append((file, wiki_data_type, None, None))
 
     print()
     print("=== TODO LIST ===")
