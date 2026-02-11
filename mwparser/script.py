@@ -127,24 +127,24 @@ def check_todo(
 
         # Get settings from config file
         path_config_file = os.path.join(path_config, file)
-        settings = NewtFiles.read_json_from_file(path_config_file)
+        file_settings = NewtFiles.read_json_from_file(path_config_file)
         NewtCons.validate_input(
-            settings, dict, check_non_empty=True,
-            location="mwparser.check_todo : settings"
+            file_settings, dict, check_non_empty=True,
+            location="mwparser.check_todo : file_settings"
         )
-        assert isinstance(settings, dict)  # for type checker
+        assert isinstance(file_settings, dict)  # for type checker
 
-        # Check required keys in settings
+        # Check required keys in file_settings
         required_keys = {"FOLDER_LINK", "BASE_URL"}
-        NewtUtil.check_dict_keys(settings, required_keys)
-        for value in settings.values():
+        NewtUtil.check_dict_keys(file_settings, required_keys)
+        for value in file_settings.values():
             NewtCons.validate_input(
                 value, str, check_non_empty=True,
-                location="mwparser.check_todo : settings[value]"
+                location="mwparser.check_todo : file_settings[value]"
             )
 
         # Check if namespace_types.json exists for the config
-        path_namespace_types = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_NAMESPACES)
+        path_namespace_types = os.path.join(DIR_GLOBAL, file_settings["FOLDER_LINK"], FILE_NAMESPACES)
         if not os.path.isfile(path_namespace_types):
             NewtCons.error_msg(
                 f"Missing namespace_types.json for config: {file}",
@@ -163,7 +163,7 @@ def check_todo(
         # Calculate max key length from namespace types for formatting
         max_key_len = len(max(ns_dict.keys(), key=len))
 
-        path_logs = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LOGS)
+        path_logs = os.path.join(DIR_GLOBAL, file_settings["FOLDER_LINK"], FOLDER_LOGS)
 
         for wiki_data_type in WIKI_DATA_TYPE_DICT.values():
             if wiki_data_type in ("allpages", "pageids"):
@@ -309,7 +309,6 @@ def prep_headers_params_for_url(
         ) -> tuple:
     """Set headers and parameters for the URL request based on settings."""
 
-    global settings
     global namespace_nr_set
     global time_start
     global time_end
@@ -327,7 +326,7 @@ def prep_headers_params_for_url(
         "formatversion": "2",
     }
 
-    match settings["wiki_data_type"]:
+    match SETTINGS["wiki_data_type"]:
         case "allpages":
             params.update({"list": "allpages"})
             params.update({"aplimit": "max"})
@@ -358,7 +357,7 @@ def prep_headers_params_for_url(
         case _:
             pass
 
-    if settings["wiki_data_type"] == "allpages":
+    if SETTINGS["wiki_data_type"] == "allpages":
         if APCONTINUE_CHECK:
             params.update({"apcontinue": APCONTINUE_PARAM})
 
@@ -927,7 +926,7 @@ def remove_duplicated_lines(
 if __name__ == "__main__":
     NewtCons.check_location(DIR_GLOBAL, MUST_LOCATION)
     TODO_LIST = check_todo()
-    settings = read_config()
+    SETTINGS = read_config()
     headers_params_for_url = prep_headers_params_for_url()
     blocked_set = get_blocked_list()
     json_data = get_json_from_url()
