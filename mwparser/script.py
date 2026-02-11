@@ -28,25 +28,12 @@ sys.path.append(DIR_GLOBAL)
 
 MUST_LOCATION = os.path.join("D:\\", "VS_Code")
 
-time_now = datetime.now(timezone.utc)
-time_file_name = time_now.strftime('%Y-%m-%d-%H-%M-%S')
-time_start = time_now - timedelta(days=0, hours=0)
+BACK_IN_TIME_DAYS = 7
+TIME_NOW = datetime.now(timezone.utc)
+time_start = TIME_NOW - timedelta(days=0, hours=0)
 time_start = time_start.strftime('%Y-%m-%dT%H:%M:%SZ')
-time_end = time_now - timedelta(days=19, hours=0)
+time_end = TIME_NOW - timedelta(days=BACK_IN_TIME_DAYS, hours=0)
 time_end = time_end.strftime('%Y-%m-%dT%H:%M:%SZ')
-
-choose_config = "xxx.json"
-check_config_folder = True
-
-set_apcontinue = ""
-check_apcontinue = False
-
-namespace_types = {}
-
-apnamespace_nr = 0
-check_apnamespace = True
-
-settings_index_start = 0
 
 FOLDER_RAW_PAGES = os.path.join("data", "raw", "pages")
 FOLDER_RAW_REDIRECT = os.path.join("data", "raw", "redirect")
@@ -57,6 +44,13 @@ FOLDER_LOGS = os.path.join("data", "logs")
 FILE_NAMESPACES = os.path.join("data", "schemas", "namespace_types.json")
 FILE_BLOCKED = "blocked.txt"
 
+# Extended functionality in read_config()
+FOLDER_CONFIG_CHECK = False
+FOLDER_CONFIG_CHECK = True
+# If FOLDER_CONFIG_CHECK is False, set the config file name here
+# File must be in configs folder
+file_config_set = "xxx.json"
+
 WIKI_DATA_TYPE_DICT = {
     "1": "allpages",
     "2": "pageids",
@@ -65,8 +59,27 @@ WIKI_DATA_TYPE_DICT = {
     "5": "savefiles",
 }
 
+# Extended functionality in read_config()
+WIKI_DATA_TYPE_CHECK = False
+WIKI_DATA_TYPE_CHECK = True
+# If WIKI_DATA_TYPE_CHECK is False, set the wiki data type here
+wiki_data_type_set = WIKI_DATA_TYPE_DICT["1"]
+
+namespace_types_set = {}
+# Extended functionality in read_config()
+NAMESPACE_NR_CHECK = False
+NAMESPACE_NR_CHECK = True
+# If NAMESPACE_NR_CHECK is False, set namespace number here
+namespace_nr_set = 0
+
+# Extended functionality in prep_headers_params_for_url()
+APCONTINUE_CHECK = True
+APCONTINUE_CHECK = False
+# If APCONTINUE_CHECK is True, set apcontinue value here
+APCONTINUE_PARAM = ""
+
 SAVE_LOG = True
-# SAVE_LOG = False
+SAVE_LOG = False
 
 if SAVE_LOG:
     SETUP_LOGGING_DATA = NewtFiles.setup_logging(DIR_GLOBAL)
@@ -176,76 +189,85 @@ def check_todo(
 
 
 def read_config(
+        todo_list: list[tuple[str, str, str]]
         ) -> dict:
     """Read configuration from a selected JSON file."""
 
-    global choose_config
-    global namespace_types
-    global apnamespace_nr
+    global file_config_set
+    global wiki_data_type_set
+    global namespace_types_set
+    global namespace_nr_set
 
-    if check_config_folder:
-        choose_config = NewtFiles.choose_file_from_folder(os.path.join(dir_parser, "configs"))
-
-    if not choose_config:
-        NewtCons.error_msg(
-            "No config selected, exiting",
-            location="mwparser.read_config : choose_config=None"
+    # Select WIKI Project
+    # Settings are at file beginning of script
+    if FOLDER_CONFIG_CHECK:
+        count_file_config = NewtUtil.count_similar_values(todo_list, 0)
+        file_config_set = NewtFiles.choose_file_from_folder(
+            os.path.join(DIR_PROJECT, "configs"),
+            count_file_config
         )
-    # ensure the type checker knows choose_config is not None
-    assert choose_config is not None
 
-    config_path = os.path.join(dir_parser, "configs", choose_config)
-    settings = NewtFiles.read_json_from_file(config_path)
-    print()
-
-    # ensure the type checker knows settings is a dict
+    # Be sure return value or global variable is set to a non-empty str
     NewtCons.validate_input(
-        settings, dict,
+        file_config_set, str, check_non_empty=True,
+        location="mwparser.read_config : file_config_set"
+    )
+    assert isinstance(file_config_set, str)  # for type checker
+
+    # Get settings content from config file
+    # Its structure is already checked in check_todo() function, so we can be sure it has all required keys and values
+    path_config_file = os.path.join(DIR_PROJECT, "configs", file_config_set)
+    settings = NewtFiles.read_json_from_file(path_config_file)
+    NewtCons.validate_input(
+        settings, dict, check_non_empty=True,
         location="mwparser.read_config : settings"
     )
-    assert isinstance(settings, dict)
+    assert isinstance(settings, dict)  # for type checker
 
-    required_keys = {"FOLDER_LINK", "BASE_URL"}
-    NewtUtil.check_dict_keys(settings, required_keys)
+    # Select WIKI Data Type
+    if WIKI_DATA_TYPE_CHECK:
+        print()
+        count_wiki_data_types = NewtUtil.count_similar_values(
+            [todo for todo in todo_list if todo[0] == file_config_set], 1
+        )
+        wiki_data_type_nr = NewtUtil.select_from_input(WIKI_DATA_TYPE_DICT, count_wiki_data_types)
+        wiki_data_type_set = WIKI_DATA_TYPE_DICT[wiki_data_type_nr]
 
-    config_type_list = {
-        "1": "allpages",
-        "2": "pageids",
-        "3": "recentchanges",
-        "4": "pagesrecent",
-        "5": "savefiles",
-    }
-
-    config_type_nr = NewtCons.select_from_input(config_type_list)
-    assert config_type_nr is not None
-
-    config_type = config_type_list[config_type_nr]
-    settings["config_type"] = config_type
-
-    namespace_types = NewtFiles.read_json_from_file(
-        os.path.join(dir_, settings["FOLDER_LINK"], "data", "schemas", "namespace_types.json")
-    )
-    # ensure the type checker knows namespace_types is a dict
+    # Be sure return value or global variable is set to a non-empty str
     NewtCons.validate_input(
-        namespace_types, dict,
-        location="mwparser.read_config : namespace_types"
+        wiki_data_type_set, str, check_non_empty=True,
+        location="mwparser.read_config : wiki_data_type_set"
     )
-    assert isinstance(namespace_types, dict)
+    assert isinstance(wiki_data_type_set, str)  # for type checker
 
-    if config_type in (
+    settings["wiki_data_type"] = wiki_data_type_set
+
+    namespace_types_set = NewtFiles.read_json_from_file(
+        os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_NAMESPACES)
+    )
+
+    # Be sure return value or global variable is set to a non-empty dict
+    NewtCons.validate_input(
+        namespace_types_set, dict, check_non_empty=True,
+        location="mwparser.read_config : namespace_types_set"
+    )
+    assert isinstance(namespace_types_set, dict)  # for type checker
+
+    # Calculate max key length from namespace types for formatting
+    ns_max_key_len = len(max(namespace_types_set.keys(), key=len))
+
+    # Select Namespace Number if needed (for types with multiple namespaces)
+    if wiki_data_type_set in (
         "allpages",
         "pageids",
-        "savefiles",
     ):
-        if check_apnamespace:
-            apnamespace_nr = NewtCons.select_from_input(namespace_types)
-            if apnamespace_nr is None:
-                NewtCons.error_msg(
-                    "No namespace selected, exiting",
-                    location="mwparser.read_config.allpages : apnamespace_nr=None"
-                )
-            else:
-                apnamespace_nr = int(apnamespace_nr)
+        if NAMESPACE_NR_CHECK:
+            print()
+            count_namespace_types = NewtUtil.count_similar_values(
+                [todo for todo in todo_list if todo[0] == file_config_set and todo[1] == wiki_data_type_set], 3
+            )
+            namespace_nr_set = NewtUtil.select_from_input(namespace_types_set, count_namespace_types)
+            namespace_nr_set = int(namespace_nr_set)
 
     if config_type == "allpages":
         settings["file_name"] = os.path.join("allpages", f"{apnamespace_nr:05d}.csv")
