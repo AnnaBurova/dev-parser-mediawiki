@@ -57,6 +57,14 @@ FOLDER_LOGS = os.path.join("data", "logs")
 FILE_NAMESPACES = os.path.join("data", "schemas", "namespace_types.json")
 FILE_BLOCKED = "blocked.txt"
 
+WIKI_DATA_TYPE_DICT = {
+    "1": "allpages",
+    "2": "pageids",
+    "3": "recentchanges",
+    "4": "pagesrecent",
+    "5": "savefiles",
+}
+
 SAVE_LOG = True
 # SAVE_LOG = False
 
@@ -82,62 +90,88 @@ def get_blocked_list(
 
 
 def check_todo(
-        ) -> None:
+        ) -> list[tuple[str, str, str | None]]:
 
     todo_list = []
-    folder_config = os.path.join(dir_parser, "configs")
-    for file in os.listdir(folder_config):
-        if not os.path.isfile(os.path.join(folder_config, file)):
+    path_config = os.path.join(DIR_PROJECT, "configs")
+    for file in os.listdir(path_config):
+        # Skip if it's not a file (e.g., directory)
+        if not os.path.isfile(os.path.join(path_config, file)):
             continue
 
+        # Skip specific config example file
         if file == "xxx.json":
             continue
 
-        if file.endswith(".json"):
-            config_path = os.path.join(folder_config, file)
-            settings = NewtFiles.read_json_from_file(config_path)
-
-            NewtCons.validate_input(
-                settings, dict,
-                location="mwparser.check_todo : settings"
+        # Skip non-config files
+        if not file.endswith(".json"):
+            NewtCons.error_msg(
+                f"Found non-config file: {file}", stop=False,
+                location="mwparser.check_todo : non-config file"
             )
-            assert isinstance(settings, dict)
+            continue
 
-            namespace_types = os.path.join(dir_, settings["FOLDER_LINK"], "data", "schemas", "namespace_types.json")
-            if not os.path.isfile(namespace_types):
-                NewtCons.error_msg(
-                    f"Missing namespace_types.json for config: {file}",
-                    location="mwparser.check_todo : namespace_types.json missing"
-                )
-            n_types = NewtFiles.read_json_from_file(namespace_types)
-            assert isinstance(n_types, dict)
+        # Get settings from config file
+        path_config_file = os.path.join(path_config, file)
+        settings = NewtFiles.read_json_from_file(path_config_file)
+        NewtCons.validate_input(
+            settings, dict, check_non_empty=True,
+            location="mwparser.check_todo : settings"
+        )
+        assert isinstance(settings, dict)  # for type checker
 
-            folder_logs = os.path.join(dir_, settings["FOLDER_LINK"], "data", "logs")
+        # Check required keys in settings
+        required_keys = {"FOLDER_LINK", "BASE_URL"}
+        NewtUtil.check_dict_keys(settings, required_keys)
+        for value in settings.values():
+            NewtCons.validate_input(
+                value, str, check_non_empty=True,
+                location="mwparser.check_todo : settings[value]"
+            )
 
-            for n_type in n_types.keys():
-                file_ap = os.path.join(folder_logs, f"allpages-{int(n_type):03d}.txt")
-                if not os.path.isfile(file_ap):
-                    todo_list.append(f"Proj: {file} missing allpages file: {n_type}")
+        # Check if namespace_types.json exists for the config
+        path_namespace_types = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_NAMESPACES)
+        if not os.path.isfile(path_namespace_types):
+            NewtCons.error_msg(
+                f"Missing namespace_types.json for config: {file}",
+                f"File must be here: {path_namespace_types}",
+                location="mwparser.check_todo : namespace_types.json missing"
+            )
 
-            for n_type in n_types.keys():
-                file_pi = os.path.join(folder_logs, f"pageids-{int(n_type):03d}.txt")
-                if not os.path.isfile(file_pi):
-                    todo_list.append(f"Proj: {file} missing pageids file: {n_type}")
+        # Get namespace types from file
+        ns_dict = NewtFiles.read_json_from_file(path_namespace_types)
+        NewtCons.validate_input(
+            ns_dict, dict, check_non_empty=True,
+            location="mwparser.check_todo : ns_dict"
+        )
+        assert isinstance(ns_dict, dict)
 
-            file_rc = os.path.join(folder_logs, "recentchanges.txt")
-            if not os.path.isfile(file_rc):
-                todo_list.append(f"Proj: {file} missing file: recentchanges.txt")
+        # Calculate max key length from namespace types for formatting
+        max_key_len = len(max(ns_dict.keys(), key=len))
 
-            file_pr = os.path.join(folder_logs, "pagesrecent.txt")
-            if not os.path.isfile(file_pr):
-                todo_list.append(f"Proj: {file} missing file: pagesrecent.txt")
+        path_logs = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LOGS)
 
-    todo_list.reverse()
+        for wiki_data_type in WIKI_DATA_TYPE_DICT.values():
+            if wiki_data_type in ("allpages", "pageids"):
+                for ns_key in ns_dict.keys():
+                    name_wiki_log_file = f"{wiki_data_type}-{int(ns_key):0{max_key_len}d}.txt"
+                    path_wiki_log_file = os.path.join(path_logs, name_wiki_log_file)
+                    if not os.path.isfile(path_wiki_log_file):
+                        todo_list.append((file, wiki_data_type, ns_key))
+            else:
+                name_wiki_log_file = f"{wiki_data_type}.txt"
+                path_wiki_log_file = os.path.join(path_logs, name_wiki_log_file)
+                if not os.path.isfile(path_wiki_log_file):
+                    todo_list.append((file, wiki_data_type, None))
+
     print()
     print("=== TODO LIST ===")
+    todo_list.reverse()
     for todo in todo_list:
         print(todo)
     print()
+
+    return todo_list
 
 
 def read_config(
@@ -861,7 +895,7 @@ def remove_duplicated_lines(
 
 if __name__ == "__main__":
     NewtCons.check_location(DIR_GLOBAL, MUST_LOCATION)
-    check_todo()
+    todo_list = check_todo()
     settings = read_config()
     args_for_url = set_args_for_url(apnamespace_nr)
     blocked_set = get_blocked_list()
