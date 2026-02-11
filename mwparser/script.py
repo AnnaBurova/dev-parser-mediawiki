@@ -189,10 +189,10 @@ def check_todo(
 
 
 def read_config(
-        todo_list: list[tuple[str, str, str]]
         ) -> dict:
     """Read configuration from a selected JSON file."""
 
+    global todo_list
     global file_config_set
     global wiki_data_type_set
     global namespace_types_set
@@ -306,13 +306,17 @@ def read_config(
     return settings
 
 
-def set_args_for_url(
-        apnamespace: int
+def prep_headers_params_for_url(
         ) -> tuple:
     """Set headers and parameters for the URL request based on settings."""
 
+    global settings
+    global namespace_nr_set
+    global time_start
+    global time_end
+
     headers = {
-        "User-Agent": "MyGuildWarsBot/1.1 (burova.anna+parser+bot@gmail.com)",
+        "User-Agent": "MyGuildWarsBot/1.2 (burova.anna+parser+bot@gmail.com)",
         "Accept-Encoding": "gzip",
     }
 
@@ -324,35 +328,40 @@ def set_args_for_url(
         "formatversion": "2",
     }
 
-    if settings["config_type"] == "allpages":
-        params.update({"list": "allpages"})
-        params.update({"aplimit": "max"})
-        params.update({"apnamespace": str(apnamespace)})
+    match settings["wiki_data_type"]:
+        case "allpages":
+            params.update({"list": "allpages"})
+            params.update({"aplimit": "max"})
+            params.update({"apnamespace": str(namespace_nr_set)})
 
-        if check_apcontinue:
-            params.update({"apcontinue": set_apcontinue})
+        case "pageids":
+            params.update({"prop": "revisions"})
+            params.update({"rvprop": "content"})
+            params.update({"rvslots": "*"})
 
-    elif settings["config_type"] == "recentchanges":
-        params.update({"list": "recentchanges"})
-        params.update({"rcnamespace": "*"})
-        params.update({"rclimit": "max"})
-        params.update({"rcstart": str(time_start)})
-        params.update({"rcend": str(time_end)})
+        case "recentchanges":
+            params.update({"list": "recentchanges"})
+            params.update({"rcnamespace": "*"})
+            params.update({"rclimit": "max"})
+            params.update({"rcstart": str(time_start)})
+            params.update({"rcend": str(time_end)})
 
-    elif settings["config_type"] == "pageids":
-        params.update({"prop": "revisions"})
-        params.update({"rvprop": "content"})
-        params.update({"rvslots": "*"})
+        case "pagesrecent":
+            params.update({"prop": "revisions"})
+            params.update({"rvprop": "content"})
+            params.update({"rvslots": "*"})
 
-    elif settings["config_type"] == "pagesrecent":
-        params.update({"prop": "revisions"})
-        params.update({"rvprop": "content"})
-        params.update({"rvslots": "*"})
+        case "savefiles":
+            params.update({"maxlag": "5"})
+            params.update({"prop": "imageinfo"})
+            params.update({"iiprop": "url"})
 
-    elif settings["config_type"] == "savefiles":
-        params.update({"maxlag": "5"})
-        params.update({"prop": "imageinfo"})
-        params.update({"iiprop": "url"})
+        case _:
+            pass
+
+    if settings["wiki_data_type"] == "allpages":
+        if APCONTINUE_CHECK:
+            params.update({"apcontinue": APCONTINUE_PARAM})
 
     return (headers, params)
 
@@ -920,7 +929,7 @@ if __name__ == "__main__":
     NewtCons.check_location(DIR_GLOBAL, MUST_LOCATION)
     todo_list = check_todo()
     settings = read_config()
-    args_for_url = set_args_for_url(apnamespace_nr)
+    headers_params_for_url = prep_headers_params_for_url()
     blocked_set = get_blocked_list()
     json_data = get_json_from_url()
 
