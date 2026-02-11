@@ -85,23 +85,6 @@ if SAVE_LOG:
     SETUP_LOGGING_DATA = NewtFiles.setup_logging(DIR_GLOBAL)
 
 
-def get_blocked_list(
-        ) -> set[str]:
-    """Read blocked list from file and return as a set."""
-
-    file_blocked_path = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, file_blocked)
-    blocked_list = NewtFiles.read_text_from_file(file_blocked_path)
-    print()
-
-    blocked_set = set()
-    for line in blocked_list.splitlines():
-        line = line.strip()
-        if line:
-            blocked_set.add(line)
-
-    return blocked_set
-
-
 def check_todo(
         ) -> list[tuple[str, str, str]]:
     """ Check for missing log files based on existing config files and return a list of tasks to do. """
@@ -362,6 +345,24 @@ def prep_headers_params_for_url(
             params.update({"apcontinue": APCONTINUE_PARAM})
 
     return (headers, params)
+
+
+def get_blocked_list(
+        ) -> set[str]:
+    """Read blocked list from file and return as a set."""
+
+    blocked_set = set()
+    file_blocked_path = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, FILE_BLOCKED)
+    blocked_list = NewtFiles.read_text_from_file(file_blocked_path)
+    print()
+
+    if blocked_list:
+        for line in blocked_list.splitlines():
+            line = line.strip()
+            if line:
+                blocked_set.add(line)
+
+    return blocked_set
 
 
 def get_json_from_url(
@@ -928,7 +929,7 @@ if __name__ == "__main__":
     TODO_LIST = check_todo()
     SETTINGS = read_config()
     headers_params_for_url = prep_headers_params_for_url()
-    blocked_set = get_blocked_list()
+    BLOCKED_LIST = get_blocked_list()
     json_data = get_json_from_url()
 
     match settings["config_type"]:
