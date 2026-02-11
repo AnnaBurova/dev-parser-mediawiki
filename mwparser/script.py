@@ -1,5 +1,5 @@
 """
-Updated on 2025-12
+Updated on 2026-02
 Created on 2025-11
 
 @author: NewtCode Anna Burova
@@ -17,14 +17,14 @@ import newtutils.utility as NewtUtil
 import newtutils.files as NewtFiles
 import newtutils.network as NewtNet
 
-dir_parser = os.path.dirname(os.path.realpath(__file__))
-# print(dir_parser)  # D:\VS_Code\dev-parser-mediawiki\mwparser
+dir_project = os.path.dirname(os.path.realpath(__file__))
+# print(dir_project)  # D:\VS_Code\dev-parser-mediawiki\mwparser
 
-dir_ = os.path.dirname(os.path.dirname(dir_parser))
-# print(dir_)  # D:\VS_Code
+dir_global = os.path.dirname(os.path.dirname(dir_project))
+# print(dir_global)  # D:\VS_Code
 
 # Add the project root directory to sys.path
-sys.path.append(dir_)
+sys.path.append(dir_global)
 
 must_location = os.path.join("D:\\", "VS_Code")
 
@@ -60,7 +60,7 @@ save_log = True
 # save_log = False
 
 if save_log:
-    setup_data = NewtFiles.setup_logging(dir_)
+    setup_data = NewtFiles.setup_logging(dir_global)
 
 
 def get_blocked_list(
@@ -859,7 +859,7 @@ def remove_duplicated_lines(
 
 
 if __name__ == "__main__":
-    NewtCons.check_location(dir_, must_location)
+    NewtCons.check_location(dir_global, must_location)
     check_todo()
     settings = read_config()
     args_for_url = set_args_for_url(apnamespace_nr)
@@ -899,6 +899,6 @@ if __name__ == "__main__":
         else:
             file_target_name = f"{settings["config_type"]}.txt"
 
-        path_target = os.path.join(dir_, settings["FOLDER_LINK"], folder_logs, file_target_name)
+        path_target = os.path.join(dir_global, settings["FOLDER_LINK"], folder_logs, file_target_name)
 
         NewtFiles.cleanup_logging(setup_data, path_target)
