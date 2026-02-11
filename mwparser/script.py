@@ -17,16 +17,16 @@ import newtutils.utility as NewtUtil
 import newtutils.files as NewtFiles
 import newtutils.network as NewtNet
 
-dir_project = os.path.dirname(os.path.realpath(__file__))
-# print(dir_project)  # D:\VS_Code\dev-parser-mediawiki\mwparser
+DIR_PROJECT = os.path.dirname(os.path.realpath(__file__))
+# print(DIR_PROJECT)  # D:\VS_Code\dev-parser-mediawiki\mwparser
 
-dir_global = os.path.dirname(os.path.dirname(dir_project))
-# print(dir_global)  # D:\VS_Code
+DIR_GLOBAL = os.path.dirname(os.path.dirname(DIR_PROJECT))
+# print(DIR_GLOBAL)  # D:\VS_Code
 
 # Add the project root directory to sys.path
-sys.path.append(dir_global)
+sys.path.append(DIR_GLOBAL)
 
-must_location = os.path.join("D:\\", "VS_Code")
+MUST_LOCATION = os.path.join("D:\\", "VS_Code")
 
 time_now = datetime.now(timezone.utc)
 time_file_name = time_now.strftime('%Y-%m-%d-%H-%M-%S')
@@ -48,19 +48,20 @@ check_apnamespace = True
 
 settings_index_start = 0
 
-folder_raw_pages = os.path.join("data", "raw", "pages")
-folder_raw_redirect = os.path.join("data", "raw", "redirect")
-folder_raw_removed = os.path.join("data", "raw", "removed")
-folder_raw_images = os.path.join("data", "raw", "images")
-folder_lists = os.path.join("data", "lists")
-folder_logs = os.path.join("data", "logs")
-file_blocked = "blocked.txt"
+FOLDER_RAW_PAGES = os.path.join("data", "raw", "pages")
+FOLDER_RAW_REDIRECT = os.path.join("data", "raw", "redirect")
+FOLDER_RAW_REMOVED = os.path.join("data", "raw", "removed")
+FOLDER_RAW_IMAGES = os.path.join("data", "raw", "images")
+FOLDER_LISTS = os.path.join("data", "lists")
+FOLDER_LOGS = os.path.join("data", "logs")
+FILE_NAMESPACES = os.path.join("data", "schemas", "namespace_types.json")
+FILE_BLOCKED = "blocked.txt"
 
-save_log = True
-# save_log = False
+SAVE_LOG = True
+# SAVE_LOG = False
 
-if save_log:
-    setup_data = NewtFiles.setup_logging(dir_global)
+if SAVE_LOG:
+    SETUP_LOGGING_DATA = NewtFiles.setup_logging(DIR_GLOBAL)
 
 
 def get_blocked_list(
@@ -859,7 +860,7 @@ def remove_duplicated_lines(
 
 
 if __name__ == "__main__":
-    NewtCons.check_location(dir_global, must_location)
+    NewtCons.check_location(DIR_GLOBAL, MUST_LOCATION)
     check_todo()
     settings = read_config()
     args_for_url = set_args_for_url(apnamespace_nr)
@@ -890,7 +891,7 @@ if __name__ == "__main__":
 
     print("=== END ===")
 
-    if save_log:
+    if SAVE_LOG:
         if settings["config_type"] in (
                 "allpages",
                 "pageids",
@@ -899,6 +900,6 @@ if __name__ == "__main__":
         else:
             file_target_name = f"{settings["config_type"]}.txt"
 
-        path_target = os.path.join(dir_global, settings["FOLDER_LINK"], folder_logs, file_target_name)
+        path_target = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LOGS, file_target_name)
 
-        NewtFiles.cleanup_logging(setup_data, path_target)
+        NewtFiles.cleanup_logging(SETUP_LOGGING_DATA, path_target)
