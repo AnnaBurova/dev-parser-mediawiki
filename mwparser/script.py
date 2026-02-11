@@ -192,7 +192,6 @@ def read_config(
         ) -> dict:
     """Read configuration from a selected JSON file."""
 
-    global todo_list
     global file_config_set
     global wiki_data_type_set
     global namespace_types_set
@@ -201,7 +200,7 @@ def read_config(
     # Select WIKI Project
     # Settings are at file beginning of script
     if FOLDER_CONFIG_CHECK:
-        count_file_config = NewtUtil.count_similar_values(todo_list, 0)
+        count_file_config = NewtUtil.count_similar_values(TODO_LIST, 0)
         file_config_set = NewtFiles.choose_file_from_folder(
             os.path.join(DIR_PROJECT, "configs"),
             count_file_config
@@ -228,7 +227,7 @@ def read_config(
     if WIKI_DATA_TYPE_CHECK:
         print()
         count_wiki_data_types = NewtUtil.count_similar_values(
-            [todo for todo in todo_list if todo[0] == file_config_set], 1
+            [todo for todo in TODO_LIST if todo[0] == file_config_set], 1
         )
         wiki_data_type_nr = NewtUtil.select_from_input(WIKI_DATA_TYPE_DICT, count_wiki_data_types)
         wiki_data_type_set = WIKI_DATA_TYPE_DICT[wiki_data_type_nr]
@@ -264,7 +263,7 @@ def read_config(
         if NAMESPACE_NR_CHECK:
             print()
             count_namespace_types = NewtUtil.count_similar_values(
-                [todo for todo in todo_list if todo[0] == file_config_set and todo[1] == wiki_data_type_set], 3
+                [todo for todo in TODO_LIST if todo[0] == file_config_set and todo[1] == wiki_data_type_set], 3
             )
             namespace_nr_set = NewtUtil.select_from_input(namespace_types_set, count_namespace_types)
             namespace_nr_set = int(namespace_nr_set)
@@ -927,7 +926,7 @@ def remove_duplicated_lines(
 
 if __name__ == "__main__":
     NewtCons.check_location(DIR_GLOBAL, MUST_LOCATION)
-    todo_list = check_todo()
+    TODO_LIST = check_todo()
     settings = read_config()
     headers_params_for_url = prep_headers_params_for_url()
     blocked_set = get_blocked_list()
