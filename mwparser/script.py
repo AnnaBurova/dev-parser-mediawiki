@@ -957,9 +957,9 @@ if __name__ == "__main__":
 
     match wiki_data_type_set:
         case "allpages":
-            list_data, mw_apcontinue = restructure_json_allpages(json_data)
-            save_list_data(list_data, False)
-            loop_next_pages(json_data, mw_apcontinue)
+            data_list, continue_page_backup = restructure_json_allpages(json_data)
+            save_data_list(data_list, False)
+            loop_next_pages(json_data, continue_page_backup)
             remove_duplicated_lines()
 
         case "recentchanges":
