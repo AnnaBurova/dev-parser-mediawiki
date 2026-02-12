@@ -507,14 +507,23 @@ def get_json_from_url(
     # ensure the type checker knows data_from_url is not None
     assert data_from_url is not None
 
-    # If text is longer than 350000 characters, it may be incomplete,
-    # so we need to try to split request into pieces, if possible, to be sure it will return all data
-    if len(data_from_url) > 350000:
+    # Ensure return value is a dict
+    NewtCons.validate_input(
+        data_from_url, str, check_non_empty=True,
+        location="mwparser.get_json_from_url : data_from_url"
+    )
+    assert isinstance(data_from_url, str)  # for type checker
+
+    json_from_url = NewtFiles.convert_str_to_json(data_from_url)
+
+    if json_from_url is None:
+        # If text is too long, it may be incomplete,
+        # so we need to try to split request into pieces, if possible, to be sure it will return all data
         data_from_url_chunks = {'batchcomplete': True, 'query': {'pages': []}}
 
         if wiki_data_type_set == "pageids":
             for index_range in range(index_start, index_end):
-                if index_range not in SETTINGS["page_ids"]:
+                if len(SETTINGS["page_ids"]) < index_range:
                     break
 
                 params.update({"pageids": str(SETTINGS["page_ids"][index_range])})
@@ -554,15 +563,6 @@ def get_json_from_url(
                 )
 
         json_from_url = data_from_url_chunks
-
-    else:
-        # Ensure return value is a dict
-        NewtCons.validate_input(
-            data_from_url, str, check_non_empty=True,
-            location="mwparser.get_json_from_url : data_from_url"
-        )
-        assert isinstance(data_from_url, str)  # for type checker
-        json_from_url = NewtFiles.convert_str_to_json(data_from_url)
 
     NewtCons.validate_input(
         json_from_url, dict, check_non_empty=True,
