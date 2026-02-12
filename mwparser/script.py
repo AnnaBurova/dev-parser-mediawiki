@@ -565,8 +565,15 @@ def restructure_json_allpages(
         ) -> tuple[list[str], str]:
     """Process and save all pages from JSON data."""
 
+    global namespace_types_set
+    NewtCons.validate_input(
+        namespace_types_set, dict, check_non_empty=True,
+        location="mwparser.restructure_json_allpages : namespace_types_set"
+    )
+    assert isinstance(namespace_types_set, dict)  # for type checker
+
     if "continue" in json_data_dict:
-        required_keys_json = {"query", "continue", "batchcomplete", "limits"}
+        required_keys_json = {"query", "batchcomplete", "limits", "continue"}
         NewtUtil.check_dict_keys(json_data_dict, required_keys_json)
     else:
         required_keys_json = {"query", "batchcomplete", "limits"}
@@ -575,33 +582,32 @@ def restructure_json_allpages(
     required_keys_query = {"allpages"}
     NewtUtil.check_dict_keys(json_data_dict["query"], required_keys_query)
 
+    continue_page_backup = ""
     allpages_list = []
     allpages_list.append(["pageid", "title"])
-    mw_apcontinue = ""
     for page in json_data_dict["query"]["allpages"]:
         required_keys_allpages = {"pageid", "ns", "title"}
         NewtUtil.check_dict_keys(page, required_keys_allpages)
 
-        if page["ns"] != apnamespace_nr:
+        if page["ns"] != namespace_nr_set:
             NewtCons.error_msg(
                 f"Unexpected namespace value: {page['ns']} for page ID {page['pageid']}",
                 f"Page: {page}",
-                location="mwparser.restructure_json_allpages : page['ns']"
+                location="mwparser.restructure_json_allpages : page[ns]"
             )
 
-        if page["title"].replace(" ", "_") not in blocked_set:
-            mw_apcontinue = page["title"]
+        if page["title"].replace(" ", "_") not in BLOCKED_SET:
+            continue_page_backup = page["title"].replace(" ", "_")
             left_part, sep_part, right_part = page["title"].partition(':')
-            assert isinstance(namespace_types, dict)
-            if sep_part and left_part in set(namespace_types.values()):
-                mw_apcontinue = right_part.replace(" ", "_")
+            if sep_part and left_part in set(namespace_types_set.values()):
+                continue_page_backup = right_part.replace(" ", "_")
 
-            allpages_list.append([
-                f"{page['pageid']:010d}",
-                page["title"],
-            ])
+        allpages_list.append([
+            f"{page['pageid']:010d}",
+            page["title"],
+        ])
 
-    return (allpages_list, mw_apcontinue)
+    return (allpages_list, continue_page_backup)
 
 
 def restructure_json_recentchanges(
