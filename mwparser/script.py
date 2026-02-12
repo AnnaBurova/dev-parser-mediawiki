@@ -906,26 +906,32 @@ def remove_duplicated_lines(
         ) -> None:
     """Remove duplicated lines from the recentchanges file."""
 
-    file_path = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, settings["file_name"])
+    file_path = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, SETTINGS["file_name"])
     lines = NewtFiles.read_csv_from_file(file_path)
 
+    NewtCons.validate_input(
+        lines, list, check_non_empty=True,
+        location="mwparser.remove_duplicated_lines : lines"
+    )
+    assert isinstance(lines, list)  # for type checker
+
     # Separate header from data
-    header = lines[0] if lines else []
-    data_lines = lines[1:] if len(lines) > 1 else []
+    row_header = lines[0] if lines else []
+    rows_data = lines[1:] if len(lines) > 1 else []
 
     # Ensure header does not exist in data_lines
-    data_lines = [line for line in data_lines if line != header]
+    data_lines = [line for line in rows_data if line != row_header]
 
     # Remove duplicates from data only
     unique_lines = [list(t) for t in dict.fromkeys(map(tuple, data_lines))]
     unique_lines.sort()
 
     # Prepend header back
-    unique_lines = [header] + unique_lines
+    sorted_lines = [row_header] + unique_lines
 
     NewtFiles.save_csv_to_file(
         file_path,
-        unique_lines
+        sorted_lines
     )
     print()
 
