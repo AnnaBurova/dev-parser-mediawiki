@@ -838,26 +838,29 @@ def save_data_list(
 
 def loop_next_pages(
         json_data: dict,
-        mw_apcontinue: str | None = None
+        continue_page_backup: str | None = None
         ) -> None:
     """Loop to fetch next pages based on the config type."""
 
+    global wiki_data_type_set
+
     try:
-        if settings["config_type"] == "allpages":
-            while True:
-                if "continue" not in json_data or not mw_apcontinue:
-                    break
+        while True:
+            match wiki_data_type_set:
+                case "allpages":
+                    if "continue" not in json_data:
+                        break
 
-                required_keys = {"apcontinue", "continue"}
-                NewtUtil.check_dict_keys(json_data["continue"], required_keys, stop=False)
+                    required_keys_continue = {"apcontinue", "continue"}
+                    NewtUtil.check_dict_keys(json_data["continue"], required_keys_continue)
 
-                json_data = get_json_from_url(
-                    continue_param = json_data["continue"]["apcontinue"].replace(" ", "_"),
-                    continue_mw = mw_apcontinue
-                )
-                list_data, mw_apcontinue = restructure_json_allpages(json_data)
+                    json_data = get_json_from_url(
+                        continue_page_wiki = json_data["continue"]["apcontinue"],
+                        continue_page_backup = continue_page_backup
+                        )
 
-                save_list_data(list_data)
+                    data_list, continue_page_backup = restructure_json_allpages(json_data)
+                    save_data_list(data_list)
 
         elif settings["config_type"] == "recentchanges":
             while True:
@@ -894,12 +897,20 @@ def loop_next_pages(
                 restructure_json_savefiles(json_data)
                 json_data = get_json_from_url()
 
+                case _:
+                    break
 
     except Exception as e:
-        print(f"Script encountered an error: {e}")
+        NewtCons.error_msg(
+            f"Script encountered an error: {e}",
+            location="mwparser.loop_next_pages : Exception"
+        )
 
     except SystemExit:
-        print("SystemExit on fetching all pages")
+        NewtCons.error_msg(
+            "SystemExit on fetching all pages",
+            location="mwparser.loop_next_pages : SystemExit"
+        )
 
 
 def remove_duplicated_lines(
