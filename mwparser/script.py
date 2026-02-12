@@ -366,20 +366,25 @@ def get_blocked_set(
 
 
 def get_json_from_url(
-        continue_param: str | None = None,
-        continue_mw: str | None = None
+        continue_page_wiki: str | None = None,
+        continue_page_backup: str | None = None
         ) -> dict:
     """Fetch JSON data from a URL based on settings and save to file."""
 
-    headers, params = args_for_url
+    global wiki_data_type_set
 
-    if settings["config_type"] == "allpages":
-        if continue_param is not None:
-            if continue_param in blocked_set and continue_mw is not None:
-                continue_param = continue_mw
+    headers, params = headers_params_for_url
 
-            print(continue_param)
-            params.update({"apcontinue": continue_param})
+    match wiki_data_type_set:
+        case "allpages":
+            if continue_page_wiki is not None:
+                if continue_page_wiki in BLOCKED_SET and continue_page_backup is not None:
+                    print(continue_page_wiki)
+                    continue_page_wiki = continue_page_backup
+
+                print(continue_page_wiki)
+                params.update({"apcontinue": continue_page_wiki})
+
 
     elif settings["config_type"] == "recentchanges":
         if continue_param is not None:
@@ -461,19 +466,22 @@ def get_json_from_url(
         print(f"Progress max pages: {len(settings['allpages_titles']) / index_max}")
         print()
 
+        case _:
+            pass
+
     data_from_url = NewtNet.fetch_data_from_url(
-        settings["BASE_URL"], params, headers,
-        mode="manual", repeat_on_fail=True
+        SETTINGS["BASE_URL"], params, headers,
+        mode="auto", repeat_on_fail=False
     )
     print()
 
-    # ensure the type checker knows settings is not None and is a dict
+    # None data mostly comes from 403 Forbidden error, so we save continue_page_wiki to blocked list and skip it next time
     if data_from_url is None:
-        if continue_param is not None:
-            file_blocked_path = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, file_blocked)
+        if continue_page_wiki is not None:
+            path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, FILE_BLOCKED)
             NewtFiles.save_text_to_file(
-                file_blocked_path,
-                continue_param.replace(" ", "_"),
+                path_file_blocked,
+                continue_page_wiki,
                 append=True
             )
 
@@ -535,11 +543,19 @@ def get_json_from_url(
     else:
         json_from_url = NewtFiles.convert_str_to_json(data_from_url)
 
+    # Ensure return value is a dict
     NewtCons.validate_input(
-        json_from_url, dict,
-        location="mwparser.get_json_from_url : json_from_url != dict"
+        data_from_url, str, check_non_empty=True,
+        location="mwparser.get_json_from_url : data_from_url"
     )
-    assert isinstance(json_from_url, dict)
+    assert isinstance(data_from_url, str)  # for type checker
+    json_from_url = NewtFiles.convert_str_to_json(data_from_url)
+
+    NewtCons.validate_input(
+        json_from_url, dict, check_non_empty=True,
+        location="mwparser.get_json_from_url : json_from_url"
+    )
+    assert isinstance(json_from_url, dict)  # for type checker
 
     return json_from_url
 
