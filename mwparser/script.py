@@ -347,13 +347,13 @@ def prep_headers_params_for_url(
     return (headers, params)
 
 
-def get_blocked_list(
+def get_blocked_set(
         ) -> set[str]:
     """Read blocked list from file and return as a set."""
 
     blocked_set = set()
-    file_blocked_path = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, FILE_BLOCKED)
-    blocked_list = NewtFiles.read_text_from_file(file_blocked_path)
+    path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, FILE_BLOCKED)
+    blocked_list = NewtFiles.read_text_from_file(path_file_blocked)
     print()
 
     if blocked_list:
@@ -941,7 +941,7 @@ if __name__ == "__main__":
     TODO_LIST = check_todo()
     SETTINGS = read_config()
     headers_params_for_url = prep_headers_params_for_url()
-    BLOCKED_LIST = get_blocked_list()
+    BLOCKED_SET = get_blocked_set()
     json_data = get_json_from_url()
 
     match wiki_data_type_set:
