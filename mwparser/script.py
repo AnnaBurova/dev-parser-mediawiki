@@ -78,6 +78,11 @@ APCONTINUE_CHECK = False
 # If APCONTINUE_CHECK is True, set apcontinue value here
 APCONTINUE_PARAM = ""
 
+# Extended functionality in read_config() and get_json_from_url()
+SETTING_INDEX_START_DEFAULT = 0
+# max 50 pages per MediaWiki Settings for no admin users
+SETTING_INDEX_MAX_PAGES = 50
+
 SAVE_LOG = True
 SAVE_LOG = False
 
@@ -256,13 +261,22 @@ def read_config(
     elif config_type == "recentchanges":
         settings["file_name"] = os.path.join("recentchanges.csv")
 
-    elif config_type == "pageids":
-        file_allpages = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, "allpages", f"{apnamespace_nr:05d}.csv")
-        list_allpages = NewtFiles.read_csv_from_file(file_allpages)
+        case "pageids":
+            settings["index_start"] = SETTING_INDEX_START_DEFAULT
+            path_allpages = os.path.join(
+                DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LISTS,
+                "allpages", f"{namespace_nr_set:0{settings["ns_max_key_len"]}d}.csv"
+            )
+            list_allpages = NewtFiles.read_csv_from_file(path_allpages)
 
-        # skip header
-        settings["allpages_ids"] = sorted([int(row[0]) for row in list_allpages[1:]])
-        settings["index_start"] = settings_index_start
+            NewtCons.validate_input(
+                list_allpages, list, check_non_empty=True,
+                location="mwparser.read_config : list_allpages"
+            )
+            assert isinstance(list_allpages, list)  # for type checker
+
+            # skip header and get only ids from first column
+            settings["page_ids"] = sorted([int(row[0]) for row in list_allpages[1:]])
 
     elif config_type == "pagesrecent":
         file_recentchanges = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, "recentchanges.csv")
@@ -391,30 +405,30 @@ def get_json_from_url(
             print(continue_param)
             params.update({"rccontinue": continue_param})
 
-    elif settings["config_type"] == "pageids":
-        index_start = settings["index_start"]
-        # max 50 pages per MediaWiki Settings for no admin users
-        index_max = 50
+        case "pageids":
+            if len(SETTINGS["page_ids"]) == 0:
+                print("No pages to process. Empty list.")
+                return {}
 
-        if len(settings['allpages_ids']) == 0:
-            print("No pages to process.")
-            return {}
+            index_start = SETTINGS["index_start"]
+            index_max = SETTING_INDEX_MAX_PAGES
+            index_end = index_start + index_max
 
-        if len(settings["allpages_ids"]) < index_start:
-            print("No more pages to process.")
-            return {}
+            if len(SETTINGS["page_ids"]) < index_start:
+                print("No more pages to process.")
+                return {}
 
-        index_end = index_start + index_max
-        params.update({"pageids": '|'.join(
-            map(str, settings["allpages_ids"][index_start:index_end])
-        )})
-        settings["index_start"] = index_end
+            params.update({"pageids": '|'.join(
+                map(str, SETTINGS["page_ids"][index_start:index_end])
+            )})
+            SETTINGS["index_start"] = index_end
 
-        print()
-        print(f"Processing page IDs from index {index_start} to {index_end - 1}")
-        print(f"Progress current page: {index_start / index_max}")
-        print(f"Progress max pages: {len(settings['allpages_ids']) / index_max}")
-        print()
+            print()
+            print(f"Processing page IDs from index {index_start} to {index_end - 1}")
+            print(f"Progress max index: {len(SETTINGS['page_ids'])}")
+            print(f"Processing current page: {index_start / index_max}")
+            print(f"Progress max pages: {len(SETTINGS['page_ids']) / index_max}")
+            print()
 
     elif settings["config_type"] == "pagesrecent":
         index_start = settings["index_start"]
@@ -471,7 +485,7 @@ def get_json_from_url(
 
     data_from_url = NewtNet.fetch_data_from_url(
         SETTINGS["BASE_URL"], params, headers,
-        mode="auto", repeat_on_fail=False
+        mode="auto",
     )
     print()
 
@@ -486,70 +500,69 @@ def get_json_from_url(
             )
 
         NewtCons.error_msg(
-            "Failed to read config JSON, exiting",
+            "Failed to read JSON result, exiting",
             location="mwparser.get_json_from_url : data_from_url=None"
         )
-    # ensure the type checker knows choose_config is not None
+
+    # ensure the type checker knows data_from_url is not None
     assert data_from_url is not None
 
-    if len(data_from_url) > 500000:
-        # Need to try to split request into pieces, to be sure it will return all data
+    # If text is longer than 350000 characters, it may be incomplete,
+    # so we need to try to split request into pieces, if possible, to be sure it will return all data
+    if len(data_from_url) > 350000:
         data_from_url_chunks = {'batchcomplete': True, 'query': {'pages': []}}
 
-        if settings["config_type"] == "pageids":
+        if wiki_data_type_set == "pageids":
             for index_range in range(index_start, index_end):
-                params.update({"pageids": str(settings["allpages_ids"][index_range])})
+                if index_range not in SETTINGS["page_ids"]:
+                    break
+
+                params.update({"pageids": str(SETTINGS["page_ids"][index_range])})
 
                 data_from_url_small = NewtNet.fetch_data_from_url(
-                    settings["BASE_URL"], params, headers,
-                    mode="manual", repeat_on_fail=True
+                    SETTINGS["BASE_URL"], params, headers,
+                    mode="auto",
                 )
                 print()
 
-                # ensure the type checker knows settings is not None and is a dict
+                # None data mostly comes from 403 Forbidden error, so we need to catch page id and add it to blocked list to skip it next time
                 if data_from_url_small is None:
-                    if continue_param is not None:
-                        file_blocked_path = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, file_blocked)
-                        NewtFiles.save_text_to_file(
-                            file_blocked_path,
-                            continue_param.replace(" ", "_"),
-                            append=True
-                        )
-
                     NewtCons.error_msg(
-                        "Failed to read config JSON, exiting",
-                        location="mwparser.get_json_from_url : data_from_url=None"
+                        "Failed to read small JSON result, exiting",
+                        f"Page ID: {SETTINGS["page_ids"][index_range]}",
+                        location="mwparser.get_json_from_url : data_from_url_small=None"
                     )
-                # ensure the type checker knows choose_config is not None
+
+                # ensure the type checker knows file_config is not None
                 assert data_from_url_small is not None
+
                 json_from_url_small = NewtFiles.convert_str_to_json(data_from_url_small)
+
                 NewtCons.validate_input(
-                    json_from_url_small, dict,
+                    json_from_url_small, dict, check_non_empty=True,
                     location="mwparser.get_json_from_url : json_from_url_small != dict"
                 )
-                assert isinstance(json_from_url_small, dict)
+                assert isinstance(json_from_url_small, dict)  # for type checker
+
+                required_keys_small = {"query", "batchcomplete"}
+                NewtUtil.check_dict_keys(json_from_url_small, required_keys_small)
+                required_keys_small_query = {"pages"}
+                NewtUtil.check_dict_keys(json_from_url_small["query"], required_keys_small_query)
+
                 data_from_url_chunks['query']['pages'].extend(
                     json_from_url_small.get('query', {}).get('pages', [])
                 )
 
-        else:
-            NewtCons.error_msg(
-                "Data from URL is too large, but cannot split further.",
-                location="mwparser.get_json_from_url : len(data_from_url) > 500000"
-            )
-
         json_from_url = data_from_url_chunks
 
     else:
+        # Ensure return value is a dict
+        NewtCons.validate_input(
+            data_from_url, str, check_non_empty=True,
+            location="mwparser.get_json_from_url : data_from_url"
+        )
+        assert isinstance(data_from_url, str)  # for type checker
         json_from_url = NewtFiles.convert_str_to_json(data_from_url)
-
-    # Ensure return value is a dict
-    NewtCons.validate_input(
-        data_from_url, str, check_non_empty=True,
-        location="mwparser.get_json_from_url : data_from_url"
-    )
-    assert isinstance(data_from_url, str)  # for type checker
-    json_from_url = NewtFiles.convert_str_to_json(data_from_url)
 
     NewtCons.validate_input(
         json_from_url, dict, check_non_empty=True,
@@ -667,11 +680,15 @@ def restructure_json_pageids(
         json_data_dict: dict
         ) -> None:
 
-    global namespace_types
-    global apnamespace_nr
-    assert isinstance(namespace_types, dict)
+    global namespace_nr_set
+    global namespace_types_set
+    NewtCons.validate_input(
+        namespace_types_set, dict, check_non_empty=True,
+        location="mwparser.restructure_json_pageids : namespace_types_set"
+    )
+    assert isinstance(namespace_types_set, dict)  # for type checker
 
-    file_blocked_path = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, file_blocked)
+    path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, FILE_BLOCKED)
 
     if "query" not in json_data_dict:
         return
@@ -682,6 +699,8 @@ def restructure_json_pageids(
     NewtUtil.check_dict_keys(json_data_dict["query"], required_keys_query)
 
     for page in json_data_dict["query"]["pages"]:
+        skip_page = False
+
         if settings["config_type"] in (
                 "pageids",
                 "pagesrecent",
@@ -703,35 +722,36 @@ def restructure_json_pageids(
                 continue
 
         required_keys_page = {"pageid", "ns", "title", "revisions"}
-        NewtUtil.check_dict_keys(page, required_keys_page, stop=False)
+        NewtUtil.check_dict_keys(page, required_keys_page)
 
         if settings["config_type"] == "pagesrecent":
             apnamespace_nr = page["ns"]
 
-        if page["ns"] != apnamespace_nr:
+        if page["ns"] != namespace_nr_set:
             NewtCons.error_msg(
                 f"Unexpected namespace value: {page['ns']} for page ID {page['pageid']}",
                 f"Page: {page}",
-                location="mwparser.restructure_json_pageids : page['ns']"
+                location="mwparser.restructure_json_pageids : page[ns]"
             )
 
         if page['title'].replace(" ", "_") in blocked_set:
             continue
 
-        folder_pages = folder_raw_pages
+        # Basic path for files to save
+        folder_pages = FOLDER_RAW_PAGES
 
         text_for_file = ""
-        text_for_file += f"Namespace ::: {apnamespace_nr} ::: {namespace_types[str(apnamespace_nr)]}\n"
+        text_for_file += f"Namespace ::: {page["ns"]} ::: {namespace_types_set[str(page["ns"])]}\n"
         text_for_file += f"Page ID   ::: {page['pageid']}\n"
         text_for_file += f"Title     ::: {page['title']}\n\n"
 
         for revision in page["revisions"]:
             required_keys_revision = {"slots"}
             NewtUtil.check_dict_keys(revision, required_keys_revision)
-            required_keys_main = {"main"}
-            NewtUtil.check_dict_keys(revision["slots"], required_keys_main)
-            required_keys_content = {"contentmodel", "contentformat", "content"}
-            NewtUtil.check_dict_keys(revision["slots"]["main"], required_keys_content)
+            required_keys_slots = {"main"}
+            NewtUtil.check_dict_keys(revision["slots"], required_keys_slots)
+            required_keys_main = {"contentmodel", "contentformat", "content"}
+            NewtUtil.check_dict_keys(revision["slots"]["main"], required_keys_main)
 
             if revision["slots"]["main"]["contentmodel"] != "wikitext":
                 NewtCons.error_msg(
@@ -742,11 +762,12 @@ def restructure_json_pageids(
                     stop=False
                 )
                 NewtFiles.save_text_to_file(
-                    file_blocked_path,
+                    path_file_blocked,
                     page['title'].replace(" ", "_"),
                     append=True
                 )
-                continue
+                skip_page = True
+                break
 
             if revision["slots"]["main"]["contentformat"] != "text/x-wiki":
                 NewtCons.error_msg(
@@ -763,18 +784,23 @@ def restructure_json_pageids(
                 continue
 
             if len(revision["slots"]["main"]["content"]) < 6:
-                folder_pages = folder_raw_removed
+                folder_pages = FOLDER_RAW_REMOVED
 
             if revision["slots"]["main"]["content"].lower().startswith("#redirect"):
-                folder_pages = folder_raw_redirect
+                folder_pages = FOLDER_RAW_REDIRECT
 
+            text_for_file += "-" * 80 + "\n"
             text_for_file += f"{revision["slots"]["main"]["content"]}\n\n"
 
-        text_for_file += "=== END ===\n"
+        # It helps to skip outer for if break was in inner for
+        if skip_page:
+            continue
 
-        file_pageid = os.path.join(dir_, settings["FOLDER_LINK"], folder_pages, f"{apnamespace_nr:05d}", f"{page['pageid']:010d}.txt")
+        text_for_file += "=== END ==="
+
+        path_file_pageid = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], folder_pages, f"{namespace_nr_set:0{SETTINGS["ns_max_key_len"]}d}", f"{page['pageid']:010d}.txt")
         NewtFiles.save_text_to_file(
-            file_pageid,
+            path_file_pageid,
             text_for_file
         )
 
@@ -884,6 +910,13 @@ def loop_next_pages(
                     data_list, continue_page_backup = restructure_json_allpages(json_data)
                     save_data_list(data_list)
 
+                case "pageids":
+                    if json_data == {}:
+                        break
+
+                    restructure_json_pageids(json_data)
+                    json_data = get_json_from_url()
+
         elif settings["config_type"] == "recentchanges":
             while True:
                 if "continue" not in json_data:
@@ -901,7 +934,6 @@ def loop_next_pages(
                 save_list_data(list_data)
 
         elif settings["config_type"] in (
-                "pageids",
                 "pagesrecent",
                 ):
             while True:
@@ -984,13 +1016,16 @@ if __name__ == "__main__":
             loop_next_pages(json_data, continue_page_backup)
             remove_duplicated_lines()
 
+        case "pageids":
+            loop_next_pages(json_data)
+
         case "recentchanges":
             list_data = restructure_json_recentchanges(json_data)
             save_list_data(list_data, False)
             loop_next_pages(json_data)
             remove_duplicated_lines()
 
-        case "pageids" | "pagesrecent" | "savefiles":
+        case "pagesrecent" | "savefiles":
             loop_next_pages(json_data)
 
         case _:
