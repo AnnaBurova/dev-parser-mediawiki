@@ -222,8 +222,6 @@ def read_config(
     )
     assert isinstance(wiki_data_type_set, str)  # for type checker
 
-    settings["wiki_data_type"] = wiki_data_type_set
-
     namespace_types_set = NewtFiles.read_json_from_file(
         os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_NAMESPACES)
     )
@@ -293,8 +291,9 @@ def prep_headers_params_for_url(
     """Set headers and parameters for the URL request based on settings."""
 
     global namespace_nr_set
-    global time_start
     global time_end
+    global time_start
+    global wiki_data_type_set
 
     headers = {
         "User-Agent": "MyGuildWarsBot/1.2 (burova.anna+parser+bot@gmail.com)",
@@ -309,7 +308,7 @@ def prep_headers_params_for_url(
         "formatversion": "2",
     }
 
-    match SETTINGS["wiki_data_type"]:
+    match wiki_data_type_set:
         case "allpages":
             params.update({"list": "allpages"})
             params.update({"aplimit": "max"})
@@ -340,7 +339,7 @@ def prep_headers_params_for_url(
         case _:
             pass
 
-    if SETTINGS["wiki_data_type"] == "allpages":
+    if wiki_data_type_set == "allpages":
         if APCONTINUE_CHECK:
             params.update({"apcontinue": APCONTINUE_PARAM})
 
@@ -944,7 +943,7 @@ if __name__ == "__main__":
     BLOCKED_LIST = get_blocked_list()
     json_data = get_json_from_url()
 
-    match settings["config_type"]:
+    match wiki_data_type_set:
         case "allpages":
             list_data, mw_apcontinue = restructure_json_allpages(json_data)
             save_list_data(list_data, False)
@@ -969,14 +968,14 @@ if __name__ == "__main__":
     print("=== END ===")
 
     if SAVE_LOG:
-        if settings["config_type"] in (
+        if wiki_data_type_set in (
                 "allpages",
                 "pageids",
                 ):
-            file_target_name = f"{settings["config_type"]}-{apnamespace_nr:03d}.txt"
+            file_target_name = f"{wiki_data_type_set}-{namespace_nr_set:0{SETTINGS["ns_max_key_len"]}d}.txt"
         else:
-            file_target_name = f"{settings["config_type"]}.txt"
+            file_target_name = f"{wiki_data_type_set}.txt"
 
-        path_target = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LOGS, file_target_name)
+        path_target = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LOGS, file_target_name)
 
         NewtFiles.cleanup_logging(SETUP_LOGGING_DATA, path_target)
