@@ -249,7 +249,8 @@ def read_config(
             namespace_nr_set = NewtUtil.select_from_input(namespace_types_set, count_namespace_types)
             namespace_nr_set = int(namespace_nr_set)
 
-    if config_type == "allpages":
+    match wiki_data_type_set:
+        case "allpages":
             settings["file_name"] = os.path.join("allpages", f"{namespace_nr_set:0{settings["ns_max_key_len"]}d}.csv")
 
     elif config_type == "recentchanges":
@@ -277,11 +278,11 @@ def read_config(
         settings["allpages_titles"] = sorted([str(row[1]) for row in list_allpages[1:]])
         settings["index_start"] = settings_index_start
 
-    else:
-        NewtCons.error_msg(
-            f"Unexpected config type: {config_type}",
-            location="mwparser.read_config : config_type"
-        )
+        case _:
+            NewtCons.error_msg(
+                f"Unexpected wiki_data_type_set: {wiki_data_type_set}",
+                location="mwparser.read_config : match wiki_data_type_set default case"
+            )
 
     return settings
 
