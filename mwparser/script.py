@@ -234,7 +234,7 @@ def read_config(
     assert isinstance(namespace_types_set, dict)  # for type checker
 
     # Calculate max key length from namespace types for formatting
-    ns_max_key_len = len(max(namespace_types_set.keys(), key=len))
+    settings["ns_max_key_len"] = len(max(namespace_types_set.keys(), key=len))
 
     # Select Namespace Number if needed (for types with multiple namespaces)
     if wiki_data_type_set in (
@@ -250,7 +250,7 @@ def read_config(
             namespace_nr_set = int(namespace_nr_set)
 
     if config_type == "allpages":
-        settings["file_name"] = os.path.join("allpages", f"{apnamespace_nr:05d}.csv")
+            settings["file_name"] = os.path.join("allpages", f"{namespace_nr_set:0{settings["ns_max_key_len"]}d}.csv")
 
     elif config_type == "recentchanges":
         settings["file_name"] = os.path.join("recentchanges.csv")
