@@ -816,15 +816,21 @@ def restructure_json_savefiles(
         print()
 
 
-def save_list_data(
-        list_data_list: list[str],
+def save_data_list(
+        data_list: list[str],
         append: bool = True
         ) -> None:
     """Save the restructured list data to a file."""
 
+    if "file_name" not in SETTINGS:
+        NewtCons.error_msg(
+            "Missing 'file_name' in SETTINGS for saving data list",
+            location="mwparser.save_data_list : file_name"
+        )
+
     NewtFiles.save_csv_to_file(
-        os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, settings["file_name"]),
-        list_data_list,
+        os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, SETTINGS["file_name"]),
+        data_list,
         append=append
     )
     print()
