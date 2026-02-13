@@ -391,7 +391,7 @@ def get_json_from_url(
     assert isinstance(namespace_types_set, dict)  # for type checker
 
     path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, FILE_BLOCKED)
-    continue_page_for_block = continue_page_wiki
+    continue_page_for_block = None
 
     headers, params = headers_params_for_url
 
