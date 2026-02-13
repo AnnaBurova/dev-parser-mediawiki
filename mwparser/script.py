@@ -123,8 +123,11 @@ def check_todo(
         assert isinstance(file_settings, dict)  # for type checker
 
         # Check required keys in file_settings
-        required_keys = {"FOLDER_LINK", "BASE_URL"}
-        NewtUtil.check_dict_keys(file_settings, required_keys)
+        NewtUtil.check_dict_keys(
+            file_settings, {"FOLDER_LINK", "BASE_URL"},
+            location="mwparser.check_todo : file_settings"
+        )
+
         for value in file_settings.values():
             NewtCons.validate_input(
                 value, str, check_non_empty=True,
@@ -574,10 +577,15 @@ def get_json_from_url(
                 )
                 assert isinstance(json_from_url_small, dict)  # for type checker
 
-                required_keys_small = {"query", "batchcomplete"}
-                NewtUtil.check_dict_keys(json_from_url_small, required_keys_small)
-                required_keys_small_query = {"pages"}
-                NewtUtil.check_dict_keys(json_from_url_small["query"], required_keys_small_query)
+                NewtUtil.check_dict_keys(
+                    json_from_url_small, {"query", "batchcomplete"},
+                    location="mwparser.get_json_from_url : json_from_url_small"
+                )
+
+                NewtUtil.check_dict_keys(
+                    json_from_url_small["query"], {"pages"},
+                    location="mwparser.get_json_from_url : json_from_url_small[query]"
+                )
 
                 data_from_url_chunks['query']['pages'].extend(
                     json_from_url_small.get('query', {}).get('pages', [])
@@ -608,21 +616,30 @@ def restructure_json_allpages(
     assert isinstance(namespace_types_set, dict)  # for type checker
 
     if "continue" in json_data_dict:
-        required_keys_json = {"query", "batchcomplete", "limits", "continue"}
-        NewtUtil.check_dict_keys(json_data_dict, required_keys_json)
-    else:
-        required_keys_json = {"query", "batchcomplete", "limits"}
-        NewtUtil.check_dict_keys(json_data_dict, required_keys_json)
+        NewtUtil.check_dict_keys(
+            json_data_dict, {"query", "batchcomplete", "limits", "continue"},
+            location="mwparser.restructure_json_allpages : json_data_dict"
+        )
 
-    required_keys_query = {"allpages"}
-    NewtUtil.check_dict_keys(json_data_dict["query"], required_keys_query)
+    else:
+        NewtUtil.check_dict_keys(
+            json_data_dict, {"query", "batchcomplete", "limits"},
+            location="mwparser.restructure_json_allpages : json_data_dict"
+        )
+
+    NewtUtil.check_dict_keys(
+        json_data_dict["query"], {"allpages"},
+        location="mwparser.restructure_json_allpages : json_data_dict[query]"
+    )
 
     continue_page_backup = ""
     allpages_list = []
     allpages_list.append(["pageid", "title"])
     for page in json_data_dict["query"]["allpages"]:
-        required_keys_allpages = {"pageid", "ns", "title"}
-        NewtUtil.check_dict_keys(page, required_keys_allpages)
+        NewtUtil.check_dict_keys(
+            page, {"pageid", "ns", "title"},
+            location="mwparser.restructure_json_allpages : page"
+        )
 
         if page["ns"] != namespace_nr_set:
             NewtCons.error_msg(
@@ -655,10 +672,15 @@ def restructure_json_pageids(
     if "query" not in json_data_dict:
         return
 
-    required_keys_json = {"query", "batchcomplete"}
-    NewtUtil.check_dict_keys(json_data_dict, required_keys_json)
-    required_keys_query = {"pages"}
-    NewtUtil.check_dict_keys(json_data_dict["query"], required_keys_query)
+    NewtUtil.check_dict_keys(
+        json_data_dict, {"query", "batchcomplete"},
+        location="mwparser.restructure_json_pageids : json_data_dict"
+    )
+
+    NewtUtil.check_dict_keys(
+        json_data_dict["query"], {"pages"},
+        location="mwparser.restructure_json_pageids : json_data_dict[query]"
+    )
 
     for page in json_data_dict["query"]["pages"]:
         skip_page = False
@@ -683,8 +705,10 @@ def restructure_json_pageids(
                             shutil.move(missing_file, missing_target)
                 continue
 
-        required_keys_page = {"pageid", "ns", "title", "revisions"}
-        NewtUtil.check_dict_keys(page, required_keys_page)
+        NewtUtil.check_dict_keys(
+            page, {"pageid", "ns", "title", "revisions"},
+            location="mwparser.restructure_json_pageids : page"
+        )
 
         if settings["config_type"] == "pagesrecent":
             apnamespace_nr = page["ns"]
@@ -708,12 +732,20 @@ def restructure_json_pageids(
         text_for_file += f"Title     ::: {page['title']}\n\n"
 
         for revision in page["revisions"]:
-            required_keys_revision = {"slots"}
-            NewtUtil.check_dict_keys(revision, required_keys_revision)
-            required_keys_slots = {"main"}
-            NewtUtil.check_dict_keys(revision["slots"], required_keys_slots)
-            required_keys_main = {"contentmodel", "contentformat", "content"}
-            NewtUtil.check_dict_keys(revision["slots"]["main"], required_keys_main)
+            NewtUtil.check_dict_keys(
+                revision, {"slots"},
+                location="mwparser.restructure_json_pageids : revision"
+            )
+
+            NewtUtil.check_dict_keys(
+                revision["slots"], {"main"},
+                location="mwparser.restructure_json_pageids : revision[slots]"
+            )
+
+            NewtUtil.check_dict_keys(
+                revision["slots"]["main"], {"contentmodel", "contentformat", "content"},
+                location="mwparser.restructure_json_pageids : revision[slots][main]"
+            )
 
             if revision["slots"]["main"]["contentmodel"] != "wikitext":
                 NewtCons.error_msg(
@@ -777,21 +809,30 @@ def restructure_json_recentchanges(
     assert isinstance(namespace_types_set, dict)  # for type checker
 
     if "continue" in json_data_dict:
-        required_keys_json = {"query", "batchcomplete", "limits", "continue"}
-        NewtUtil.check_dict_keys(json_data_dict, required_keys_json)
-    else:
-        required_keys_json = {"query", "batchcomplete", "limits"}
-        NewtUtil.check_dict_keys(json_data_dict, required_keys_json)
+        NewtUtil.check_dict_keys(
+            json_data_dict, {"query", "batchcomplete", "limits", "continue"},
+            location="mwparser.restructure_json_recentchanges : json_data_dict"
+        )
 
-    required_keys_query = {"recentchanges"}
-    NewtUtil.check_dict_keys(json_data_dict["query"], required_keys_query)
+    else:
+        NewtUtil.check_dict_keys(
+            json_data_dict, {"query", "batchcomplete", "limits"},
+            location="mwparser.restructure_json_recentchanges : json_data_dict"
+        )
+
+    NewtUtil.check_dict_keys(
+        json_data_dict["query"], {"recentchanges"},
+        location="mwparser.restructure_json_recentchanges : json_data_dict[query]"
+    )
 
     recentchanges_list = []
     recentchanges_list.append(["timestamp", "pageid", "ns", "type", "title"])
 
     for page in json_data_dict["query"]["recentchanges"]:
-        required_keys_page = {"type", "ns", "title", "pageid", "revid", "old_revid", "rcid", "timestamp"}
-        NewtUtil.check_dict_keys(page, required_keys_page)
+        NewtUtil.check_dict_keys(
+            page, {"type", "ns", "title", "pageid", "revid", "old_revid", "rcid", "timestamp"},
+            location="mwparser.restructure_json_recentchanges : page"
+        )
 
         if str(page["ns"]) not in namespace_types_set:
             NewtCons.error_msg(
@@ -822,17 +863,24 @@ def restructure_json_savefiles(
     if "query" not in json_data_dict:
         return
 
-    required_keys_json = {"batchcomplete", "query"}
-    NewtUtil.check_dict_keys(json_data_dict, required_keys_json)
-    required_keys_query = {"pages"}
-    NewtUtil.check_dict_keys(json_data_dict["query"], required_keys_query)
+    NewtUtil.check_dict_keys(
+        json_data_dict, {"batchcomplete", "query"},
+        location="mwparser.restructure_json_savefiles : json_data_dict"
+    )
+
+    NewtUtil.check_dict_keys(
+        json_data_dict["query"], {"pages"},
+        location="mwparser.restructure_json_savefiles : json_data_dict[query]"
+    )
 
     for image_info in json_data_dict["query"]["pages"]:
         if "imageinfo" not in image_info:
             continue
 
-        required_keys_image = {"pageid", "ns", "title", "imagerepository", "imageinfo"}
-        NewtUtil.check_dict_keys(image_info, required_keys_image, stop=False)
+        NewtUtil.check_dict_keys(
+            image_info, {"pageid", "ns", "title", "imagerepository", "imageinfo"}, stop=False,
+            location="mwparser.restructure_json_savefiles : image_info"
+        )
 
         if len(image_info["imageinfo"]) != 1:
             NewtCons.error_msg(
@@ -841,8 +889,10 @@ def restructure_json_savefiles(
             )
             continue
 
-        required_keys_imageinfo = {"url", "descriptionurl", "descriptionshorturl"}
-        NewtUtil.check_dict_keys(image_info["imageinfo"][0], required_keys_imageinfo, stop=False)
+        NewtUtil.check_dict_keys(
+            image_info["imageinfo"][0], {"url", "descriptionurl", "descriptionshorturl"}, stop=False,
+            location="mwparser.restructure_json_savefiles : image_info[imageinfo][0]"
+        )
 
         url_filename = os.path.basename(image_info["imageinfo"][0]["url"])
         filename = f"{image_info['pageid']:010d}-{url_filename}"
@@ -909,8 +959,10 @@ def loop_next_pages(
                     if "continue" not in json_data:
                         break
 
-                    required_keys_continue = {"apcontinue", "continue"}
-                    NewtUtil.check_dict_keys(json_data["continue"], required_keys_continue)
+                    NewtUtil.check_dict_keys(
+                        json_data["continue"], {"apcontinue", "continue"},
+                        location="mwparser.loop_next_pages : json_data[continue]"
+                    )
 
                     json_data = get_json_from_url(
                         continue_page_wiki = json_data["continue"]["apcontinue"],
@@ -931,8 +983,10 @@ def loop_next_pages(
                     if "continue" not in json_data:
                         break
 
-                    required_keys = {"rccontinue", "continue"}
-                    NewtUtil.check_dict_keys(json_data["continue"], required_keys)
+                    NewtUtil.check_dict_keys(
+                        json_data["continue"], {"rccontinue", "continue"},
+                        location="mwparser.loop_next_pages : json_data[continue]"
+                    )
 
                     json_data = get_json_from_url(
                         continue_page_wiki = json_data["continue"]["rccontinue"]
