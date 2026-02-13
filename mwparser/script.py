@@ -83,6 +83,8 @@ APCONTINUE_PARAM = ""
 SETTING_INDEX_START_DEFAULT = 0
 # max 50 pages per MediaWiki Settings for no admin users
 SETTING_INDEX_MAX_PAGES = 50
+# max 25 titles per MediaWiki Settings for no admin users
+SETTING_INDEX_MAX_TITLES = 25
 
 SAVE_LOG = True
 SAVE_LOG = False
@@ -235,7 +237,6 @@ def read_config(
     namespace_types_data = NewtFiles.read_json_from_file(
         os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_NAMESPACES)
     )
-
     # Be sure return value or global variable is set to a non-empty dict
     NewtCons.validate_input(
         namespace_types_data, dict, check_non_empty=True,
@@ -259,6 +260,18 @@ def read_config(
             )
             namespace_nr_set_str = NewtUtil.select_from_input(namespace_types_set, count_namespace_types)
             namespace_nr_set = int(namespace_nr_set_str)
+
+    elif wiki_data_type_set == "savefiles":
+        namespace_file = "File"
+        keys = [key for key, val in namespace_types_set.items() if val == namespace_file]
+
+        if len(keys) != 1:
+            NewtCons.error_msg(
+                f"Unexpected result of namespaces with value '{namespace_file}':",
+                f"Keys: {keys}",
+                location="mwparser.read_config : savefiles"
+            )
+        namespace_nr_set = int(keys[0])
 
     match wiki_data_type_set:
         case "allpages":
@@ -298,13 +311,22 @@ def read_config(
             # skip header and get only ids from second column, convert them to int, filter out 0, check unique and sort
             settings["page_ids"] = sorted(list(set([int(row[1]) for row in list_recentchanges[1:] if int(row[1]) > 0])))
 
-    elif config_type == "savefiles":
-        file_allpages = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, "allpages", f"{apnamespace_nr:05d}.csv")
-        list_allpages = NewtFiles.read_csv_from_file(file_allpages)
+        case "savefiles":
+            settings["index_start"] = SETTING_INDEX_START_DEFAULT
+            path_allpages = os.path.join(
+                DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LISTS,
+                "allpages", f"{namespace_nr_set:0{settings["ns_max_key_len"]}d}.csv"
+            )
+            list_files = NewtFiles.read_csv_from_file(path_allpages)
 
-        # skip header
-        settings["allpages_titles"] = sorted([str(row[1]) for row in list_allpages[1:]])
-        settings["index_start"] = settings_index_start
+            NewtCons.validate_input(
+                list_files, list, check_non_empty=True,
+                location="mwparser.read_config : list_files"
+            )
+            assert isinstance(list_files, list)  # for type checker
+
+            # skip header
+            settings["files_titles"] = sorted([str(row[1]) for row in list_files[1:]])
 
         case _:
             NewtCons.error_msg(
@@ -361,7 +383,10 @@ def prep_headers_params_for_url(
             params.update({"iiprop": "url"})
 
         case _:
-            pass
+            NewtCons.error_msg(
+                f"Unexpected config type: {wiki_data_type_set}",
+                location="mwparser.prep_headers_params_for_url : wiki_data_type_set default case"
+            )
 
     if wiki_data_type_set == "allpages":
         if APCONTINUE_CHECK:
@@ -411,10 +436,9 @@ def get_json_from_url(
                 continue_page_wiki = continue_page_wiki.replace(" ", "_")
                 continue_page_for_block = continue_page_wiki
                 if continue_page_wiki in BLOCKED_SET and continue_page_backup is not None:
-                    continue_page_backup = continue_page_backup.replace(" ", "_")
                     print(continue_page_wiki)
-                    continue_page_wiki = continue_page_backup
-                    continue_page_for_block = continue_page_backup
+                    continue_page_wiki = continue_page_backup.replace(" ", "_")
+                    continue_page_for_block = continue_page_wiki
 
                 print(continue_page_wiki)
                 # Only without left and sep parts it will work in continue
@@ -443,7 +467,7 @@ def get_json_from_url(
             SETTINGS["index_start"] = index_end
 
             print()
-            print(f"Processing page IDs from index {index_start} to {index_end - 1}")
+            print(f"Processing page IDs from index {index_start} to {index_end}")
             print(f"Progress max index: {len(SETTINGS['page_ids'])}")
             print(f"Processing current page: {index_start / index_max}")
             print(f"Progress max pages: {len(SETTINGS['page_ids']) / index_max}")
@@ -454,33 +478,36 @@ def get_json_from_url(
                 print(continue_page_wiki)
                 params.update({"rccontinue": continue_page_wiki})
 
-    elif settings["config_type"] == "savefiles":
-        index_start = settings["index_start"]
-        # it must be 25 titles max
-        index_max = 25
+        case "savefiles":
+            if len(SETTINGS["files_titles"]) == 0:
+                print("No images to process. Empty list.")
+                return {}
 
-        if len(settings['allpages_titles']) == 0:
-            print("No images to process.")
-            return {}
+            index_start = SETTINGS["index_start"]
+            index_max = SETTING_INDEX_MAX_TITLES
+            index_end = index_start + index_max
 
-        if len(settings["allpages_titles"]) < index_start:
-            print("No more images to process.")
-            return {}
+            if len(SETTINGS["files_titles"]) < index_start:
+                print("No more images to process.")
+                return {}
 
-        index_end = index_start + index_max
-        params.update({"titles": '|'.join(
-            map(str, settings["allpages_titles"][index_start:index_end])
-        )})
-        settings["index_start"] = index_end
+            params.update({"titles": '|'.join(
+                map(str, SETTINGS["files_titles"][index_start:index_end])
+            )})
+            SETTINGS["index_start"] = index_end
 
-        print()
-        print(f"Processing images IDs from index {index_start} to {index_end - 1}")
-        print(f"Progress current page: {index_start / index_max}")
-        print(f"Progress max pages: {len(settings['allpages_titles']) / index_max}")
-        print()
+            print()
+            print(f"Processing images IDs from index {index_start} to {index_end}")
+            print(f"Progress max index: {len(SETTINGS['files_titles'])}")
+            print(f"Processing current images: {index_start / index_max}")
+            print(f"Progress max pages: {len(SETTINGS['files_titles']) / index_max}")
+            print()
 
         case _:
-            pass
+            NewtCons.error_msg(
+                f"Unexpected config type: {wiki_data_type_set}",
+                location="mwparser.get_json_from_url : wiki_data_type_set default case"
+            )
 
     data_from_url = NewtNet.fetch_data_from_url(
         SETTINGS["BASE_URL"], params, headers,
@@ -649,7 +676,7 @@ def restructure_json_pageids(
     global namespace_nr_set
 
     path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, FILE_BLOCKED)
-    path_recentchanges = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, FILE_RECENTCHANGES)
+    path_recentchanges_missing = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, "missing-"+FILE_RECENTCHANGES)
 
     if "query" not in json_data_dict:
         return
@@ -679,7 +706,7 @@ def restructure_json_pageids(
                     stop=False
                 )
                 NewtFiles.save_text_to_file(
-                    path_recentchanges, f"Page ID {page['pageid']} data is missing",
+                    path_recentchanges_missing, f"Page ID {page['pageid']} data is missing",
                     append=True, logging=False
                 )
                 for missing_folder in (FOLDER_RAW_PAGES, FOLDER_RAW_REDIRECT):
@@ -696,7 +723,7 @@ def restructure_json_pageids(
                             NewtFiles.ensure_dir_exists(missing_target)
                             shutil.move(missing_file, missing_target)
                             NewtFiles.save_text_to_file(
-                                path_recentchanges, missing_target,
+                                path_recentchanges_missing, missing_target,
                                 append=True, logging=False
                             )
                 continue
@@ -862,7 +889,7 @@ def restructure_json_savefiles(
         return
 
     NewtUtil.check_dict_keys(
-        json_data_dict, {"batchcomplete", "query"},
+        json_data_dict, {"query", "batchcomplete"},
         location="mwparser.restructure_json_savefiles : json_data_dict"
     )
 
@@ -871,13 +898,13 @@ def restructure_json_savefiles(
         location="mwparser.restructure_json_savefiles : json_data_dict[query]"
     )
 
-    for image_info in json_data_dict["query"]["pages"]:
+    for image_data in json_data_dict["query"]["pages"]:
         if "imageinfo" not in image_info:
             continue
 
         NewtUtil.check_dict_keys(
-            image_info, {"pageid", "ns", "title", "imagerepository", "imageinfo"}, stop=False,
-            location="mwparser.restructure_json_savefiles : image_info"
+            image_data, {"pageid", "ns", "title", "imagerepository", "imageinfo"},
+            location="mwparser.restructure_json_savefiles : image_data"
         )
 
         if len(image_info["imageinfo"]) != 1:
@@ -887,38 +914,43 @@ def restructure_json_savefiles(
             )
             continue
 
-        NewtUtil.check_dict_keys(
-            image_info["imageinfo"][0], {"url", "descriptionurl", "descriptionshorturl"}, stop=False,
-            location="mwparser.restructure_json_savefiles : image_info[imageinfo][0]"
-        )
+        for image_info in image_data["imageinfo"]:
+            NewtUtil.check_dict_keys(
+                image_info, {"url", "descriptionurl", "descriptionshorturl"},
+                location="mwparser.restructure_json_savefiles : image_info"
+            )
 
-        url_filename = os.path.basename(image_info["imageinfo"][0]["url"])
-        filename = f"{image_info['pageid']:010d}-{url_filename}"
-        img_file_path = os.path.join(dir_, settings["FOLDER_LINK"], folder_raw_images, filename)
+            url_filename = os.path.basename(image_info["url"])
+            filename = f"{image_data["pageid"]:010d}-{url_filename}"
+            path_file_image = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_RAW_IMAGES, filename)
 
-        i = 0
-        while True:
-            i += 1
-            if NewtNet.download_file_from_url(
-                image_info["imageinfo"][0]["url"],
-                img_file_path,
-                repeat_on_fail=False
-            ):
-                break
+            download_tries = 0
+            while download_tries < 5:
+                if NewtNet.download_file_from_url(
+                    image_info["url"],
+                    path_file_image
+                ):
+                    break
 
-            if i >= 5:
                 NewtCons.error_msg(
-                    f"Failed to download image after {i} attempts: {image_info['imageinfo'][0]['url']}",
+                    f"Failed to download image from URL: {image_info['url']} on attempt {download_tries + 1}",
                     location="mwparser.restructure_json_savefiles : download_file_from_url",
                     stop=False
                 )
-                missed_files_log = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, "missed_files.txt")
+
+                download_tries += 1
+
+            if download_tries == 5:
+                NewtCons.error_msg(
+                    f"Failed to download image after 5 attempts: {image_info['url']}",
+                    location="mwparser.restructure_json_savefiles : download_tries"
+                )
+                path_missing_image = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, "missing-images.txt")
                 NewtFiles.save_text_to_file(
-                    missed_files_log,
-                    f"{image_info["imageinfo"][0]["url"]} > {img_file_path}",
+                    path_missing_image,
+                    f"{image_info['url']} > {path_file_image}",
                     append=True
                 )
-                break
         print()
 
 
@@ -993,13 +1025,12 @@ def loop_next_pages(
                     data_list = restructure_json_recentchanges(json_data)
                     save_data_list(data_list)
 
-        elif settings["config_type"] == "savefiles":
-            while True:
-                if json_data == {}:
-                    break
+                case "savefiles":
+                    if json_data == {}:
+                        break
 
-                restructure_json_savefiles(json_data)
-                json_data = get_json_from_url()
+                    restructure_json_savefiles(json_data)
+                    json_data = get_json_from_url()
 
                 case _:
                     break
@@ -1066,7 +1097,7 @@ if __name__ == "__main__":
             loop_next_pages(json_data, continue_page_backup)
             remove_duplicated_lines()
 
-        case "pageids" | "pagesrecent":
+        case "pageids" | "pagesrecent" | "savefiles":
             loop_next_pages(json_data)
 
         case "recentchanges":
@@ -1075,13 +1106,10 @@ if __name__ == "__main__":
             loop_next_pages(json_data)
             remove_duplicated_lines()
 
-        case "savefiles":
-            loop_next_pages(json_data)
-
         case _:
             NewtCons.error_msg(
-                f"Unexpected config type: {settings['config_type']}",
-                location="mwparser.main : settings['config_type']"
+                f"Unexpected config type: {wiki_data_type_set}",
+                location="mwparser.main : wiki_data_type_set default case"
             )
 
     print("=== END ===")
