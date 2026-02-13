@@ -605,10 +605,6 @@ def restructure_json_allpages(
     """Process and save all pages from JSON data."""
 
     global namespace_types_set
-    NewtCons.validate_input(
-        namespace_types_set, dict, check_non_empty=True,
-        location="mwparser.restructure_json_allpages : namespace_types_set"
-    )
     assert isinstance(namespace_types_set, dict)  # for type checker
 
     if "continue" in json_data_dict:
@@ -652,10 +648,6 @@ def restructure_json_pageids(
 
     global namespace_nr_set
     global namespace_types_set
-    NewtCons.validate_input(
-        namespace_types_set, dict, check_non_empty=True,
-        location="mwparser.restructure_json_pageids : namespace_types_set"
-    )
     assert isinstance(namespace_types_set, dict)  # for type checker
 
     path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, FILE_BLOCKED)
