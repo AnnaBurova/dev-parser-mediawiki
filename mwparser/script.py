@@ -259,9 +259,6 @@ def read_config(
         case "allpages":
             settings["file_name"] = os.path.join("allpages", f"{namespace_nr_set:0{settings["ns_max_key_len"]}d}.csv")
 
-    elif config_type == "recentchanges":
-        settings["file_name"] = os.path.join("recentchanges.csv")
-
         case "pageids":
             settings["index_start"] = SETTING_INDEX_START_DEFAULT
             path_allpages = os.path.join(
@@ -278,6 +275,9 @@ def read_config(
 
             # skip header and get only ids from first column
             settings["page_ids"] = sorted([int(row[0]) for row in list_allpages[1:]])
+
+        case "recentchanges":
+            settings["file_name"] = "recentchanges.csv"
 
     elif config_type == "pagesrecent":
         file_recentchanges = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, "recentchanges.csv")
@@ -417,12 +417,6 @@ def get_json_from_url(
 
                 params.update({"apcontinue": continue_page_wiki})
 
-
-    elif settings["config_type"] == "recentchanges":
-        if continue_param is not None:
-            print(continue_param)
-            params.update({"rccontinue": continue_param})
-
         case "pageids":
             if len(SETTINGS["page_ids"]) == 0:
                 print("No pages to process. Empty list.")
@@ -447,6 +441,11 @@ def get_json_from_url(
             print(f"Processing current page: {index_start / index_max}")
             print(f"Progress max pages: {len(SETTINGS['page_ids']) / index_max}")
             print()
+
+        case "recentchanges":
+            if continue_page_wiki is not None:
+                print(continue_page_wiki)
+                params.update({"rccontinue": continue_page_wiki})
 
     elif settings["config_type"] == "pagesrecent":
         index_start = settings["index_start"]
@@ -642,59 +641,6 @@ def restructure_json_allpages(
     return (allpages_list, continue_page_backup)
 
 
-def restructure_json_recentchanges(
-        json_data_dict: dict
-        ) -> list[str]:
-    """Process and save all pages from JSON data."""
-
-    if "continue" in json_data_dict:
-        required_keys_json = {"query", "continue", "batchcomplete", "limits"}
-        NewtUtil.check_dict_keys(json_data_dict, required_keys_json)
-    else:
-        required_keys_json = {"query", "batchcomplete", "limits"}
-        NewtUtil.check_dict_keys(json_data_dict, required_keys_json)
-
-    required_keys_query = {"recentchanges"}
-    NewtUtil.check_dict_keys(json_data_dict["query"], required_keys_query)
-
-    recentchanges_list = []
-    recentchanges_list.append(["timestamp", "pageid", "ns", "type", "title"])
-
-    for page in json_data_dict["query"]["recentchanges"]:
-        if "pageid" not in page:
-            NewtCons.error_msg(
-                "No pageid for page log",
-                f"Page: {page}",
-                location="mwparser.restructure_json_recentchanges : 'pageid' not in page",
-                stop=False
-            )
-            continue
-
-        required_keys_recentchanges = {"type", "ns", "title", "pageid", "revid", "old_revid", "rcid", "timestamp"}
-        NewtUtil.check_dict_keys(page, required_keys_recentchanges, stop=False)
-
-        if str(page["ns"]) not in namespace_types:
-            NewtCons.error_msg(
-                f"Unexpected namespace value: {page['ns']} for page ID {page['title']}",
-                f"Page: {page}",
-                location="mwparser.restructure_json_recentchanges : page['ns']",
-                stop=False
-            )
-
-        if page['pageid'] == 0:
-            continue
-
-        recentchanges_list.append([
-            page['timestamp'],
-            f"{page['pageid']:010d}",
-            f"{page['ns']:03d}",
-            f"{page['type']:>4}",
-            page["title"],
-        ])
-
-    return recentchanges_list
-
-
 def restructure_json_pageids(
         json_data_dict: dict
         ) -> None:
@@ -825,6 +771,53 @@ def restructure_json_pageids(
         )
 
 
+def restructure_json_recentchanges(
+        json_data_dict: dict
+        ) -> list[str]:
+    """Process and save all pages from JSON data."""
+
+    global namespace_types_set
+    assert isinstance(namespace_types_set, dict)  # for type checker
+
+    if "continue" in json_data_dict:
+        required_keys_json = {"query", "batchcomplete", "limits", "continue"}
+        NewtUtil.check_dict_keys(json_data_dict, required_keys_json)
+    else:
+        required_keys_json = {"query", "batchcomplete", "limits"}
+        NewtUtil.check_dict_keys(json_data_dict, required_keys_json)
+
+    required_keys_query = {"recentchanges"}
+    NewtUtil.check_dict_keys(json_data_dict["query"], required_keys_query)
+
+    recentchanges_list = []
+    recentchanges_list.append(["timestamp", "pageid", "ns", "type", "title"])
+
+    for page in json_data_dict["query"]["recentchanges"]:
+        required_keys_page = {"type", "ns", "title", "pageid", "revid", "old_revid", "rcid", "timestamp"}
+        NewtUtil.check_dict_keys(page, required_keys_page)
+
+        if str(page["ns"]) not in namespace_types_set:
+            NewtCons.error_msg(
+                f"Unexpected namespace value: {page['ns']} for page ID {page['title']}",
+                f"Page: {page}",
+                location="mwparser.restructure_json_recentchanges : page[ns]",
+                stop=False
+            )
+
+        if page['pageid'] == 0:
+            continue
+
+        recentchanges_list.append([
+            page['timestamp'],
+            f"{page['pageid']:010d}",
+            f"{page['ns']:0{SETTINGS["ns_max_key_len"]}d}",
+            f"{page['type']:>4}",
+            page["title"],
+        ])
+
+    return recentchanges_list
+
+
 def restructure_json_savefiles(
         json_data_dict: dict
         ) -> None:
@@ -937,21 +930,19 @@ def loop_next_pages(
                     restructure_json_pageids(json_data)
                     json_data = get_json_from_url()
 
-        elif settings["config_type"] == "recentchanges":
-            while True:
-                if "continue" not in json_data:
-                    break
+                case "recentchanges":
+                    if "continue" not in json_data:
+                        break
 
-                required_keys = {"rccontinue", "continue"}
-                NewtUtil.check_dict_keys(json_data["continue"], required_keys, stop=False)
+                    required_keys = {"rccontinue", "continue"}
+                    NewtUtil.check_dict_keys(json_data["continue"], required_keys)
 
-                json_data = get_json_from_url(
-                    continue_param = json_data["continue"]["rccontinue"]
-                )
+                    json_data = get_json_from_url(
+                        continue_page_wiki = json_data["continue"]["rccontinue"]
+                    )
 
-                list_data = restructure_json_recentchanges(json_data)
-
-                save_list_data(list_data)
+                    data_list = restructure_json_recentchanges(json_data)
+                    save_data_list(data_list)
 
         elif settings["config_type"] in (
                 "pagesrecent",
@@ -1040,8 +1031,8 @@ if __name__ == "__main__":
             loop_next_pages(json_data)
 
         case "recentchanges":
-            list_data = restructure_json_recentchanges(json_data)
-            save_list_data(list_data, False)
+            data_list = restructure_json_recentchanges(json_data)
+            save_data_list(data_list, False)
             loop_next_pages(json_data)
             remove_duplicated_lines()
 
