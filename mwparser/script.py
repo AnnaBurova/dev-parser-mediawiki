@@ -167,11 +167,12 @@ def check_todo(
                     todo_list.append((file, wiki_data_type, None, None))
 
     print()
-    print("=== TODO LIST ===")
-    todo_list.reverse()
-    for todo in todo_list:
-        print(todo)
-    print()
+    if todo_list:
+        print("=== TODO LIST ===")
+        todo_list.reverse()
+        for todo in todo_list:
+            print(todo)
+        print()
 
     return todo_list
 
