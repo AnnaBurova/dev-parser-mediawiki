@@ -582,6 +582,11 @@ def get_json_from_url(
                 data_from_url_chunks['query']['pages'].extend(
                     json_from_url_small.get('query', {}).get('pages', [])
                 )
+            else:
+                NewtCons.error_msg(
+                    "Failed to read JSON result, exiting",
+                    location="mwparser.get_json_from_url : json_from_url=None and not pageids"
+                )
 
         json_from_url = data_from_url_chunks
 
