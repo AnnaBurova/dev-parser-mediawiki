@@ -65,12 +65,12 @@ WIKI_DATA_TYPE_CHECK = True
 # If WIKI_DATA_TYPE_CHECK is False, set the wiki data type here
 wiki_data_type_set = WIKI_DATA_TYPE_DICT["1"]
 
-namespace_types_set = {}
+namespace_types_set: dict = {}
 # Extended functionality in read_config()
 NAMESPACE_NR_CHECK = False
 NAMESPACE_NR_CHECK = True
 # If NAMESPACE_NR_CHECK is False, set namespace number here
-namespace_nr_set = 0
+namespace_nr_set: int = 0
 
 # Extended functionality in prep_headers_params_for_url()
 APCONTINUE_CHECK = True
@@ -231,16 +231,17 @@ def read_config(
     )
     assert isinstance(wiki_data_type_set, str)  # for type checker
 
-    namespace_types_set = NewtFiles.read_json_from_file(
+    namespace_types_data = NewtFiles.read_json_from_file(
         os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_NAMESPACES)
     )
 
     # Be sure return value or global variable is set to a non-empty dict
     NewtCons.validate_input(
-        namespace_types_set, dict, check_non_empty=True,
-        location="mwparser.read_config : namespace_types_set"
+        namespace_types_data, dict, check_non_empty=True,
+        location="mwparser.read_config : namespace_types_data"
     )
-    assert isinstance(namespace_types_set, dict)  # for type checker
+    assert isinstance(namespace_types_data, dict)  # for type checker
+    namespace_types_set = namespace_types_data
 
     # Calculate max key length from namespace types for formatting
     settings["ns_max_key_len"] = len(max(namespace_types_set.keys(), key=len))
@@ -255,8 +256,8 @@ def read_config(
             count_namespace_types = NewtUtil.count_similar_values(
                 [todo for todo in TODO_LIST if todo[0] == file_config_set and todo[1] == wiki_data_type_set], 3
             )
-            namespace_nr_set = NewtUtil.select_from_input(namespace_types_set, count_namespace_types)
-            namespace_nr_set = int(namespace_nr_set)
+            namespace_nr_set_str = NewtUtil.select_from_input(namespace_types_set, count_namespace_types)
+            namespace_nr_set = int(namespace_nr_set_str)
 
     match wiki_data_type_set:
         case "allpages":
@@ -309,10 +310,10 @@ def prep_headers_params_for_url(
         ) -> tuple:
     """Set headers and parameters for the URL request based on settings."""
 
-    global namespace_nr_set
-    global time_end
     global time_start
+    global time_end
     global wiki_data_type_set
+    global namespace_nr_set
 
     headers = {
         "User-Agent": "MyGuildWarsBot/1.2 (burova.anna+parser+bot@gmail.com)",
@@ -391,7 +392,6 @@ def get_json_from_url(
 
     global wiki_data_type_set
     global namespace_types_set
-    assert isinstance(namespace_types_set, dict)  # for type checker
 
     path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, FILE_BLOCKED)
     continue_page_for_block = None
@@ -612,8 +612,7 @@ def restructure_json_allpages(
         ) -> tuple[list[str], str]:
     """Process and save all pages from JSON data."""
 
-    global namespace_types_set
-    assert isinstance(namespace_types_set, dict)  # for type checker
+    global namespace_nr_set
 
     if "continue" in json_data_dict:
         NewtUtil.check_dict_keys(
@@ -641,7 +640,7 @@ def restructure_json_allpages(
             location="mwparser.restructure_json_allpages : page"
         )
 
-        if page["ns"] != namespace_nr_set:
+        if int(page["ns"]) != namespace_nr_set:
             NewtCons.error_msg(
                 f"Unexpected namespace value: {page['ns']} for page ID {page['pageid']}",
                 f"Page: {page}",
@@ -663,9 +662,9 @@ def restructure_json_pageids(
         json_data_dict: dict
         ) -> None:
 
-    global namespace_nr_set
+    global wiki_data_type_set
     global namespace_types_set
-    assert isinstance(namespace_types_set, dict)  # for type checker
+    global namespace_nr_set
 
     path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, FILE_BLOCKED)
 
@@ -806,7 +805,6 @@ def restructure_json_recentchanges(
     """Process and save all pages from JSON data."""
 
     global namespace_types_set
-    assert isinstance(namespace_types_set, dict)  # for type checker
 
     if "continue" in json_data_dict:
         NewtUtil.check_dict_keys(
