@@ -284,11 +284,19 @@ def read_config(
         case "recentchanges":
             settings["file_name"] = FILE_RECENTCHANGES
 
-    elif config_type == "pagesrecent":
-        file_recentchanges = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, "recentchanges.csv")
-        list_recentchanges = NewtFiles.read_csv_from_file(file_recentchanges)
-        settings["recentchanges"] = sorted(list(set([int(row[1]) for row in list_recentchanges[1:] if int(row[1]) > 0])))
-        settings["index_start"] = settings_index_start
+        case "pagesrecent":
+            settings["index_start"] = SETTING_INDEX_START_DEFAULT
+            path_recentchanges = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LISTS, FILE_RECENTCHANGES)
+            list_recentchanges = NewtFiles.read_csv_from_file(path_recentchanges)
+
+            NewtCons.validate_input(
+                list_recentchanges, list, check_non_empty=True,
+                location="mwparser.read_config : list_recentchanges"
+            )
+            assert isinstance(list_recentchanges, list)  # for type checker
+
+            # skip header and get only ids from second column, convert them to int, filter out 0, check unique and sort
+            settings["page_ids"] = sorted(list(set([int(row[1]) for row in list_recentchanges[1:] if int(row[1]) > 0])))
 
     elif config_type == "savefiles":
         file_allpages = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, "allpages", f"{apnamespace_nr:05d}.csv")
@@ -335,7 +343,7 @@ def prep_headers_params_for_url(
             params.update({"aplimit": "max"})
             params.update({"apnamespace": str(namespace_nr_set)})
 
-        case "pageids":
+        case "pageids" | "pagesrecent":
             params.update({"prop": "revisions"})
             params.update({"rvprop": "content"})
             params.update({"rvslots": "*"})
@@ -346,11 +354,6 @@ def prep_headers_params_for_url(
             params.update({"rclimit": "max"})
             params.update({"rcstart": str(time_start)})
             params.update({"rcend": str(time_end)})
-
-        case "pagesrecent":
-            params.update({"prop": "revisions"})
-            params.update({"rvprop": "content"})
-            params.update({"rvslots": "*"})
 
         case "savefiles":
             params.update({"maxlag": "5"})
@@ -421,7 +424,7 @@ def get_json_from_url(
 
                 params.update({"apcontinue": continue_page_wiki})
 
-        case "pageids":
+        case "pageids" | "pagesrecent":
             if len(SETTINGS["page_ids"]) == 0:
                 print("No pages to process. Empty list.")
                 return {}
@@ -450,31 +453,6 @@ def get_json_from_url(
             if continue_page_wiki is not None:
                 print(continue_page_wiki)
                 params.update({"rccontinue": continue_page_wiki})
-
-    elif settings["config_type"] == "pagesrecent":
-        index_start = settings["index_start"]
-        # max 50 pages per MediaWiki Settings for no admin users
-        index_max = 50
-
-        if len(settings['recentchanges']) == 0:
-            print("No pages to process.")
-            return {}
-
-        if len(settings["recentchanges"]) < index_start:
-            print("No more pages to process.")
-            return {}
-
-        index_end = index_start + index_max
-        params.update({"pageids": '|'.join(
-            map(str, settings["recentchanges"][index_start:index_end])
-        )})
-        settings["index_start"] = index_end
-
-        print()
-        print(f"Processing page IDs from index {index_start} to {index_end - 1}")
-        print(f"Progress current page: {index_start / index_max}")
-        print(f"Progress max pages: {len(settings['recentchanges']) / index_max}")
-        print()
 
     elif settings["config_type"] == "savefiles":
         index_start = settings["index_start"]
@@ -541,7 +519,10 @@ def get_json_from_url(
         # so we need to try to split request into pieces, if possible, to be sure it will return all data
         data_from_url_chunks = {'batchcomplete': True, 'query': {'pages': []}}
 
-        if wiki_data_type_set == "pageids":
+        if wiki_data_type_set in (
+                "pageids",
+                "pagesrecent",
+                ):
             for index_range in range(index_start, index_end):
                 if len(SETTINGS["page_ids"]) < index_range:
                     break
@@ -668,6 +649,7 @@ def restructure_json_pageids(
     global namespace_nr_set
 
     path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, FILE_BLOCKED)
+    path_recentchanges = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, FILE_RECENTCHANGES)
 
     if "query" not in json_data_dict:
         return
@@ -685,24 +667,38 @@ def restructure_json_pageids(
     for page in json_data_dict["query"]["pages"]:
         skip_page = False
 
-        if settings["config_type"] in (
-                "pageids",
-                "pagesrecent",
-                ):
+        if wiki_data_type_set == "pagesrecent":
             if "missing" in page:
+                # Print warning to fix log later
+                # Save this page id to recentchanges log to check later
+                # Move affected files to removed folder to avoid processing them again until we check what is wrong with them
                 NewtCons.error_msg(
                     f"Page ID {page['pageid']} data is missing",
                     f"Page: {page}",
-                    location="mwparser.restructure_json_pageids.pagesrecent : 'missing' in page",
+                    location="mwparser.restructure_json_pageids : 'missing' in page",
                     stop=False
                 )
-                for missing_folder in (folder_raw_pages, folder_raw_redirect):
-                    for missing_apname in namespace_types.keys():
-                        missing_file = os.path.join(dir_, settings["FOLDER_LINK"], missing_folder, f"{int(missing_apname):05d}", f"{page['pageid']:010d}.txt")
-                        missing_target = os.path.join(dir_, settings["FOLDER_LINK"], folder_raw_removed, f"{int(missing_apname):05d}-{page['pageid']:010d}.txt")
-                        if NewtFiles.check_file_exists(missing_file):
+                NewtFiles.save_text_to_file(
+                    path_recentchanges, f"Page ID {page['pageid']} data is missing",
+                    append=True, logging=False
+                )
+                for missing_folder in (FOLDER_RAW_PAGES, FOLDER_RAW_REDIRECT):
+                    for missing_namespace in namespace_types_set.keys():
+                        missing_file = os.path.join(
+                            DIR_GLOBAL, SETTINGS["FOLDER_LINK"], missing_folder,
+                            f"{int(missing_namespace):0{SETTINGS["ns_max_key_len"]}d}", f"{page['pageid']:010d}.txt"
+                        )
+                        missing_target = os.path.join(
+                            DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_RAW_REMOVED,
+                            f"{int(missing_namespace):0{SETTINGS["ns_max_key_len"]}d}-{page['pageid']:010d}.txt"
+                        )
+                        if NewtFiles.check_file_exists(missing_file, stop=False, logging=False):
                             NewtFiles.ensure_dir_exists(missing_target)
                             shutil.move(missing_file, missing_target)
+                            NewtFiles.save_text_to_file(
+                                path_recentchanges, missing_target,
+                                append=True, logging=False
+                            )
                 continue
 
         NewtUtil.check_dict_keys(
@@ -710,10 +706,13 @@ def restructure_json_pageids(
             location="mwparser.restructure_json_pageids : page"
         )
 
-        if settings["config_type"] == "pagesrecent":
-            apnamespace_nr = page["ns"]
+        check_ns = namespace_nr_set
 
-        if page["ns"] != namespace_nr_set:
+        if wiki_data_type_set == "pagesrecent":
+            if str(page["ns"]) in namespace_types_set:
+                check_ns = int(page["ns"])
+
+        if int(page["ns"]) != check_ns:
             NewtCons.error_msg(
                 f"Unexpected namespace value: {page['ns']} for page ID {page['pageid']}",
                 f"Page: {page}",
@@ -971,7 +970,7 @@ def loop_next_pages(
                     data_list, continue_page_backup = restructure_json_allpages(json_data)
                     save_data_list(data_list)
 
-                case "pageids":
+                case "pageids" | "pagesrecent":
                     if json_data == {}:
                         break
 
@@ -993,16 +992,6 @@ def loop_next_pages(
 
                     data_list = restructure_json_recentchanges(json_data)
                     save_data_list(data_list)
-
-        elif settings["config_type"] in (
-                "pagesrecent",
-                ):
-            while True:
-                if json_data == {}:
-                    break
-
-                restructure_json_pageids(json_data)
-                json_data = get_json_from_url()
 
         elif settings["config_type"] == "savefiles":
             while True:
@@ -1077,7 +1066,7 @@ if __name__ == "__main__":
             loop_next_pages(json_data, continue_page_backup)
             remove_duplicated_lines()
 
-        case "pageids":
+        case "pageids" | "pagesrecent":
             loop_next_pages(json_data)
 
         case "recentchanges":
@@ -1086,7 +1075,7 @@ if __name__ == "__main__":
             loop_next_pages(json_data)
             remove_duplicated_lines()
 
-        case "pagesrecent" | "savefiles":
+        case "savefiles":
             loop_next_pages(json_data)
 
         case _:
