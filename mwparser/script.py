@@ -1090,39 +1090,44 @@ if __name__ == "__main__":
     BLOCKED_SET = get_blocked_set()
     json_data = get_json_from_url()
 
-    match wiki_data_type_set:
-        case "allpages":
-            data_list, continue_page_backup = restructure_json_allpages(json_data)
-            save_data_list(data_list, False)
-            loop_next_pages(json_data, continue_page_backup)
-            remove_duplicated_lines()
+    try:
+        match wiki_data_type_set:
+            case "allpages":
+                data_list, continue_page_backup = restructure_json_allpages(json_data)
+                save_data_list(data_list, False)
+                loop_next_pages(json_data, continue_page_backup)
+                remove_duplicated_lines()
 
-        case "pageids" | "pagesrecent" | "savefiles":
-            loop_next_pages(json_data)
+            case "pageids" | "pagesrecent" | "savefiles":
+                loop_next_pages(json_data)
 
-        case "recentchanges":
-            data_list = restructure_json_recentchanges(json_data)
-            save_data_list(data_list, False)
-            loop_next_pages(json_data)
-            remove_duplicated_lines()
+            case "recentchanges":
+                data_list = restructure_json_recentchanges(json_data)
+                save_data_list(data_list, False)
+                loop_next_pages(json_data)
+                remove_duplicated_lines()
 
-        case _:
-            NewtCons.error_msg(
-                f"Unexpected config type: {wiki_data_type_set}",
-                location="mwparser.main : wiki_data_type_set default case"
-            )
+            case _:
+                NewtCons.error_msg(
+                    f"Unexpected config type: {wiki_data_type_set}",
+                    location="mwparser.main : wiki_data_type_set default case"
+                )
+    except KeyboardInterrupt:
+        print()
+        print("=== Script interrupted by user ===")
 
-    print("=== END ===")
+    finally:
+        print("=== END ===")
 
-    if SAVE_LOG:
-        if wiki_data_type_set in (
-                "allpages",
-                "pageids",
-                ):
-            file_target_name = f"{wiki_data_type_set}-{namespace_nr_set:0{SETTINGS["ns_max_key_len"]}d}.txt"
-        else:
-            file_target_name = f"{wiki_data_type_set}.txt"
+        if SAVE_LOG:
+            if wiki_data_type_set in (
+                    "allpages",
+                    "pageids",
+                    ):
+                file_target_name = f"{wiki_data_type_set}-{namespace_nr_set:0{SETTINGS["ns_max_key_len"]}d}.txt"
+            else:
+                file_target_name = f"{wiki_data_type_set}.txt"
 
-        path_target = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LOGS, file_target_name)
+            path_target = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LOGS, file_target_name)
 
-        NewtFiles.cleanup_logging(SETUP_LOGGING_DATA, path_target)
+            NewtFiles.cleanup_logging(SETUP_LOGGING_DATA, path_target)
