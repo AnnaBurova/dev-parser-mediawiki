@@ -386,17 +386,34 @@ def get_json_from_url(
     """Fetch JSON data from a URL based on settings and save to file."""
 
     global wiki_data_type_set
+    global namespace_types_set
+    assert isinstance(namespace_types_set, dict)  # for type checker
+
+    path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, FILE_BLOCKED)
+    continue_page_for_block = continue_page_wiki
 
     headers, params = headers_params_for_url
 
     match wiki_data_type_set:
         case "allpages":
             if continue_page_wiki is not None:
+                # continue_page_wiki - current page title from wiki
+                # continue_page_backup - previous page title from wiki, we saved in case current page is blocked
+                # continue_page_for_block - what we will block incase no result
+                continue_page_wiki = continue_page_wiki.replace(" ", "_")
+                continue_page_for_block = continue_page_wiki
                 if continue_page_wiki in BLOCKED_SET and continue_page_backup is not None:
+                    continue_page_backup = continue_page_backup.replace(" ", "_")
                     print(continue_page_wiki)
                     continue_page_wiki = continue_page_backup
+                    continue_page_for_block = continue_page_backup
 
                 print(continue_page_wiki)
+                # Only without left and sep parts it will work in continue
+                left_part, sep_part, right_part = continue_page_wiki.partition(':')
+                if sep_part and left_part in set(namespace_types_set.values()):
+                    continue_page_wiki = right_part
+
                 params.update({"apcontinue": continue_page_wiki})
 
 
@@ -489,13 +506,12 @@ def get_json_from_url(
     )
     print()
 
-    # None data mostly comes from 403 Forbidden error, so we save continue_page_wiki to blocked list and skip it next time
+    # None data mostly comes from 403 Forbidden error, so we save continue_page_for_block to blocked list and skip it next time
     if data_from_url is None:
-        if continue_page_wiki is not None:
-            path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, FILE_BLOCKED)
+        if continue_page_for_block is not None:
             NewtFiles.save_text_to_file(
                 path_file_blocked,
-                continue_page_wiki,
+                continue_page_for_block,
                 append=True
             )
 
@@ -536,6 +552,11 @@ def get_json_from_url(
 
                 # None data mostly comes from 403 Forbidden error, so we need to catch page id and add it to blocked list to skip it next time
                 if data_from_url_small is None:
+                    NewtFiles.save_text_to_file(
+                        path_file_blocked,
+                        f"---> Page ID: {SETTINGS["page_ids"][index_range]}",
+                        append=True
+                    )
                     NewtCons.error_msg(
                         "Failed to read small JSON result, exiting",
                         f"Page ID: {SETTINGS["page_ids"][index_range]}",
@@ -611,9 +632,6 @@ def restructure_json_allpages(
 
         if page["title"].replace(" ", "_") not in BLOCKED_SET:
             continue_page_backup = page["title"].replace(" ", "_")
-            left_part, sep_part, right_part = page["title"].partition(':')
-            if sep_part and left_part in set(namespace_types_set.values()):
-                continue_page_backup = right_part.replace(" ", "_")
 
         allpages_list.append([
             f"{page['pageid']:010d}",
@@ -801,7 +819,8 @@ def restructure_json_pageids(
         path_file_pageid = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], folder_pages, f"{namespace_nr_set:0{SETTINGS["ns_max_key_len"]}d}", f"{page['pageid']:010d}.txt")
         NewtFiles.save_text_to_file(
             path_file_pageid,
-            text_for_file
+            text_for_file,
+            append=False
         )
 
 
