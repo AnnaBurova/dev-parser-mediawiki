@@ -43,6 +43,7 @@ FOLDER_LISTS = os.path.join("data", "lists")
 FOLDER_LOGS = os.path.join("data", "logs")
 FILE_NAMESPACES = os.path.join("data", "schemas", "namespace_types.json")
 FILE_BLOCKED = "blocked.txt"
+FILE_RECENTCHANGES = "recentchanges.csv"
 
 # Extended functionality in read_config()
 FOLDER_CONFIG_CHECK = False
@@ -281,7 +282,7 @@ def read_config(
             settings["page_ids"] = sorted([int(row[0]) for row in list_allpages[1:]])
 
         case "recentchanges":
-            settings["file_name"] = "recentchanges.csv"
+            settings["file_name"] = FILE_RECENTCHANGES
 
     elif config_type == "pagesrecent":
         file_recentchanges = os.path.join(dir_, settings["FOLDER_LINK"], folder_lists, "recentchanges.csv")
