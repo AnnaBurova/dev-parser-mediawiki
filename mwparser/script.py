@@ -599,11 +599,11 @@ def get_json_from_url(
                 data_from_url_chunks['query']['pages'].extend(
                     json_from_url_small.get('query', {}).get('pages', [])
                 )
-            else:
-                NewtCons.error_msg(
-                    "Failed to read JSON result, exiting",
-                    location="mwparser.get_json_from_url : json_from_url=None and not pageids"
-                )
+        else:
+            NewtCons.error_msg(
+                "Failed to read JSON result, exiting",
+                location="mwparser.get_json_from_url : json_from_url=None and not pageids"
+            )
 
         json_from_url = data_from_url_chunks
 
@@ -723,7 +723,7 @@ def restructure_json_pageids(
                             NewtFiles.ensure_dir_exists(missing_target)
                             shutil.move(missing_file, missing_target)
                             NewtFiles.save_text_to_file(
-                                path_recentchanges_missing, missing_target,
+                                path_recentchanges_missing, f"{missing_target}",
                                 append=True, logging=False
                             )
                 continue
@@ -1116,18 +1116,17 @@ if __name__ == "__main__":
         print()
         print("=== Script interrupted by user ===")
 
-    finally:
-        print("=== END ===")
+    print("=== END ===")
 
-        if SAVE_LOG:
-            if wiki_data_type_set in (
-                    "allpages",
-                    "pageids",
-                    ):
-                file_target_name = f"{wiki_data_type_set}-{namespace_nr_set:0{SETTINGS["ns_max_key_len"]}d}.txt"
-            else:
-                file_target_name = f"{wiki_data_type_set}.txt"
+    if SAVE_LOG:
+        if wiki_data_type_set in (
+                "allpages",
+                "pageids",
+                ):
+            file_target_name = f"{wiki_data_type_set}-{namespace_nr_set:0{SETTINGS["ns_max_key_len"]}d}.txt"
+        else:
+            file_target_name = f"{wiki_data_type_set}.txt"
 
-            path_target = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LOGS, file_target_name)
+        path_target = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LOGS, file_target_name)
 
-            NewtFiles.cleanup_logging(SETUP_LOGGING_DATA, path_target)
+        NewtFiles.cleanup_logging(SETUP_LOGGING_DATA, path_target)
