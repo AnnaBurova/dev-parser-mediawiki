@@ -31,9 +31,9 @@ MUST_LOCATION = os.path.join("D:\\", "VS_Code")
 BACK_IN_TIME_DAYS = 7
 TIME_NOW = datetime.now(timezone.utc)
 time_start = TIME_NOW - timedelta(days=0, hours=0)
-time_start = time_start.strftime('%Y-%m-%dT%H:%M:%SZ')
+time_start = time_start.strftime("%Y-%m-%dT%H:%M:%SZ")
 time_end = TIME_NOW - timedelta(days=BACK_IN_TIME_DAYS, hours=0)
-time_end = time_end.strftime('%Y-%m-%dT%H:%M:%SZ')
+time_end = time_end.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 FOLDER_RAW_PAGES = os.path.join("data", "raw", "pages")
 FOLDER_RAW_REDIRECT = os.path.join("data", "raw", "redirect")
@@ -275,13 +275,13 @@ def read_config(
 
     match wiki_data_type_set:
         case "allpages":
-            settings["file_name"] = os.path.join("allpages", f"{namespace_nr_set:0{settings["ns_max_key_len"]}d}.csv")
+            settings["file_name"] = os.path.join("allpages", f"{namespace_nr_set:0{settings['ns_max_key_len']}d}.csv")
 
         case "pageids":
             settings["index_start"] = SETTING_INDEX_START_DEFAULT
             path_allpages = os.path.join(
                 DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LISTS,
-                "allpages", f"{namespace_nr_set:0{settings["ns_max_key_len"]}d}.csv"
+                "allpages", f"{namespace_nr_set:0{settings['ns_max_key_len']}d}.csv"
             )
             list_allpages = NewtFiles.read_csv_from_file(path_allpages)
 
@@ -315,7 +315,7 @@ def read_config(
             settings["index_start"] = SETTING_INDEX_START_DEFAULT
             path_allpages = os.path.join(
                 DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LISTS,
-                "allpages", f"{namespace_nr_set:0{settings["ns_max_key_len"]}d}.csv"
+                "allpages", f"{namespace_nr_set:0{settings['ns_max_key_len']}d}.csv"
             )
             list_files = NewtFiles.read_csv_from_file(path_allpages)
 
@@ -442,7 +442,7 @@ def get_json_from_url(
 
                 print(continue_page_wiki)
                 # Only without left and sep parts it will work in continue
-                left_part, sep_part, right_part = continue_page_wiki.partition(':')
+                left_part, sep_part, right_part = continue_page_wiki.partition(":")
                 if sep_part and left_part in set(namespace_types_set.values()):
                     continue_page_wiki = right_part
 
@@ -461,7 +461,7 @@ def get_json_from_url(
                 print("No more pages to process.")
                 return {}
 
-            params.update({"pageids": '|'.join(
+            params.update({"pageids": "|".join(
                 map(str, SETTINGS["page_ids"][index_start:index_end])
             )})
             SETTINGS["index_start"] = index_end
@@ -491,7 +491,7 @@ def get_json_from_url(
                 print("No more images to process.")
                 return {}
 
-            params.update({"titles": '|'.join(
+            params.update({"titles": "|".join(
                 map(str, SETTINGS["files_titles"][index_start:index_end])
             )})
             SETTINGS["index_start"] = index_end
@@ -544,7 +544,7 @@ def get_json_from_url(
     if json_from_url is None:
         # If text is too long, it may be incomplete,
         # so we need to try to split request into pieces, if possible, to be sure it will return all data
-        data_from_url_chunks = {'batchcomplete': True, 'query': {'pages': []}}
+        data_from_url_chunks = {"batchcomplete": True, "query": {"pages": []}}
 
         if wiki_data_type_set in (
                 "pageids",
@@ -753,7 +753,7 @@ def restructure_json_pageids(
         folder_pages = FOLDER_RAW_PAGES
 
         text_for_file = ""
-        text_for_file += f"Namespace ::: {page["ns"]} ::: {namespace_types_set[str(page["ns"])]}\n"
+        text_for_file += f"Namespace ::: {page['ns']} ::: {namespace_types_set[str(page['ns'])]}\n"
         text_for_file += f"Page ID   ::: {page['pageid']}\n"
         text_for_file += f"Title     ::: {page['title']}\n\n"
 
@@ -775,7 +775,7 @@ def restructure_json_pageids(
 
             if revision["slots"]["main"]["contentmodel"] != "wikitext":
                 NewtCons.error_msg(
-                    f"Unexpected Contentmodel : {revision["slots"]["main"]["contentmodel"]}",
+                    f"Unexpected Contentmodel : {revision['slots']['main']['contentmodel']}",
                     f"Title: {page['title']}",
                     f"Page: {page['pageid']}",
                     location="mwparser.restructure_json_pageids : revision[slots][main][contentmodel]",
@@ -783,7 +783,7 @@ def restructure_json_pageids(
                 )
                 NewtFiles.save_text_to_file(
                     path_file_blocked,
-                    page['title'].replace(" ", "_"),
+                    page["title"].replace(" ", "_"),
                     append=True
                 )
                 skip_page = True
@@ -791,7 +791,7 @@ def restructure_json_pageids(
 
             if revision["slots"]["main"]["contentformat"] != "text/x-wiki":
                 NewtCons.error_msg(
-                    f"Unexpected Contentformat : {revision["slots"]["main"]["contentformat"]}",
+                    f"Unexpected Contentformat : {revision['slots']['main']['contentformat']}",
                     f"Title: {page['title']}",
                     f"Page: {page['pageid']}",
                     location="mwparser.restructure_json_pageids : revision[slots][main][contentformat]"
@@ -810,7 +810,7 @@ def restructure_json_pageids(
                 folder_pages = FOLDER_RAW_REDIRECT
 
             text_for_file += "-" * 80 + "\n"
-            text_for_file += f"{revision["slots"]["main"]["content"]}\n\n"
+            text_for_file += f"{revision['slots']['main']['content']}\n\n"
 
         # It helps to skip outer for if break was in inner for
         if skip_page:
@@ -818,7 +818,7 @@ def restructure_json_pageids(
 
         text_for_file += "=== END ==="
 
-        path_file_pageid = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], folder_pages, f"{namespace_nr_set:0{SETTINGS["ns_max_key_len"]}d}", f"{page['pageid']:010d}.txt")
+        path_file_pageid = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], folder_pages, f"{namespace_nr_set:0{SETTINGS['ns_max_key_len']}d}", f"{page['pageid']:010d}.txt")
         NewtFiles.save_text_to_file(
             path_file_pageid,
             text_for_file,
@@ -867,13 +867,13 @@ def restructure_json_recentchanges(
                 stop=False
             )
 
-        if page['pageid'] == 0:
+        if page["pageid"] == 0:
             continue
 
         recentchanges_list.append([
-            page['timestamp'],
+            page["timestamp"],
             f"{page['pageid']:010d}",
-            f"{page['ns']:0{SETTINGS["ns_max_key_len"]}d}",
+            f"{page['ns']:0{SETTINGS['ns_max_key_len']}d}",
             f"{page['type']:>4}",
             page["title"],
         ])
@@ -921,7 +921,7 @@ def restructure_json_savefiles(
             )
 
             url_filename = os.path.basename(image_info["url"])
-            filename = f"{image_data["pageid"]:010d}-{url_filename}"
+            filename = f"{image_data['pageid']:010d}-{url_filename}"
             path_file_image = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_RAW_IMAGES, filename)
 
             download_tries = 0
@@ -1123,7 +1123,7 @@ if __name__ == "__main__":
                 "allpages",
                 "pageids",
                 ):
-            file_target_name = f"{wiki_data_type_set}-{namespace_nr_set:0{SETTINGS["ns_max_key_len"]}d}.txt"
+            file_target_name = f"{wiki_data_type_set}-{namespace_nr_set:0{SETTINGS['ns_max_key_len']}d}.txt"
         else:
             file_target_name = f"{wiki_data_type_set}.txt"
 
