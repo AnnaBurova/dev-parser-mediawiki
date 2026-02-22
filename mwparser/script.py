@@ -84,7 +84,10 @@ SETTING_INDEX_START_DEFAULT = 0
 # max 50 pages per MediaWiki Settings for no admin users
 SETTING_INDEX_MAX_PAGES = 50
 # max 25 titles per MediaWiki Settings for no admin users
-SETTING_INDEX_MAX_TITLES = 25
+SETTING_INDEX_MAX_TITLES = 20
+
+LOGGING = False
+LOGGING = True
 
 SAVE_LOG = True
 SAVE_LOG = False
@@ -173,7 +176,7 @@ def check_todo(
                     todo_list.append((file, wiki_data_type, None, None))
 
     print()
-    if todo_list:
+    if todo_list and LOGGING:
         print("=== TODO LIST ===")
         todo_list.reverse()
         for todo in todo_list:
@@ -278,6 +281,14 @@ def read_config(
             settings["file_name"] = os.path.join("allpages", f"{namespace_nr_set:0{settings['ns_max_key_len']}d}.csv")
 
         case "pageids":
+            for folder_type in (FOLDER_RAW_PAGES, FOLDER_RAW_REDIRECT, FOLDER_RAW_REMOVED):
+                folder_to_remove = os.path.join(
+                    DIR_GLOBAL, settings["FOLDER_LINK"], folder_type,
+                    str(namespace_nr_set).zfill(settings["ns_max_key_len"])
+                )
+                if os.path.isdir(folder_to_remove):
+                    shutil.rmtree(folder_to_remove)
+
             settings["index_start"] = SETTING_INDEX_START_DEFAULT
             path_allpages = os.path.join(
                 DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LISTS,
@@ -450,6 +461,7 @@ def get_json_from_url(
 
         case "pageids" | "pagesrecent":
             if len(SETTINGS["page_ids"]) == 0:
+                print()
                 print("No pages to process. Empty list.")
                 return {}
 
@@ -458,6 +470,7 @@ def get_json_from_url(
             index_end = index_start + index_max
 
             if len(SETTINGS["page_ids"]) < index_start:
+                print()
                 print("No more pages to process.")
                 return {}
 
@@ -480,6 +493,7 @@ def get_json_from_url(
 
         case "savefiles":
             if len(SETTINGS["files_titles"]) == 0:
+                print()
                 print("No images to process. Empty list.")
                 return {}
 
@@ -488,6 +502,7 @@ def get_json_from_url(
             index_end = index_start + index_max
 
             if len(SETTINGS["files_titles"]) < index_start:
+                print()
                 print("No more images to process.")
                 return {}
 
@@ -511,12 +526,12 @@ def get_json_from_url(
 
     data_from_url = NewtNet.fetch_data_from_url(
         SETTINGS["BASE_URL"], params, headers,
-        mode="auto",
+        mode="auto", logging=LOGGING
     )
     print()
 
     # None data mostly comes from 403 Forbidden error, so we save continue_page_for_block to blocked list and skip it next time
-    if data_from_url is None:
+    if not data_from_url:
         if continue_page_for_block is not None:
             NewtFiles.save_text_to_file(
                 path_file_blocked,
@@ -526,11 +541,8 @@ def get_json_from_url(
 
         NewtCons.error_msg(
             "Failed to read JSON result, exiting",
-            location="mwparser.get_json_from_url : data_from_url=None"
+            location="mwparser.get_json_from_url : data_from_url=False"
         )
-
-    # ensure the type checker knows data_from_url is not None
-    assert data_from_url is not None
 
     # Ensure return value is a dict
     NewtCons.validate_input(
@@ -551,39 +563,44 @@ def get_json_from_url(
                 "pagesrecent",
                 ):
             for index_range in range(index_start, index_end):
-                if len(SETTINGS["page_ids"]) < index_range:
+                if len(SETTINGS["page_ids"]) <= index_range:
                     break
 
                 params.update({"pageids": str(SETTINGS["page_ids"][index_range])})
 
                 data_from_url_small = NewtNet.fetch_data_from_url(
                     SETTINGS["BASE_URL"], params, headers,
-                    mode="auto",
+                    mode="auto", logging=LOGGING
                 )
                 print()
 
                 # None data mostly comes from 403 Forbidden error, so we need to catch page id and add it to blocked list to skip it next time
-                if data_from_url_small is None:
+                if not data_from_url_small:
                     NewtFiles.save_text_to_file(
                         path_file_blocked,
-                        f"---> Page ID: {SETTINGS["page_ids"][index_range]}",
+                        f"---> Page ID: {SETTINGS['page_ids'][index_range]}",
                         append=True
                     )
                     NewtCons.error_msg(
                         "Failed to read small JSON result, exiting",
-                        f"Page ID: {SETTINGS["page_ids"][index_range]}",
-                        location="mwparser.get_json_from_url : data_from_url_small=None"
+                        f"Page ID: {SETTINGS['page_ids'][index_range]}",
+                        location="mwparser.get_json_from_url : data_from_url_small=False"
                     )
 
-                # ensure the type checker knows file_config is not None
-                assert data_from_url_small is not None
+                # Ensure return value is a dict
+                NewtCons.validate_input(
+                    data_from_url_small, str, check_non_empty=True,
+                    location="mwparser.get_json_from_url : data_from_url_small"
+                )
+                assert isinstance(data_from_url_small, str)  # for type checker
 
                 json_from_url_small = NewtFiles.convert_str_to_json(data_from_url_small)
 
-                NewtCons.validate_input(
-                    json_from_url_small, dict, check_non_empty=True,
+                if not NewtCons.validate_input(
+                    json_from_url_small, dict, check_non_empty=True, stop=False,
                     location="mwparser.get_json_from_url : json_from_url_small != dict"
-                )
+                ):
+                    continue
                 assert isinstance(json_from_url_small, dict)  # for type checker
 
                 NewtUtil.check_dict_keys(
@@ -596,13 +613,13 @@ def get_json_from_url(
                     location="mwparser.get_json_from_url : json_from_url_small[query]"
                 )
 
-                data_from_url_chunks['query']['pages'].extend(
-                    json_from_url_small.get('query', {}).get('pages', [])
+                data_from_url_chunks["query"]["pages"].extend(
+                    json_from_url_small.get("query", {}).get("pages", [])
                 )
         else:
             NewtCons.error_msg(
                 "Failed to read JSON result, exiting",
-                location="mwparser.get_json_from_url : json_from_url=None and not pageids"
+                location="mwparser.get_json_from_url : json_from_url=False and not pageids"
             )
 
         json_from_url = data_from_url_chunks
@@ -659,6 +676,9 @@ def restructure_json_allpages(
         if page["title"].replace(" ", "_") not in BLOCKED_SET:
             continue_page_backup = page["title"].replace(" ", "_")
 
+        if page["title"].replace(" ", "_") in BLOCKED_SET:
+            continue
+
         allpages_list.append([
             f"{page['pageid']:010d}",
             page["title"],
@@ -678,9 +698,6 @@ def restructure_json_pageids(
     path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, FILE_BLOCKED)
     path_recentchanges_missing = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, "missing-"+FILE_RECENTCHANGES)
 
-    if "query" not in json_data_dict:
-        return
-
     NewtUtil.check_dict_keys(
         json_data_dict, {"query", "batchcomplete"},
         location="mwparser.restructure_json_pageids : json_data_dict"
@@ -694,39 +711,38 @@ def restructure_json_pageids(
     for page in json_data_dict["query"]["pages"]:
         skip_page = False
 
-        if wiki_data_type_set == "pagesrecent":
-            if "missing" in page:
-                # Print warning to fix log later
-                # Save this page id to recentchanges log to check later
-                # Move affected files to removed folder to avoid processing them again until we check what is wrong with them
-                NewtCons.error_msg(
-                    f"Page ID {page['pageid']} data is missing",
-                    f"Page: {page}",
-                    location="mwparser.restructure_json_pageids : 'missing' in page",
-                    stop=False
-                )
-                NewtFiles.save_text_to_file(
-                    path_recentchanges_missing, f"Page ID {page['pageid']} data is missing",
-                    append=True, logging=False
-                )
-                for missing_folder in (FOLDER_RAW_PAGES, FOLDER_RAW_REDIRECT):
-                    for missing_namespace in namespace_types_set.keys():
-                        missing_file = os.path.join(
-                            DIR_GLOBAL, SETTINGS["FOLDER_LINK"], missing_folder,
-                            f"{int(missing_namespace):0{SETTINGS["ns_max_key_len"]}d}", f"{page['pageid']:010d}.txt"
+        if "missing" in page:
+            # Print warning to fix log later
+            # Save this page id to recentchanges log to check later
+            # Move affected files to removed folder to avoid processing them again until we check what is wrong with them
+            NewtCons.error_msg(
+                f"Page ID {page['pageid']} data is missing",
+                f"Page: {page}",
+                location="mwparser.restructure_json_pageids : 'missing' in page",
+                stop=False
+            )
+            NewtFiles.save_text_to_file(
+                path_recentchanges_missing, f"Page ID {page['pageid']} data is missing",
+                append=True, logging=False
+            )
+            for missing_folder in (FOLDER_RAW_PAGES, FOLDER_RAW_REDIRECT):
+                for missing_namespace in namespace_types_set.keys():
+                    missing_file = os.path.join(
+                        DIR_GLOBAL, SETTINGS["FOLDER_LINK"], missing_folder,
+                        f"{int(missing_namespace):0{SETTINGS['ns_max_key_len']}d}", f"{page['pageid']:010d}.txt"
+                    )
+                    missing_target = os.path.join(
+                        DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_RAW_REMOVED,
+                        f"{int(missing_namespace):0{SETTINGS['ns_max_key_len']}d}-{page['pageid']:010d}.txt"
+                    )
+                    if NewtFiles.check_file_exists(missing_file, stop=False, logging=False):
+                        NewtFiles.ensure_dir_exists(missing_target)
+                        shutil.move(missing_file, missing_target)
+                        NewtFiles.save_text_to_file(
+                            path_recentchanges_missing, f"{missing_target}",
+                            append=True, logging=False
                         )
-                        missing_target = os.path.join(
-                            DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_RAW_REMOVED,
-                            f"{int(missing_namespace):0{SETTINGS["ns_max_key_len"]}d}-{page['pageid']:010d}.txt"
-                        )
-                        if NewtFiles.check_file_exists(missing_file, stop=False, logging=False):
-                            NewtFiles.ensure_dir_exists(missing_target)
-                            shutil.move(missing_file, missing_target)
-                            NewtFiles.save_text_to_file(
-                                path_recentchanges_missing, f"{missing_target}",
-                                append=True, logging=False
-                            )
-                continue
+            continue
 
         NewtUtil.check_dict_keys(
             page, {"pageid", "ns", "title", "revisions"},
@@ -745,9 +761,6 @@ def restructure_json_pageids(
                 f"Page: {page}",
                 location="mwparser.restructure_json_pageids : page[ns]"
             )
-
-        if page['title'].replace(" ", "_") in blocked_set:
-            continue
 
         # Basic path for files to save
         folder_pages = FOLDER_RAW_PAGES
@@ -796,12 +809,6 @@ def restructure_json_pageids(
                     f"Page: {page['pageid']}",
                     location="mwparser.restructure_json_pageids : revision[slots][main][contentformat]"
                 )
-                NewtFiles.save_text_to_file(
-                    file_blocked_path,
-                    page['title'].replace(" ", "_"),
-                    append=True
-                )
-                continue
 
             if len(revision["slots"]["main"]["content"]) < 6:
                 folder_pages = FOLDER_RAW_REMOVED
@@ -885,13 +892,18 @@ def restructure_json_savefiles(
         json_data_dict: dict
         ) -> None:
 
-    if "query" not in json_data_dict:
-        return
+    path_missing_image = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, "missing-images.txt")
 
-    NewtUtil.check_dict_keys(
-        json_data_dict, {"query", "batchcomplete"},
-        location="mwparser.restructure_json_savefiles : json_data_dict"
-    )
+    if "batchcomplete" in json_data_dict:
+        NewtUtil.check_dict_keys(
+            json_data_dict, {"query", "batchcomplete"},
+            location="mwparser.restructure_json_savefiles : json_data_dict + batchcomplete"
+        )
+    else:
+        NewtUtil.check_dict_keys(
+            json_data_dict, {"query", "continue"},
+            location="mwparser.restructure_json_savefiles : json_data_dict + continue"
+        )
 
     NewtUtil.check_dict_keys(
         json_data_dict["query"], {"pages"},
@@ -899,18 +911,35 @@ def restructure_json_savefiles(
     )
 
     for image_data in json_data_dict["query"]["pages"]:
-        if "imageinfo" not in image_info:
+        if "imageinfo" in image_data:
+            NewtUtil.check_dict_keys(
+                image_data, {"pageid", "ns", "title", "imagerepository", "imageinfo"},
+                location="mwparser.restructure_json_savefiles : image_data with imageinfo"
+            )
+
+        elif "pageid" in image_data:
+            NewtUtil.check_dict_keys(
+                image_data, {"pageid", "ns", "title", "imagerepository"},
+                location="mwparser.restructure_json_savefiles : image_data without imageinfo"
+            )
+
+            NewtFiles.save_text_to_file(
+                path_missing_image,
+                f"{image_data['pageid']:010d} > {image_data['title']}",
+                append=True
+            )
             continue
 
-        NewtUtil.check_dict_keys(
-            image_data, {"pageid", "ns", "title", "imagerepository", "imageinfo"},
-            location="mwparser.restructure_json_savefiles : image_data"
-        )
+        else:
+            NewtUtil.check_dict_keys(
+                image_data, {"missing", "ns", "title", "imagerepository"},
+                location="mwparser.restructure_json_savefiles : image_data without pageid"
+            )
 
-        if len(image_info["imageinfo"]) != 1:
-            NewtCons.error_msg(
-                f"Unexpected imageinfo length: {len(image_info['imageinfo'])} for image title: {image_info['title']}",
-                location="mwparser.get_image_from_pages : len(image_info['imageinfo']) != 1"
+            NewtFiles.save_text_to_file(
+                path_missing_image,
+                f"Unknown > {image_data['title']}",
+                append=True
             )
             continue
 
@@ -924,28 +953,14 @@ def restructure_json_savefiles(
             filename = f"{image_data['pageid']:010d}-{url_filename}"
             path_file_image = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_RAW_IMAGES, filename)
 
-            download_tries = 0
-            while download_tries < 5:
-                if NewtNet.download_file_from_url(
-                    image_info["url"],
-                    path_file_image
-                ):
-                    break
-
-                NewtCons.error_msg(
-                    f"Failed to download image from URL: {image_info['url']} on attempt {download_tries + 1}",
-                    location="mwparser.restructure_json_savefiles : download_file_from_url",
-                    stop=False
-                )
-
-                download_tries += 1
-
-            if download_tries == 5:
-                NewtCons.error_msg(
-                    f"Failed to download image after 5 attempts: {image_info['url']}",
-                    location="mwparser.restructure_json_savefiles : download_tries"
-                )
-                path_missing_image = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, "missing-images.txt")
+            if not NewtNet.fetch_data_from_url(
+                image_info["url"],
+                save_path=path_file_image,
+                max_mb_size=8,
+                mode="auto",
+                repeat_on_fail=False,
+                logging=LOGGING
+            ):
                 NewtFiles.save_text_to_file(
                     path_missing_image,
                     f"{image_info['url']} > {path_file_image}",
@@ -1116,7 +1131,7 @@ if __name__ == "__main__":
         print()
         print("=== Script interrupted by user ===")
 
-    print("=== END ===")
+    print("=== ✅ END ✅ ===")
 
     if SAVE_LOG:
         if wiki_data_type_set in (
