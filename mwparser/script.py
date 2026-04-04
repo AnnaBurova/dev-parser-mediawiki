@@ -1032,6 +1032,9 @@ def loop_next_pages(
                     if json_data == {}:
                         break
 
+                    if "query" not in json_data:
+                        break
+
                     restructure_json_pageids(json_data)
                     json_data = get_json_from_url()
 
