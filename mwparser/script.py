@@ -93,6 +93,8 @@ SETTING_INDEX_START_DEFAULT = 0
 SETTING_INDEX_MAX_PAGES = 50
 # max 25 titles per MediaWiki Settings for no admin users
 SETTING_INDEX_MAX_TITLES = 20
+# max 8 MB for images to avoid downloading very large files that may cause issues
+SETTING_IMAGE_MAX_MBYTES = 8
 
 LOGGING = False
 LOGGING = True
@@ -965,7 +967,7 @@ def restructure_json_savefiles(
             if not NewtNet.fetch_data_from_url(
                 image_info["url"],
                 save_path=path_file_image,
-                max_mb_size=8,
+                max_mb_size=SETTING_IMAGE_MAX_MBYTES,
                 mode="auto",
                 repeat_on_fail=False,
                 logging=LOGGING
