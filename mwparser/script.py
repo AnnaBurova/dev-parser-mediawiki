@@ -295,6 +295,7 @@ def read_config(
                     str(namespace_nr_set).zfill(settings["ns_max_key_len"])
                 )
                 if os.path.isdir(folder_to_remove):
+                    print(f"Removing folder: {folder_to_remove}")
                     shutil.rmtree(folder_to_remove)
 
             settings["index_start"] = SETTING_INDEX_START_DEFAULT
