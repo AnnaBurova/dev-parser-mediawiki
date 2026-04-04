@@ -46,11 +46,15 @@ FILE_BLOCKED = "blocked.txt"
 FILE_RECENTCHANGES = "recentchanges.csv"
 
 # Extended functionality in read_config()
-FOLDER_CONFIG_CHECK = False
-FOLDER_CONFIG_CHECK = True
-# If FOLDER_CONFIG_CHECK is False, set the config file name here
-# File must be in configs folder
-file_config_set = "xxx.json"
+if sys.argv and len(sys.argv) > 1 and sys.argv[1] != "":
+    FOLDER_CONFIG_CHECK = False
+    file_config_set = sys.argv[1]
+else:
+    FOLDER_CONFIG_CHECK = False
+    FOLDER_CONFIG_CHECK = True
+    # If FOLDER_CONFIG_CHECK is False, set the config file name here
+    # File must be in configs folder
+    file_config_set = "xxx.json"  # TODO
 
 WIKI_DATA_TYPE_DICT = {
     "1": "allpages",
@@ -61,10 +65,14 @@ WIKI_DATA_TYPE_DICT = {
 }
 
 # Extended functionality in read_config()
-WIKI_DATA_TYPE_CHECK = False
-WIKI_DATA_TYPE_CHECK = True
-# If WIKI_DATA_TYPE_CHECK is False, set the wiki data type here
-wiki_data_type_set = WIKI_DATA_TYPE_DICT["1"]
+if sys.argv and len(sys.argv) > 2 and sys.argv[2] != "":
+    WIKI_DATA_TYPE_CHECK = False
+    wiki_data_type_set = WIKI_DATA_TYPE_DICT[sys.argv[2]]
+else:
+    WIKI_DATA_TYPE_CHECK = False
+    WIKI_DATA_TYPE_CHECK = True
+    # If WIKI_DATA_TYPE_CHECK is False, set the wiki data type here
+    wiki_data_type_set = WIKI_DATA_TYPE_DICT["1"]  # TODO
 
 namespace_types_set: dict = {}
 # Extended functionality in read_config()
