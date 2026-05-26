@@ -21,15 +21,19 @@ import newtutils.network as NewtNet
 # ==============================================================================
 
 DIR_PROJECT = os.path.dirname(os.path.realpath(__file__))
-# print(DIR_PROJECT)  # D:\VS_Code\dev-parser-mediawiki\mwparser
+print("DIR_PROJECT:", DIR_PROJECT)
+# D:\VS_Code\dev-parser-mediawiki\mwparser
 
 DIR_GLOBAL = os.path.dirname(os.path.dirname(DIR_PROJECT))
-# print(DIR_GLOBAL)  # D:\VS_Code
+print("DIR_GLOBAL: ", DIR_GLOBAL)
+# D:\VS_Code
 
 # Add the project root directory to sys.path
 sys.path.append(DIR_GLOBAL)
 
-MUST_LOCATION = os.path.join("D:\\", "VS_Code")
+MUST_LOCATION = os.path.join("D:\\", "VS_Code")  # TODO
+print("MUST_LOCATION:", MUST_LOCATION)
+# D:\VS_Code
 
 # ==============================================================================
 
