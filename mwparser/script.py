@@ -1,5 +1,5 @@
 """
-Updated on 2026-02
+Updated on 2026-05
 Created on 2025-11
 
 @author: NewtCode Anna Burova
@@ -15,7 +15,10 @@ from datetime import datetime, timedelta, timezone
 import newtutils.console as NewtCons
 import newtutils.utility as NewtUtil
 import newtutils.files as NewtFiles
+# import newtutils.sql as NewtSQL
 import newtutils.network as NewtNet
+
+# ==============================================================================
 
 DIR_PROJECT = os.path.dirname(os.path.realpath(__file__))
 # print(DIR_PROJECT)  # D:\VS_Code\dev-parser-mediawiki\mwparser
@@ -28,12 +31,16 @@ sys.path.append(DIR_GLOBAL)
 
 MUST_LOCATION = os.path.join("D:\\", "VS_Code")
 
+# ==============================================================================
+
 BACK_IN_TIME_DAYS = 7
 TIME_NOW = datetime.now(timezone.utc)
 time_start = TIME_NOW - timedelta(days=0, hours=0)
 time_start = time_start.strftime("%Y-%m-%dT%H:%M:%SZ")
 time_end = TIME_NOW - timedelta(days=BACK_IN_TIME_DAYS, hours=0)
 time_end = time_end.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+# ==============================================================================
 
 FOLDER_RAW_PAGES = os.path.join("data", "raw", "pages")
 FOLDER_RAW_REDIRECT = os.path.join("data", "raw", "redirect")
@@ -45,6 +52,8 @@ FILE_NAMESPACES = os.path.join("data", "schemas", "namespace_types.json")
 FILE_BLOCKED = "blocked.txt"
 FILE_RECENTCHANGES = "recentchanges.csv"
 
+# ==============================================================================
+
 # Extended functionality in read_config()
 if sys.argv and len(sys.argv) > 1 and sys.argv[1] != "":
     FOLDER_CONFIG_CHECK = False
@@ -55,6 +64,8 @@ else:
     # If FOLDER_CONFIG_CHECK is False, set the config file name here
     # File must be in configs folder
     file_config_set = "xxx.json"  # TODO
+
+# ==============================================================================
 
 WIKI_DATA_TYPE_DICT = {
     "1": "allpages",
@@ -74,6 +85,8 @@ else:
     # If WIKI_DATA_TYPE_CHECK is False, set the wiki data type here
     wiki_data_type_set = WIKI_DATA_TYPE_DICT["1"]  # TODO
 
+# ==============================================================================
+
 namespace_types_set: dict = {}
 # Extended functionality in read_config()
 NAMESPACE_NR_CHECK = False
@@ -81,11 +94,15 @@ NAMESPACE_NR_CHECK = True
 # If NAMESPACE_NR_CHECK is False, set namespace number here
 namespace_nr_set: int = 0
 
+# ==============================================================================
+
 # Extended functionality in prep_headers_params_for_url()
 APCONTINUE_CHECK = True
 APCONTINUE_CHECK = False
 # If APCONTINUE_CHECK is True, set apcontinue value here
 APCONTINUE_PARAM = ""
+
+# ==============================================================================
 
 # Extended functionality in read_config() and get_json_from_url()
 SETTING_INDEX_START_DEFAULT = 0
@@ -96,6 +113,8 @@ SETTING_INDEX_MAX_TITLES = 20
 # max 8 MB for images to avoid downloading very large files that may cause issues
 SETTING_IMAGE_MAX_MBYTES = 8
 
+# ==============================================================================
+
 LOGGING = False
 LOGGING = True
 
@@ -104,6 +123,8 @@ SAVE_LOG = False
 
 if SAVE_LOG:
     SETUP_LOGGING_DATA = NewtFiles.setup_logging(DIR_GLOBAL)
+
+# ==============================================================================
 
 
 def check_todo(
