@@ -144,11 +144,11 @@ SETTING_IMAGE_MAX_MB_SIZE = 8  # TODO
 
 # ==============================================================================
 
-LOGGING = False
-LOGGING = True
+PRINT_LOG = True
+# PRINT_LOG = False  # TODO
 
 SAVE_LOG = True
-SAVE_LOG = False
+# SAVE_LOG = False  # TODO
 
 if SAVE_LOG:
     SETUP_LOGGING_DATA = NewtFiles.setup_logging(DIR_GLOBAL)
@@ -236,7 +236,7 @@ def check_todo(
                     todo_list.append((file, wiki_data_type, None, None))
 
     print()
-    if todo_list and LOGGING:
+    if todo_list and PRINT_LOG:
         print("=== TODO LIST ===")
         todo_list.reverse()
         for todo in todo_list:
@@ -587,7 +587,7 @@ def get_json_from_url(
 
     data_from_url = NewtNet.fetch_data_from_url(
         SETTINGS["BASE_URL"], params, headers,
-        mode="auto", logging=LOGGING
+        mode="auto", print_log=PRINT_LOG
     )
     print()
 
@@ -631,7 +631,7 @@ def get_json_from_url(
 
                 data_from_url_small = NewtNet.fetch_data_from_url(
                     SETTINGS["BASE_URL"], params, headers,
-                    mode="auto", logging=LOGGING
+                    mode="auto", print_log=PRINT_LOG
                 )
                 print()
 
@@ -1020,7 +1020,7 @@ def restructure_json_savefiles(
                 max_mb_size=SETTING_IMAGE_MAX_MB_SIZE,
                 mode="auto",
                 repeat_on_fail=False,
-                logging=LOGGING
+                print_log=PRINT_LOG
             ):
                 NewtFiles.save_text_to_file(
                     path_missing_image,
