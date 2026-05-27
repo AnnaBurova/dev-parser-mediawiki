@@ -123,23 +123,23 @@ if len(sys.argv) > 3 and sys.argv[3]:
 # If APCONTINUE_PARAM is not empty, set apcontinue value here
 # Extended functionality in prep_headers_params_for_url()
 # params.update({"apcontinue": APCONTINUE_PARAM})
-APCONTINUE_PARAM = ""
+APCONTINUE_PARAM = ""  # TODO
 
 # ==============================================================================
 
-SETTING_INDEX_START = 0
+SETTING_INDEX_START = 0  # TODO
 # in read_config()
 
 # max 50 pages per MediaWiki Settings for no admin users
-SETTING_INDEX_MAX_PAGES = 50
+SETTING_INDEX_MAX_PAGES = 50  # TODO
 # in get_json_from_url()
 
 # max 25 titles per MediaWiki Settings for no admin users
-SETTING_INDEX_MAX_TITLES = 25
+SETTING_INDEX_MAX_TITLES = 25  # TODO
 # in get_json_from_url()
 
 # max 8 MB for images to avoid downloading very large files that may cause issues
-SETTING_IMAGE_MAX_MB_SIZE = 8
+SETTING_IMAGE_MAX_MB_SIZE = 8  # TODO
 # in restructure_json_savefiles()
 
 # ==============================================================================
