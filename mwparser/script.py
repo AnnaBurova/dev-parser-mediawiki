@@ -347,7 +347,7 @@ def read_config(
 
         case "pagesrecent":
             settings["index_start"] = SETTING_INDEX_START_DEFAULT
-            path_recentchanges = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LISTS, FILE_RECENTCHANGES)
+            path_recentchanges = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_RECENTCHANGES)
             list_recentchanges = NewtFiles.read_csv_from_file(path_recentchanges)
 
             NewtCons.validate_input(
@@ -448,7 +448,7 @@ def get_blocked_set(
     """Read blocked list from file and return as a set."""
 
     blocked_set = set()
-    path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, FILE_BLOCKED)
+    path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FILE_BLOCKED)
     blocked_list = NewtFiles.read_text_from_file(path_file_blocked)
     print()
 
@@ -470,7 +470,7 @@ def get_json_from_url(
     global wiki_data_type_set
     global namespace_types_set
 
-    path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, FILE_BLOCKED)
+    path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FILE_BLOCKED)
     continue_page_for_block = None
 
     headers, params = headers_params_for_url
@@ -732,8 +732,8 @@ def restructure_json_pageids(
     global namespace_types_set
     global namespace_nr_set
 
-    path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, FILE_BLOCKED)
-    path_recentchanges_missing = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, "missing-"+FILE_RECENTCHANGES)
+    path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FILE_BLOCKED)
+    path_recentchanges_missing = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FILE_RECENTCHANGES)
 
     NewtUtil.check_dict_keys(
         json_data_dict, {"query", "batchcomplete"},
