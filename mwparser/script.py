@@ -46,15 +46,16 @@ time_end = time_end.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 # ==============================================================================
 
+FOLDER_PROJECT_CONFIGS = os.path.join(DIR_PROJECT, "configs")
 FOLDER_RAW_PAGES = os.path.join("data", "raw", "pages")
 FOLDER_RAW_REDIRECT = os.path.join("data", "raw", "redirect")
 FOLDER_RAW_REMOVED = os.path.join("data", "raw", "removed")
 FOLDER_RAW_IMAGES = os.path.join("data", "raw", "images")
-FOLDER_LISTS = os.path.join("data", "lists")
 FOLDER_LOGS = os.path.join("data", "logs")
+FOLDER_LISTS = os.path.join("data", "lists")
+FILE_BLOCKED = os.path.join(FOLDER_LISTS, "blocked.txt")
+FILE_RECENTCHANGES = os.path.join(FOLDER_LISTS, "recentchanges.csv")
 FILE_NAMESPACES = os.path.join("data", "schemas", "namespace_types.json")
-FILE_BLOCKED = "blocked.txt"
-FILE_RECENTCHANGES = "recentchanges.csv"
 
 # ==============================================================================
 
