@@ -3,6 +3,8 @@ Updated on 2026-05
 Created on 2025-11
 
 @author: NewtCode Anna Burova
+
+> script.py xxx.json
 """
 
 from __future__ import annotations
@@ -59,16 +61,19 @@ FILE_NAMESPACES = os.path.join("data", "schemas", "namespace_types.json")
 
 # ==============================================================================
 
-# Extended functionality in read_config()
-if sys.argv and len(sys.argv) > 1 and sys.argv[1] != "":
-    FOLDER_CONFIG_CHECK = False
-    file_config_set = sys.argv[1]
-else:
-    FOLDER_CONFIG_CHECK = False
-    FOLDER_CONFIG_CHECK = True
-    # If FOLDER_CONFIG_CHECK is False, set the config file name here
-    # File must be in configs folder
-    file_config_set = "xxx.json"  # TODO
+# g_file_config = NewtFiles.choose_file_from_folder() in read_config()
+SELECT_CONFIG_FROM_FOLDER = True
+# SELECT_CONFIG_FROM_FOLDER = False  # TODO
+# If SELECT_CONFIG_FROM_FOLDER is False, set g_file_config here
+g_file_config = "xxx.json"  # TODO
+# dev-parser-mediawiki\mwparser\configs\xxx.json
+
+if len(sys.argv) > 1 and sys.argv[1]:
+    g_file_config = sys.argv[1]
+    NewtFiles.check_file_exists(
+        os.path.join(FOLDER_PROJECT_CONFIGS, g_file_config)
+    )
+    SELECT_CONFIG_FROM_FOLDER = False
 
 # ==============================================================================
 
@@ -137,7 +142,7 @@ def check_todo(
     """ Check for missing log files based on existing config files and return a list of tasks to do. """
 
     todo_list = []
-    path_config = os.path.join(DIR_PROJECT, "configs")
+    path_config = FOLDER_PROJECT_CONFIGS
     for file in os.listdir(path_config):
         # Skip if it's not a file (e.g., directory)
         if not os.path.isfile(os.path.join(path_config, file)):
@@ -226,30 +231,30 @@ def read_config(
         ) -> dict:
     """Read configuration from a selected JSON file."""
 
-    global file_config_set
+    global g_file_config
     global wiki_data_type_set
     global namespace_types_set
     global namespace_nr_set
 
     # Select WIKI Project
     # Settings are at file beginning of script
-    if FOLDER_CONFIG_CHECK:
+    if SELECT_CONFIG_FROM_FOLDER:
         count_file_config = NewtUtil.count_similar_values(TODO_LIST, 0)
-        file_config_set = NewtFiles.choose_file_from_folder(
-            os.path.join(DIR_PROJECT, "configs"),
+        g_file_config = NewtFiles.choose_file_from_folder(
+            FOLDER_PROJECT_CONFIGS,
             count_file_config
         )
 
     # Be sure return value or global variable is set to a non-empty str
     NewtCons.validate_input(
-        file_config_set, str, check_non_empty=True,
-        location="mwparser.read_config : file_config_set"
+        g_file_config, str, check_non_empty=True,
+        location="mwparser.read_config : g_file_config"
     )
-    assert isinstance(file_config_set, str)  # for type checker
+    assert isinstance(g_file_config, str)  # for type checker
 
     # Get settings content from config file
     # Its structure is already checked in check_todo() function, so we can be sure it has all required keys and values
-    path_config_file = os.path.join(DIR_PROJECT, "configs", file_config_set)
+    path_config_file = os.path.join(FOLDER_PROJECT_CONFIGS, g_file_config)
     settings = NewtFiles.read_json_from_file(path_config_file)
     NewtCons.validate_input(
         settings, dict, check_non_empty=True,
@@ -261,7 +266,7 @@ def read_config(
     if WIKI_DATA_TYPE_CHECK:
         print()
         count_wiki_data_types = NewtUtil.count_similar_values(
-            [todo for todo in TODO_LIST if todo[0] == file_config_set], 1
+            [todo for todo in TODO_LIST if todo[0] == g_file_config], 1
         )
         wiki_data_type_nr = NewtUtil.select_from_input(WIKI_DATA_TYPE_DICT, count_wiki_data_types)
         wiki_data_type_set = WIKI_DATA_TYPE_DICT[wiki_data_type_nr]
@@ -295,7 +300,7 @@ def read_config(
         if NAMESPACE_NR_CHECK:
             print()
             count_namespace_types = NewtUtil.count_similar_values(
-                [todo for todo in TODO_LIST if todo[0] == file_config_set and todo[1] == wiki_data_type_set], 3
+                [todo for todo in TODO_LIST if todo[0] == g_file_config and todo[1] == wiki_data_type_set], 3
             )
             namespace_nr_set_str = NewtUtil.select_from_input(namespace_types_set, count_namespace_types)
             namespace_nr_set = int(namespace_nr_set_str)
