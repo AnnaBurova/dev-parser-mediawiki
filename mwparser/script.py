@@ -120,10 +120,9 @@ if len(sys.argv) > 3 and sys.argv[3]:
 
 # ==============================================================================
 
+# If APCONTINUE_PARAM is not empty, set apcontinue value here
 # Extended functionality in prep_headers_params_for_url()
-APCONTINUE_CHECK = True
-APCONTINUE_CHECK = False
-# If APCONTINUE_CHECK is True, set apcontinue value here
+# params.update({"apcontinue": APCONTINUE_PARAM})
 APCONTINUE_PARAM = ""
 
 # ==============================================================================
@@ -456,7 +455,7 @@ def prep_headers_params_for_url(
             )
 
     if g_wiki_list_type == "allpages":
-        if APCONTINUE_CHECK:
+        if APCONTINUE_PARAM:
             params.update({"apcontinue": APCONTINUE_PARAM})
 
     return (headers, params)
