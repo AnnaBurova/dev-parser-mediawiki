@@ -150,9 +150,6 @@ PRINT_LOG = True
 SAVE_LOG = True
 # SAVE_LOG = False  # TODO
 
-if SAVE_LOG:
-    SETUP_LOGGING_DATA = NewtFiles.setup_logging(DIR_GLOBAL)
-
 # ==============================================================================
 
 
@@ -1162,7 +1159,11 @@ def remove_duplicated_lines(
 
 
 if __name__ == "__main__":
+    if SAVE_LOG:
+        SETUP_LOGGING_DATA = NewtFiles.setup_logging(DIR_GLOBAL)
+
     NewtCons.check_location(DIR_GLOBAL, MUST_LOCATION)
+
     TODO_LIST = check_todo()
     SETTINGS = read_config()
     headers_params_for_url = prep_headers_params_for_url()
@@ -1195,8 +1196,6 @@ if __name__ == "__main__":
         print()
         print("=== Script interrupted by user ===")
 
-    print("=== ✅ END ✅ ===")
-
     if SAVE_LOG:
         if g_wiki_list_type in (
                 "allpages",
@@ -1208,4 +1207,7 @@ if __name__ == "__main__":
 
         path_target = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LOGS, file_target_name)
 
+    print("=== ✅ END ✅ ===")
+
+    if SAVE_LOG:
         NewtFiles.cleanup_logging(SETUP_LOGGING_DATA, path_target)
