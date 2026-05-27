@@ -160,10 +160,10 @@ def check_todo(
     todo_list = []
 
     for file in os.listdir(FOLDER_PROJECT_CONFIGS):
-        file_project_configs = os.path.join(FOLDER_PROJECT_CONFIGS, file)
+        file_project_config = os.path.join(FOLDER_PROJECT_CONFIGS, file)
 
         # Skip if it's not a file (e.g., directory)
-        if not os.path.isfile(file_project_configs):
+        if not os.path.isfile(file_project_config):
             continue
 
         # Skip specific config example file
@@ -179,7 +179,7 @@ def check_todo(
             continue
 
         # Get settings from config file
-        file_settings = NewtFiles.read_json_from_file(file_project_configs)
+        file_settings = NewtFiles.read_json_from_file(file_project_config)
         NewtCons.validate_type(
             file_settings, dict, check_non_empty=True,
             location="mwparser.check_todo : file_settings"
