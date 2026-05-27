@@ -166,16 +166,17 @@ def check_todo(
         if not os.path.isfile(file_project_config):
             continue
 
-        # Skip specific config example file
-        if file == "xxx.json":
-            continue
-
         # Skip non-config files
         if not file.endswith(".json"):
             NewtCons.error_msg(
-                f"Found non-config file: {file}", stop=False,
-                location="mwparser.check_todo : non-config file"
+                f"Found non-config file: {file}",
+                location="mwparser.check_todo : not file.endswith(.json)",
+                stop=False
             )
+            continue
+
+        # Skip specific config example file
+        if file == "xxx.json":
             continue
 
         # Get settings from config file
