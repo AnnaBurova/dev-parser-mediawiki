@@ -158,10 +158,12 @@ def check_todo(
     """ Check for missing log files based on existing config files and return a list of tasks to do. """
 
     todo_list = []
-    path_config = FOLDER_PROJECT_CONFIGS
-    for file in os.listdir(path_config):
+
+    for file in os.listdir(FOLDER_PROJECT_CONFIGS):
+        file_project_configs = os.path.join(FOLDER_PROJECT_CONFIGS, file)
+
         # Skip if it's not a file (e.g., directory)
-        if not os.path.isfile(os.path.join(path_config, file)):
+        if not os.path.isfile(file_project_configs):
             continue
 
         # Skip specific config example file
@@ -177,8 +179,7 @@ def check_todo(
             continue
 
         # Get settings from config file
-        path_config_file = os.path.join(path_config, file)
-        file_settings = NewtFiles.read_json_from_file(path_config_file)
+        file_settings = NewtFiles.read_json_from_file(file_project_configs)
         NewtCons.validate_type(
             file_settings, dict, check_non_empty=True,
             location="mwparser.check_todo : file_settings"
