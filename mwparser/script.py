@@ -4,7 +4,7 @@ Created on 2025-11
 
 @author: NewtCode Anna Burova
 
-> script.py xxx.json
+> script.py xxx.json 1
 """
 
 from __future__ import annotations
@@ -77,7 +77,7 @@ if len(sys.argv) > 1 and sys.argv[1]:
 
 # ==============================================================================
 
-WIKI_DATA_TYPE_DICT = {
+WIKI_LIST_TYPE_DICT = {
     "1": "allpages",
     "2": "pageids",
     "3": "recentchanges",
@@ -85,15 +85,16 @@ WIKI_DATA_TYPE_DICT = {
     "5": "savefiles",
 }
 
-# Extended functionality in read_config()
-if sys.argv and len(sys.argv) > 2 and sys.argv[2] != "":
-    WIKI_DATA_TYPE_CHECK = False
-    wiki_data_type_set = WIKI_DATA_TYPE_DICT[sys.argv[2]]
-else:
-    WIKI_DATA_TYPE_CHECK = False
-    WIKI_DATA_TYPE_CHECK = True
-    # If WIKI_DATA_TYPE_CHECK is False, set the wiki data type here
-    wiki_data_type_set = WIKI_DATA_TYPE_DICT["1"]  # TODO
+# g_wiki_list_type = NewtUtil.select_from_input() in read_config()
+SELECT_WIKI_LIST_TYPE_FROM_INPUT = True
+# SELECT_WIKI_LIST_TYPE_FROM_INPUT = False  # TODO
+# If SELECT_WIKI_LIST_TYPE_FROM_INPUT is False, set g_wiki_list_type here
+g_wiki_list_type = WIKI_LIST_TYPE_DICT["1"]  # TODO
+
+if len(sys.argv) > 2 and sys.argv[2]:
+    if sys.argv[2] in WIKI_LIST_TYPE_DICT:
+        g_wiki_list_type = WIKI_LIST_TYPE_DICT[sys.argv[2]]
+        SELECT_WIKI_LIST_TYPE_FROM_INPUT = False
 
 # ==============================================================================
 
@@ -203,7 +204,7 @@ def check_todo(
 
         path_logs = os.path.join(DIR_GLOBAL, file_settings["FOLDER_LINK"], FOLDER_LOGS)
 
-        for wiki_data_type in WIKI_DATA_TYPE_DICT.values():
+        for wiki_data_type in WIKI_LIST_TYPE_DICT.values():
             if wiki_data_type in ("allpages", "pageids"):
                 for ns_key, ns_value in ns_dict.items():
                     name_wiki_log_file = f"{wiki_data_type}-{int(ns_key):0{max_key_len}d}.txt"
@@ -232,7 +233,7 @@ def read_config(
     """Read configuration from a selected JSON file."""
 
     global g_file_config
-    global wiki_data_type_set
+    global g_wiki_list_type
     global namespace_types_set
     global namespace_nr_set
 
@@ -263,20 +264,20 @@ def read_config(
     assert isinstance(settings, dict)  # for type checker
 
     # Select WIKI Data Type
-    if WIKI_DATA_TYPE_CHECK:
+    if SELECT_WIKI_LIST_TYPE_FROM_INPUT:
         print()
         count_wiki_data_types = NewtUtil.count_similar_values(
             [todo for todo in TODO_LIST if todo[0] == g_file_config], 1
         )
-        wiki_data_type_nr = NewtUtil.select_from_input(WIKI_DATA_TYPE_DICT, count_wiki_data_types)
-        wiki_data_type_set = WIKI_DATA_TYPE_DICT[wiki_data_type_nr]
+        wiki_data_type_nr = NewtUtil.select_from_input(WIKI_LIST_TYPE_DICT, count_wiki_data_types)
+        g_wiki_list_type = WIKI_LIST_TYPE_DICT[wiki_data_type_nr]
 
     # Be sure return value or global variable is set to a non-empty str
     NewtCons.validate_input(
-        wiki_data_type_set, str, check_non_empty=True,
-        location="mwparser.read_config : wiki_data_type_set"
+        g_wiki_list_type, str, check_non_empty=True,
+        location="mwparser.read_config : g_wiki_list_type"
     )
-    assert isinstance(wiki_data_type_set, str)  # for type checker
+    assert isinstance(g_wiki_list_type, str)  # for type checker
 
     namespace_types_data = NewtFiles.read_json_from_file(
         os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_NAMESPACES)
@@ -293,19 +294,19 @@ def read_config(
     settings["ns_max_key_len"] = len(max(namespace_types_set.keys(), key=len))
 
     # Select Namespace Number if needed (for types with multiple namespaces)
-    if wiki_data_type_set in (
+    if g_wiki_list_type in (
         "allpages",
         "pageids",
     ):
         if NAMESPACE_NR_CHECK:
             print()
             count_namespace_types = NewtUtil.count_similar_values(
-                [todo for todo in TODO_LIST if todo[0] == g_file_config and todo[1] == wiki_data_type_set], 3
+                [todo for todo in TODO_LIST if todo[0] == g_file_config and todo[1] == g_wiki_list_type], 3
             )
             namespace_nr_set_str = NewtUtil.select_from_input(namespace_types_set, count_namespace_types)
             namespace_nr_set = int(namespace_nr_set_str)
 
-    elif wiki_data_type_set == "savefiles":
+    elif g_wiki_list_type == "savefiles":
         namespace_file = "File"
         keys = [key for key, val in namespace_types_set.items() if val == namespace_file]
 
@@ -317,7 +318,7 @@ def read_config(
             )
         namespace_nr_set = int(keys[0])
 
-    match wiki_data_type_set:
+    match g_wiki_list_type:
         case "allpages":
             settings["file_name"] = os.path.join("allpages", f"{namespace_nr_set:0{settings['ns_max_key_len']}d}.csv")
 
@@ -383,8 +384,8 @@ def read_config(
 
         case _:
             NewtCons.error_msg(
-                f"Unexpected wiki_data_type_set: {wiki_data_type_set}",
-                location="mwparser.read_config : match wiki_data_type_set default case"
+                f"Unexpected g_wiki_list_type: {g_wiki_list_type}",
+                location="mwparser.read_config : match g_wiki_list_type default case"
             )
 
     return settings
@@ -396,7 +397,7 @@ def prep_headers_params_for_url(
 
     global time_start
     global time_end
-    global wiki_data_type_set
+    global g_wiki_list_type
     global namespace_nr_set
 
     headers = {
@@ -412,7 +413,7 @@ def prep_headers_params_for_url(
         "formatversion": "2",
     }
 
-    match wiki_data_type_set:
+    match g_wiki_list_type:
         case "allpages":
             params.update({"list": "allpages"})
             params.update({"aplimit": "max"})
@@ -437,11 +438,11 @@ def prep_headers_params_for_url(
 
         case _:
             NewtCons.error_msg(
-                f"Unexpected config type: {wiki_data_type_set}",
-                location="mwparser.prep_headers_params_for_url : wiki_data_type_set default case"
+                f"Unexpected config type: {g_wiki_list_type}",
+                location="mwparser.prep_headers_params_for_url : g_wiki_list_type default case"
             )
 
-    if wiki_data_type_set == "allpages":
+    if g_wiki_list_type == "allpages":
         if APCONTINUE_CHECK:
             params.update({"apcontinue": APCONTINUE_PARAM})
 
@@ -472,7 +473,7 @@ def get_json_from_url(
         ) -> dict:
     """Fetch JSON data from a URL based on settings and save to file."""
 
-    global wiki_data_type_set
+    global g_wiki_list_type
     global namespace_types_set
 
     path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FILE_BLOCKED)
@@ -480,7 +481,7 @@ def get_json_from_url(
 
     headers, params = headers_params_for_url
 
-    match wiki_data_type_set:
+    match g_wiki_list_type:
         case "allpages":
             if continue_page_wiki is not None:
                 # continue_page_wiki - current page title from wiki
@@ -562,8 +563,8 @@ def get_json_from_url(
 
         case _:
             NewtCons.error_msg(
-                f"Unexpected config type: {wiki_data_type_set}",
-                location="mwparser.get_json_from_url : wiki_data_type_set default case"
+                f"Unexpected config type: {g_wiki_list_type}",
+                location="mwparser.get_json_from_url : g_wiki_list_type default case"
             )
 
     data_from_url = NewtNet.fetch_data_from_url(
@@ -600,7 +601,7 @@ def get_json_from_url(
         # so we need to try to split request into pieces, if possible, to be sure it will return all data
         data_from_url_chunks = {"batchcomplete": True, "query": {"pages": []}}
 
-        if wiki_data_type_set in (
+        if g_wiki_list_type in (
                 "pageids",
                 "pagesrecent",
                 ):
@@ -733,7 +734,7 @@ def restructure_json_pageids(
         json_data_dict: dict
         ) -> None:
 
-    global wiki_data_type_set
+    global g_wiki_list_type
     global namespace_types_set
     global namespace_nr_set
 
@@ -793,7 +794,7 @@ def restructure_json_pageids(
 
         check_ns = namespace_nr_set
 
-        if wiki_data_type_set == "pagesrecent":
+        if g_wiki_list_type == "pagesrecent":
             if str(page["ns"]) in namespace_types_set:
                 check_ns = int(page["ns"])
 
@@ -1037,11 +1038,11 @@ def loop_next_pages(
         ) -> None:
     """Loop to fetch next pages based on the config type."""
 
-    global wiki_data_type_set
+    global g_wiki_list_type
 
     try:
         while True:
-            match wiki_data_type_set:
+            match g_wiki_list_type:
                 case "allpages":
                     if "continue" not in json_data:
                         break
@@ -1151,7 +1152,7 @@ if __name__ == "__main__":
     json_data = get_json_from_url()
 
     try:
-        match wiki_data_type_set:
+        match g_wiki_list_type:
             case "allpages":
                 data_list, continue_page_backup = restructure_json_allpages(json_data)
                 save_data_list(data_list, False)
@@ -1169,8 +1170,8 @@ if __name__ == "__main__":
 
             case _:
                 NewtCons.error_msg(
-                    f"Unexpected config type: {wiki_data_type_set}",
-                    location="mwparser.main : wiki_data_type_set default case"
+                    f"Unexpected config type: {g_wiki_list_type}",
+                    location="mwparser.main : g_wiki_list_type default case"
                 )
     except KeyboardInterrupt:
         print()
@@ -1179,13 +1180,13 @@ if __name__ == "__main__":
     print("=== ✅ END ✅ ===")
 
     if SAVE_LOG:
-        if wiki_data_type_set in (
+        if g_wiki_list_type in (
                 "allpages",
                 "pageids",
                 ):
-            file_target_name = f"{wiki_data_type_set}-{namespace_nr_set:0{SETTINGS['ns_max_key_len']}d}.txt"
+            file_target_name = f"{g_wiki_list_type}-{namespace_nr_set:0{SETTINGS['ns_max_key_len']}d}.txt"
         else:
-            file_target_name = f"{wiki_data_type_set}.txt"
+            file_target_name = f"{g_wiki_list_type}.txt"
 
         path_target = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LOGS, file_target_name)
 
