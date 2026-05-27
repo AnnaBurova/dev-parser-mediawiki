@@ -781,7 +781,7 @@ def restructure_json_pageids(
             )
             NewtFiles.save_text_to_file(
                 path_recentchanges_missing, f"Page ID {page['pageid']} data is missing",
-                append=True, logging=False
+                append=True, print_log=False
             )
             for missing_folder in (FOLDER_RAW_PAGES, FOLDER_RAW_REDIRECT):
                 for missing_namespace in g_namespace_types_dict.keys():
@@ -793,12 +793,12 @@ def restructure_json_pageids(
                         DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_RAW_REMOVED,
                         f"{int(missing_namespace):0{SETTINGS['ns_max_key_len']}d}-{page['pageid']:010d}.txt"
                     )
-                    if NewtFiles.check_file_exists(missing_file, stop=False, logging=False):
+                    if NewtFiles.check_file_exists(missing_file, stop=False, print_log=False):
                         NewtFiles.ensure_dir_exists(missing_target)
                         shutil.move(missing_file, missing_target)
                         NewtFiles.save_text_to_file(
                             path_recentchanges_missing, f"{missing_target}",
-                            append=True, logging=False
+                            append=True, print_log=False
                         )
             continue
 
