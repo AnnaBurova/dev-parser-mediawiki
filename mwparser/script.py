@@ -179,7 +179,7 @@ def check_todo(
         # Get settings from config file
         path_config_file = os.path.join(path_config, file)
         file_settings = NewtFiles.read_json_from_file(path_config_file)
-        NewtCons.validate_input(
+        NewtCons.validate_type(
             file_settings, dict, check_non_empty=True,
             location="mwparser.check_todo : file_settings"
         )
@@ -192,7 +192,7 @@ def check_todo(
         )
 
         for value in file_settings.values():
-            NewtCons.validate_input(
+            NewtCons.validate_type(
                 value, str, check_non_empty=True,
                 location="mwparser.check_todo : file_settings[value]"
             )
@@ -208,7 +208,7 @@ def check_todo(
 
         # Get namespace types from file
         ns_dict = NewtFiles.read_json_from_file(path_namespace_types)
-        NewtCons.validate_input(
+        NewtCons.validate_type(
             ns_dict, dict, check_non_empty=True,
             location="mwparser.check_todo : ns_dict"
         )
@@ -262,7 +262,7 @@ def read_config(
         )
 
     # Be sure return value or global variable is set to a non-empty str
-    NewtCons.validate_input(
+    NewtCons.validate_type(
         g_file_config, str, check_non_empty=True,
         location="mwparser.read_config : g_file_config"
     )
@@ -272,7 +272,7 @@ def read_config(
     # Its structure is already checked in check_todo() function, so we can be sure it has all required keys and values
     path_config_file = os.path.join(FOLDER_PROJECT_CONFIGS, g_file_config)
     settings = NewtFiles.read_json_from_file(path_config_file)
-    NewtCons.validate_input(
+    NewtCons.validate_type(
         settings, dict, check_non_empty=True,
         location="mwparser.read_config : settings"
     )
@@ -288,7 +288,7 @@ def read_config(
         g_wiki_list_type = WIKI_LIST_TYPE_DICT[wiki_data_type_nr]
 
     # Be sure return value or global variable is set to a non-empty str
-    NewtCons.validate_input(
+    NewtCons.validate_type(
         g_wiki_list_type, str, check_non_empty=True,
         location="mwparser.read_config : g_wiki_list_type"
     )
@@ -298,7 +298,7 @@ def read_config(
         os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_NAMESPACES)
     )
     # Be sure return value or global variable is set to a non-empty dict
-    NewtCons.validate_input(
+    NewtCons.validate_type(
         namespace_types_data, dict, check_non_empty=True,
         location="mwparser.read_config : namespace_types_data"
     )
@@ -354,7 +354,7 @@ def read_config(
             )
             list_allpages = NewtFiles.read_csv_from_file(path_allpages)
 
-            NewtCons.validate_input(
+            NewtCons.validate_type(
                 list_allpages, list, check_non_empty=True,
                 location="mwparser.read_config : list_allpages"
             )
@@ -371,7 +371,7 @@ def read_config(
             path_recentchanges = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_RECENTCHANGES)
             list_recentchanges = NewtFiles.read_csv_from_file(path_recentchanges)
 
-            NewtCons.validate_input(
+            NewtCons.validate_type(
                 list_recentchanges, list, check_non_empty=True,
                 location="mwparser.read_config : list_recentchanges"
             )
@@ -388,7 +388,7 @@ def read_config(
             )
             list_files = NewtFiles.read_csv_from_file(path_allpages)
 
-            NewtCons.validate_input(
+            NewtCons.validate_type(
                 list_files, list, check_non_empty=True,
                 location="mwparser.read_config : list_files"
             )
@@ -603,7 +603,7 @@ def get_json_from_url(
         )
 
     # Ensure return value is a dict
-    NewtCons.validate_input(
+    NewtCons.validate_type(
         data_from_url, str, check_non_empty=True,
         location="mwparser.get_json_from_url : data_from_url"
     )
@@ -646,7 +646,7 @@ def get_json_from_url(
                     )
 
                 # Ensure return value is a dict
-                NewtCons.validate_input(
+                NewtCons.validate_type(
                     data_from_url_small, str, check_non_empty=True,
                     location="mwparser.get_json_from_url : data_from_url_small"
                 )
@@ -654,7 +654,7 @@ def get_json_from_url(
 
                 json_from_url_small = NewtFiles.convert_str_to_json(data_from_url_small)
 
-                if not NewtCons.validate_input(
+                if not NewtCons.validate_type(
                     json_from_url_small, dict, check_non_empty=True, stop=False,
                     location="mwparser.get_json_from_url : json_from_url_small != dict"
                 ):
@@ -682,7 +682,7 @@ def get_json_from_url(
 
         json_from_url = data_from_url_chunks
 
-    NewtCons.validate_input(
+    NewtCons.validate_type(
         json_from_url, dict, check_non_empty=True,
         location="mwparser.get_json_from_url : json_from_url"
     )
@@ -1131,7 +1131,7 @@ def remove_duplicated_lines(
     file_path = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, SETTINGS["file_name"])
     lines = NewtFiles.read_csv_from_file(file_path)
 
-    NewtCons.validate_input(
+    NewtCons.validate_type(
         lines, list, check_non_empty=True,
         location="mwparser.remove_duplicated_lines : lines"
     )
