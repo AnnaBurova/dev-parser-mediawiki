@@ -255,7 +255,7 @@ def read_config(
     # Select WIKI Project
     # Settings are at file beginning of script
     if SELECT_CONFIG_FROM_FOLDER:
-        count_file_config = NewtUtil.count_similar_values(TODO_LIST, 0)
+        count_file_config = NewtUtil.count_values_by_position(TODO_LIST, 0)
         g_file_config = NewtFiles.choose_file_from_folder(
             FOLDER_PROJECT_CONFIGS,
             count_file_config
@@ -281,7 +281,7 @@ def read_config(
     # Select WIKI Data Type
     if SELECT_WIKI_LIST_TYPE_FROM_INPUT:
         print()
-        count_wiki_data_types = NewtUtil.count_similar_values(
+        count_wiki_data_types = NewtUtil.count_values_by_position(
             [todo for todo in TODO_LIST if todo[0] == g_file_config], 1
         )
         wiki_data_type_nr = NewtUtil.select_from_input(WIKI_LIST_TYPE_DICT, count_wiki_data_types)
@@ -315,7 +315,7 @@ def read_config(
     ):
         if SELECT_NAMESPACE_NR_FROM_INPUT:
             print()
-            count_namespace_types = NewtUtil.count_similar_values(
+            count_namespace_types = NewtUtil.count_values_by_position(
                 [todo for todo in TODO_LIST if todo[0] == g_file_config and todo[1] == g_wiki_list_type], 3
             )
             namespace_nr_set_str = NewtUtil.select_from_input(g_namespace_types_dict, count_namespace_types)
