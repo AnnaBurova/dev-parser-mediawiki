@@ -127,14 +127,20 @@ APCONTINUE_PARAM = ""
 
 # ==============================================================================
 
-# Extended functionality in read_config() and get_json_from_url()
-SETTING_INDEX_START_DEFAULT = 0
+SETTING_INDEX_START = 0
+# in read_config()
+
 # max 50 pages per MediaWiki Settings for no admin users
 SETTING_INDEX_MAX_PAGES = 50
+# in get_json_from_url()
+
 # max 25 titles per MediaWiki Settings for no admin users
-SETTING_INDEX_MAX_TITLES = 20
+SETTING_INDEX_MAX_TITLES = 25
+# in get_json_from_url()
+
 # max 8 MB for images to avoid downloading very large files that may cause issues
-SETTING_IMAGE_MAX_MBYTES = 8
+SETTING_IMAGE_MAX_MB_SIZE = 8
+# in restructure_json_savefiles()
 
 # ==============================================================================
 
@@ -344,7 +350,7 @@ def read_config(
                     print(f"Removing folder: {folder_to_remove}")
                     shutil.rmtree(folder_to_remove)
 
-            settings["index_start"] = SETTING_INDEX_START_DEFAULT
+            settings["index_start"] = SETTING_INDEX_START
             path_allpages = os.path.join(
                 DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LISTS,
                 "allpages", f"{g_namespace_nr_int:0{settings['ns_max_key_len']}d}.csv"
@@ -364,7 +370,7 @@ def read_config(
             settings["file_name"] = FILE_RECENTCHANGES
 
         case "pagesrecent":
-            settings["index_start"] = SETTING_INDEX_START_DEFAULT
+            settings["index_start"] = SETTING_INDEX_START
             path_recentchanges = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_RECENTCHANGES)
             list_recentchanges = NewtFiles.read_csv_from_file(path_recentchanges)
 
@@ -378,7 +384,7 @@ def read_config(
             settings["page_ids"] = sorted(list(set([int(row[1]) for row in list_recentchanges[1:] if int(row[1]) > 0])))
 
         case "savefiles":
-            settings["index_start"] = SETTING_INDEX_START_DEFAULT
+            settings["index_start"] = SETTING_INDEX_START
             path_allpages = os.path.join(
                 DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LISTS,
                 "allpages", f"{g_namespace_nr_int:0{settings['ns_max_key_len']}d}.csv"
@@ -1011,7 +1017,7 @@ def restructure_json_savefiles(
             if not NewtNet.fetch_data_from_url(
                 image_info["url"],
                 save_path=path_file_image,
-                max_mb_size=SETTING_IMAGE_MAX_MBYTES,
+                max_mb_size=SETTING_IMAGE_MAX_MB_SIZE,
                 mode="auto",
                 repeat_on_fail=False,
                 logging=LOGGING
