@@ -150,7 +150,109 @@ PRINT_LOG = True
 SAVE_LOG = True
 # SAVE_LOG = False  # TODO
 
+FETCH_MODE = "auto"
+# FETCH_MODE = "alert"
+# FETCH_MODE = "manual"
+
 # ==============================================================================
+
+
+def fetch_data_from_mediawiki(
+        base_url: str,
+        additional_params: dict[str, str]
+        ) -> str | bool:
+
+    headers: dict[str, str] = {
+        "User-Agent": "MyGuildWarsBot/1.3 (burova.anna+mwparser@gmail.com)",
+        "Accept-Encoding": "gzip",
+    }
+
+    params: dict[str, str] = {
+        "action": "query",
+        "format": "json",
+        "maxlag": "5",
+        "utf8": "true",
+        "formatversion": "2",
+    }
+
+    params.update(additional_params)
+
+    data_from_url = NewtNet.fetch_data_from_url(
+        base_url, headers, params,
+        mode=FETCH_MODE, print_log=PRINT_LOG
+    )
+
+    return data_from_url
+
+
+def create_namespace_types_file(
+        base_url: str,
+        file_namespace_types: str
+        ):
+
+    namespace_types_params: dict[str, str] = {
+        "meta": "siteinfo",
+        "siprop": "namespaces",
+    }
+
+    data_str = fetch_data_from_mediawiki(base_url, namespace_types_params)
+    NewtCons.validate_type(
+        data_str, str, check_non_empty=True,
+        location="mwparser.create_namespace_types_file : data_str"
+    )
+    assert isinstance(data_str, str)
+
+    data_dict = NewtFiles.convert_str_to_json(data_str)
+    NewtCons.validate_type(
+        data_dict, dict, check_non_empty=True,
+        location="mwparser.create_namespace_types_file : data_dict"
+    )
+    assert isinstance(data_dict, dict)
+
+    NewtUtil.check_dict_keys(
+        data_dict, {"batchcomplete", "query"},
+        location="mwparser.create_namespace_types_file : data_dict"
+    )
+
+    NewtUtil.check_dict_keys(
+        data_dict["query"], {"namespaces"},
+        location="mwparser.create_namespace_types_file : data_dict[query]"
+    )
+
+    namespaces = {}
+    for ns_nr, ns_data in data_dict["query"]["namespaces"].items():
+        ns_data["name"] = "Main" if ns_data["name"] == "" else ns_data["name"]
+        ns_data["name"] = "Main Talk" if ns_data["name"] == "Talk" else ns_data["name"]
+
+        if "namespaceprotection" in ns_data:
+            NewtUtil.check_dict_keys(
+                ns_data, {"id", "case", "name", "subpages", "canonical", "content", "nonincludable", "namespaceprotection"},
+                location="mwparser.create_namespace_types_file : data_dict[query][namespaces] + namespaceprotection",
+                stop=False
+            )
+
+        elif "canonical" in ns_data:
+            NewtUtil.check_dict_keys(
+                ns_data, {"id", "case", "name", "subpages", "canonical", "content", "nonincludable"},
+                location="mwparser.create_namespace_types_file : data_dict[query][namespaces] + canonical",
+                stop=False
+            )
+
+        else:
+            NewtUtil.check_dict_keys(
+                ns_data, {"id", "case", "name", "subpages", "content", "nonincludable"},
+                location="mwparser.create_namespace_types_file : data_dict[query][namespaces] + else",
+                stop=False
+            )
+            namespaces[str(ns_nr)] = ns_data["name"]
+            continue
+
+        if ns_data["name"] == ns_data["canonical"]:
+            namespaces[str(ns_nr)] = ns_data["name"]
+        else:
+            namespaces[str(ns_nr)] = f"{ns_data["name"]} ({ns_data["canonical"]})"
+
+    NewtFiles.save_json_to_file(file_namespace_types, namespaces)
 
 
 def check_todo(
@@ -200,7 +302,12 @@ def check_todo(
             )
 
         # Check if namespace_types.json exists for the config
-        file_namespace_types = os.path.join(DIR_GLOBAL, json_file_settings["FOLDER_LINK"], FILE_NAMESPACES)
+        file_namespace_types = os.path.join(
+            DIR_GLOBAL, json_file_settings["FOLDER_LINK"], FILE_NAMESPACES)
+
+        if not NewtFiles.check_file_exists(file_namespace_types, stop=False):
+            create_namespace_types_file(json_file_settings["BASE_URL"], file_namespace_types)
+
         if not os.path.isfile(file_namespace_types):
             NewtCons.error_msg(
                 f"Missing namespace_types.json for config: {file}",
