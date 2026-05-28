@@ -287,26 +287,26 @@ def check_todo(
         ) -> list[tuple[str, str, str]]:
     """ Check for missing log files based on existing config files and return a list of tasks to do. """
 
-    todo_list = []
+    todo_list: list[tuple] = []
 
-    for file in os.listdir(FOLDER_PROJECT_CONFIGS):
-        file_project_config = os.path.join(FOLDER_PROJECT_CONFIGS, file)
+    for p_file in os.listdir(FOLDER_PROJECT_CONFIGS):
+        file_project_config = os.path.join(FOLDER_PROJECT_CONFIGS, p_file)
 
         # Skip if it's not a file (e.g., directory)
         if not os.path.isfile(file_project_config):
             continue
 
         # Skip non-config files
-        if not file.endswith(".json"):
+        if not p_file.endswith(".json"):
             NewtCons.error_msg(
-                f"Found non-config file: {file}",
-                location="mwparser.check_todo : not file.endswith(.json)",
+                f"Found non-config file: {p_file}",
+                location="mwparser.check_todo : not p_file.endswith(.json)",
                 stop=False
             )
             continue
 
         # Skip specific config example file
-        if file == "xxx.json":
+        if p_file == "xxx.json":
             continue
 
         # Get settings from config file
@@ -338,44 +338,50 @@ def check_todo(
 
         if not os.path.isfile(file_namespace_types):
             NewtCons.error_msg(
-                f"Missing namespace_types.json for config: {file}",
+                f"Missing namespace_types.json for config: {p_file}",
                 f"File must be here: {file_namespace_types}",
                 location="mwparser.check_todo : namespace_types.json missing"
             )
 
         # Get namespace types from file
-        ns_dict = NewtFiles.read_json_from_file(file_namespace_types)
+        namespace_dict = NewtFiles.read_json_from_file(file_namespace_types)
         NewtCons.validate_type(
-            ns_dict, dict, check_non_empty=True,
-            location="mwparser.check_todo : ns_dict"
+            namespace_dict, dict, check_non_empty=True,
+            location="mwparser.check_todo : namespace_dict"
         )
-        assert isinstance(ns_dict, dict)
+        assert isinstance(namespace_dict, dict)
 
         # Calculate max key length from namespace types for formatting
-        max_key_len = len(max(ns_dict.keys(), key=len))
+        ns_dict_key_len = len(max(namespace_dict.keys(), key=len))
 
-        path_logs = os.path.join(DIR_GLOBAL, json_file_settings["FOLDER_LINK"], FOLDER_LOGS)
+        # Check folder with logs to find missing logs for todo
+        folder_with_logs = os.path.join(
+            DIR_GLOBAL, json_file_settings["FOLDER_LINK"], FOLDER_LOGS)
 
-        for wiki_data_type in WIKI_LIST_TYPE_DICT.values():
-            if wiki_data_type in ("allpages", "pageids"):
-                for ns_key, ns_value in ns_dict.items():
-                    name_wiki_log_file = f"{wiki_data_type}-{int(ns_key):0{max_key_len}d}.txt"
-                    path_wiki_log_file = os.path.join(path_logs, name_wiki_log_file)
-                    if not os.path.isfile(path_wiki_log_file):
-                        todo_list.append((file, wiki_data_type, ns_key, ns_value))
+        # Check if each wiki list type has log file
+        for wiki_list_type in WIKI_LIST_TYPE_DICT.values():
+
+            # This types has sub log for each namespace
+            if wiki_list_type in ("allpages", "pageids"):
+                for ns_key, ns_value in namespace_dict.items():
+                    file_wiki_log = f"{wiki_list_type}-{int(ns_key):0{ns_dict_key_len}d}.txt"
+                    path_wiki_log = os.path.join(folder_with_logs, file_wiki_log)
+                    if not os.path.isfile(path_wiki_log):
+                        todo_list.append((p_file, wiki_list_type, ns_key, ns_value))
+
+            # Other types dont have sub logs, only 1
             else:
-                name_wiki_log_file = f"{wiki_data_type}.txt"
-                path_wiki_log_file = os.path.join(path_logs, name_wiki_log_file)
-                if not os.path.isfile(path_wiki_log_file):
-                    todo_list.append((file, wiki_data_type, None, None))
+                file_wiki_log = f"{wiki_list_type}.txt"
+                path_wiki_log = os.path.join(folder_with_logs, file_wiki_log)
+                if not os.path.isfile(path_wiki_log):
+                    todo_list.append((p_file, wiki_list_type, None, None))
 
-    print()
     if todo_list and PRINT_LOG:
+        print()
         print("=== TODO LIST ===")
         todo_list.reverse()
         for todo in todo_list:
             print(todo)
-        print()
 
     return todo_list
 
