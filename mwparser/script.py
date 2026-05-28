@@ -221,31 +221,59 @@ def create_namespace_types_file(
 
     namespaces = {}
     for ns_nr, ns_data in data_dict["query"]["namespaces"].items():
-        ns_data["name"] = "Main" if ns_data["name"] == "" else ns_data["name"]
-        ns_data["name"] = "Main Talk" if ns_data["name"] == "Talk" else ns_data["name"]
 
-        if "namespaceprotection" in ns_data:
+        if ns_data["name"] == "":
+            ns_data["name"] = "Main"
+        if ns_data["name"] == "Talk":
+            ns_data["name"] = "Main Talk"
+
+        if all(key in ns_data for key in [
+            "canonical", "namespaceprotection", "defaultcontentmodel"
+        ]):
             NewtUtil.check_dict_keys(
-                ns_data, {"id", "case", "name", "subpages", "canonical", "content", "nonincludable", "namespaceprotection"},
-                location="mwparser.create_namespace_types_file : data_dict[query][namespaces] + namespaceprotection",
-                stop=False
+                ns_data, {"id", "case", "name", "subpages", "content", "nonincludable",
+                          "canonical", "namespaceprotection", "defaultcontentmodel"},
+                location="mwparser.create_namespace_types_file : data_dict[query][namespaces]"
+                    + " + namespaceprotection + defaultcontentmodel"
+            )
+
+        elif all(key in ns_data for key in ["canonical", "namespaceprotection"]):
+            NewtUtil.check_dict_keys(
+                ns_data, {"id", "case", "name", "subpages", "content", "nonincludable",
+                          "canonical", "namespaceprotection"},
+                location="mwparser.create_namespace_types_file : data_dict[query][namespaces]"
+                    + " + namespaceprotection"
+            )
+
+        elif all(key in ns_data for key in ["canonical", "defaultcontentmodel"]):
+            NewtUtil.check_dict_keys(
+                ns_data, {"id", "case", "name", "subpages", "content", "nonincludable",
+                          "canonical", "defaultcontentmodel"},
+                location="mwparser.create_namespace_types_file : data_dict[query][namespaces]"
+                    + " + defaultcontentmodel"
             )
 
         elif "canonical" in ns_data:
             NewtUtil.check_dict_keys(
-                ns_data, {"id", "case", "name", "subpages", "canonical", "content", "nonincludable"},
-                location="mwparser.create_namespace_types_file : data_dict[query][namespaces] + canonical",
-                stop=False
+                ns_data, {"id", "case", "name", "subpages", "content", "nonincludable",
+                          "canonical"},
+                location="mwparser.create_namespace_types_file : data_dict[query][namespaces]"
+                    + " + canonical"
             )
 
         else:
             NewtUtil.check_dict_keys(
                 ns_data, {"id", "case", "name", "subpages", "content", "nonincludable"},
-                location="mwparser.create_namespace_types_file : data_dict[query][namespaces] + else",
-                stop=False
+                location="mwparser.create_namespace_types_file : data_dict[query][namespaces]"
+                    + " + else"
             )
             namespaces[str(ns_nr)] = ns_data["name"]
             continue
+
+        if ns_data["canonical"] == "":
+            ns_data["canonical"] = "Main"
+        if ns_data["canonical"] == "Talk":
+            ns_data["canonical"] = "Main Talk"
 
         if ns_data["name"] == ns_data["canonical"]:
             namespaces[str(ns_nr)] = ns_data["name"]
