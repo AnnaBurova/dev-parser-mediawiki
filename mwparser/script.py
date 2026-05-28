@@ -180,27 +180,27 @@ def check_todo(
             continue
 
         # Get settings from config file
-        file_settings = NewtFiles.read_json_from_file(file_project_config)
+        json_file_settings = NewtFiles.read_json_from_file(file_project_config)
         NewtCons.validate_type(
-            file_settings, dict, check_non_empty=True,
-            location="mwparser.check_todo : file_settings"
+            json_file_settings, dict, check_non_empty=True,
+            location="mwparser.check_todo : json_file_settings"
         )
-        assert isinstance(file_settings, dict)  # for type checker
+        assert isinstance(json_file_settings, dict)  # for type checker
 
-        # Check required keys in file_settings
+        # Check required keys in json_file_settings
         NewtUtil.check_dict_keys(
-            file_settings, {"FOLDER_LINK", "BASE_URL"},
-            location="mwparser.check_todo : file_settings"
+            json_file_settings, {"FOLDER_LINK", "BASE_URL"},
+            location="mwparser.check_todo : json_file_settings"
         )
 
-        for value in file_settings.values():
+        for value in json_file_settings.values():
             NewtCons.validate_type(
                 value, str, check_non_empty=True,
-                location="mwparser.check_todo : file_settings[value]"
+                location="mwparser.check_todo : json_file_settings[value]"
             )
 
         # Check if namespace_types.json exists for the config
-        path_namespace_types = os.path.join(DIR_GLOBAL, file_settings["FOLDER_LINK"], FILE_NAMESPACES)
+        path_namespace_types = os.path.join(DIR_GLOBAL, json_file_settings["FOLDER_LINK"], FILE_NAMESPACES)
         if not os.path.isfile(path_namespace_types):
             NewtCons.error_msg(
                 f"Missing namespace_types.json for config: {file}",
@@ -219,7 +219,7 @@ def check_todo(
         # Calculate max key length from namespace types for formatting
         max_key_len = len(max(ns_dict.keys(), key=len))
 
-        path_logs = os.path.join(DIR_GLOBAL, file_settings["FOLDER_LINK"], FOLDER_LOGS)
+        path_logs = os.path.join(DIR_GLOBAL, json_file_settings["FOLDER_LINK"], FOLDER_LOGS)
 
         for wiki_data_type in WIKI_LIST_TYPE_DICT.values():
             if wiki_data_type in ("allpages", "pageids"):
