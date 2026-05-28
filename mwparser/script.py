@@ -423,20 +423,27 @@ def read_config(
     # Get settings content from config file
     # Its structure is already checked in check_todo() function, so we can be sure it has all required keys and values
     path_config_file = os.path.join(FOLDER_PROJECT_CONFIGS, g_file_config)
-    settings = NewtFiles.read_json_from_file(path_config_file)
+
+    json_settings = NewtFiles.read_json_from_file(path_config_file)
     NewtCons.validate_type(
-        settings, dict, check_non_empty=True,
-        location="mwparser.read_config : settings"
+        json_settings, dict, check_non_empty=True,
+        location="mwparser.read_config : json_settings"
     )
-    assert isinstance(settings, dict)  # for type checker
+    assert isinstance(json_settings, dict)  # for type checker
 
     # Select WIKI Data Type ----------------------------------------------------
     if SELECT_WIKI_LIST_TYPE_FROM_INPUT:
-        count_wiki_data_types = NewtUtil.count_values_by_position(
+        count_wiki_list_types = NewtUtil.count_values_by_position(
             [todo for todo in TODO_LIST if todo[0] == g_file_config], 1
         )
-        wiki_data_type_nr = NewtUtil.select_from_input(WIKI_LIST_TYPE_DICT, count_wiki_data_types)
-        g_wiki_list_type = WIKI_LIST_TYPE_DICT[wiki_data_type_nr]
+
+        wiki_list_type_nr = NewtUtil.select_from_input(WIKI_LIST_TYPE_DICT, count_wiki_list_types)
+        NewtCons.validate_type(
+            wiki_list_type_nr, str, check_non_empty=True,
+            location="mwparser.read_config : wiki_list_type_nr"
+        )
+        assert isinstance(wiki_list_type_nr, str)  # for type checker
+        g_wiki_list_type = WIKI_LIST_TYPE_DICT[wiki_list_type_nr]
 
     NewtCons.validate_type(
         g_wiki_list_type, str, check_non_empty=True,
@@ -444,18 +451,18 @@ def read_config(
     )
     assert isinstance(g_wiki_list_type, str)  # for type checker
 
-    namespace_types_data = NewtFiles.read_json_from_file(
-        os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_NAMESPACES)
+    json_namespace_types = NewtFiles.read_json_from_file(
+        os.path.join(DIR_GLOBAL, json_settings["FOLDER_LINK"], FILE_NAMESPACES)
     )
     NewtCons.validate_type(
-        namespace_types_data, dict, check_non_empty=True,
-        location="mwparser.read_config : namespace_types_data"
+        json_namespace_types, dict, check_non_empty=True,
+        location="mwparser.read_config : json_namespace_types"
     )
-    assert isinstance(namespace_types_data, dict)  # for type checker
-    g_namespace_types_dict = namespace_types_data
 
     # Calculate max key length from namespace types for formatting
     settings["ns_dict_key_len"] = len(max(g_namespace_types_dict.keys(), key=len))
+    assert isinstance(json_namespace_types, dict)  # for type checker
+    g_namespace_types_dict = json_namespace_types
 
     # Select Namespace Number if needed (for types with multiple namespaces) ---
     if g_wiki_list_type in (
@@ -466,16 +473,23 @@ def read_config(
             count_namespace_types = NewtUtil.count_values_by_position(
                 [todo for todo in TODO_LIST if todo[0] == g_file_config and todo[1] == g_wiki_list_type], 3
             )
-            namespace_nr_set_str = NewtUtil.select_from_input(g_namespace_types_dict, count_namespace_types)
-            g_namespace_nr_int = int(namespace_nr_set_str)
+
+            namespace_types_nr = NewtUtil.select_from_input(g_namespace_types_dict, count_namespace_types)
+
+            NewtCons.validate_type(
+                namespace_types_nr, str, check_non_empty=True,
+                location="mwparser.read_config : namespace_types_nr"
+            )
+            assert isinstance(namespace_types_nr, str)  # for type checker
+            g_namespace_nr_int = int(namespace_types_nr)
 
     elif g_wiki_list_type == "savefiles":
-        namespace_file = "File"
-        keys = [key for key, val in g_namespace_types_dict.items() if val == namespace_file]
+        namespace_for_files = "File"
+        keys = [key for key, val in g_namespace_types_dict.items() if val == namespace_for_files]
 
         if len(keys) != 1:
             NewtCons.error_msg(
-                f"Unexpected result of namespaces with value '{namespace_file}':",
+                f"Unexpected result of namespaces with value '{namespace_for_files}':",
                 f"Keys: {keys}",
                 location="mwparser.read_config : savefiles"
             )
