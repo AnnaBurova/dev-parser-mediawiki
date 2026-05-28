@@ -404,16 +404,16 @@ def read_config(
     global g_namespace_types_dict
     global g_namespace_nr_int
 
-    # Select WIKI Project
+    # Select WIKI Project ------------------------------------------------------
     # Settings are at file beginning of script
     if SELECT_CONFIG_FROM_FOLDER:
         count_file_config = NewtUtil.count_values_by_position(TODO_LIST, 0)
+
         g_file_config = NewtFiles.choose_file_from_folder(
             FOLDER_PROJECT_CONFIGS,
             count_file_config
         )
 
-    # Be sure return value or global variable is set to a non-empty str
     NewtCons.validate_type(
         g_file_config, str, check_non_empty=True,
         location="mwparser.read_config : g_file_config"
@@ -430,16 +430,14 @@ def read_config(
     )
     assert isinstance(settings, dict)  # for type checker
 
-    # Select WIKI Data Type
+    # Select WIKI Data Type ----------------------------------------------------
     if SELECT_WIKI_LIST_TYPE_FROM_INPUT:
-        print()
         count_wiki_data_types = NewtUtil.count_values_by_position(
             [todo for todo in TODO_LIST if todo[0] == g_file_config], 1
         )
         wiki_data_type_nr = NewtUtil.select_from_input(WIKI_LIST_TYPE_DICT, count_wiki_data_types)
         g_wiki_list_type = WIKI_LIST_TYPE_DICT[wiki_data_type_nr]
 
-    # Be sure return value or global variable is set to a non-empty str
     NewtCons.validate_type(
         g_wiki_list_type, str, check_non_empty=True,
         location="mwparser.read_config : g_wiki_list_type"
@@ -449,7 +447,6 @@ def read_config(
     namespace_types_data = NewtFiles.read_json_from_file(
         os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_NAMESPACES)
     )
-    # Be sure return value or global variable is set to a non-empty dict
     NewtCons.validate_type(
         namespace_types_data, dict, check_non_empty=True,
         location="mwparser.read_config : namespace_types_data"
@@ -460,13 +457,12 @@ def read_config(
     # Calculate max key length from namespace types for formatting
     settings["ns_dict_key_len"] = len(max(g_namespace_types_dict.keys(), key=len))
 
-    # Select Namespace Number if needed (for types with multiple namespaces)
+    # Select Namespace Number if needed (for types with multiple namespaces) ---
     if g_wiki_list_type in (
         "allpages",
         "pageids",
     ):
         if SELECT_NAMESPACE_NR_FROM_INPUT:
-            print()
             count_namespace_types = NewtUtil.count_values_by_position(
                 [todo for todo in TODO_LIST if todo[0] == g_file_config and todo[1] == g_wiki_list_type], 3
             )
@@ -754,7 +750,6 @@ def get_json_from_url(
             location="mwparser.get_json_from_url : data_from_url=False"
         )
 
-    # Ensure return value is a dict
     NewtCons.validate_type(
         data_from_url, str, check_non_empty=True,
         location="mwparser.get_json_from_url : data_from_url"
@@ -797,7 +792,6 @@ def get_json_from_url(
                         location="mwparser.get_json_from_url : data_from_url_small=False"
                     )
 
-                # Ensure return value is a dict
                 NewtCons.validate_type(
                     data_from_url_small, str, check_non_empty=True,
                     location="mwparser.get_json_from_url : data_from_url_small"
