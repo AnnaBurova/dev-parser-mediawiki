@@ -209,14 +209,14 @@ def create_namespace_types_file(
         data_str, str, check_non_empty=True,
         location="mwparser.create_namespace_types_file : data_str"
     )
-    assert isinstance(data_str, str)
+    assert isinstance(data_str, str)  # for type checker
 
     data_dict = NewtFiles.convert_str_to_json(data_str)
     NewtCons.validate_type(
         data_dict, dict, check_non_empty=True,
         location="mwparser.create_namespace_types_file : data_dict"
     )
-    assert isinstance(data_dict, dict)
+    assert isinstance(data_dict, dict)  # for type checker
 
     NewtUtil.check_dict_keys(
         data_dict, {"batchcomplete", "query"},
@@ -358,7 +358,7 @@ def check_todo(
             namespace_dict, dict, check_non_empty=True,
             location="mwparser.check_todo : namespace_dict"
         )
-        assert isinstance(namespace_dict, dict)
+        assert isinstance(namespace_dict, dict)  # for type checker
 
         # Calculate max key length from namespace types for formatting
         ns_dict_key_len = len(max(namespace_dict.keys(), key=len))
