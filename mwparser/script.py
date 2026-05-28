@@ -200,16 +200,16 @@ def check_todo(
             )
 
         # Check if namespace_types.json exists for the config
-        path_namespace_types = os.path.join(DIR_GLOBAL, json_file_settings["FOLDER_LINK"], FILE_NAMESPACES)
-        if not os.path.isfile(path_namespace_types):
+        file_namespace_types = os.path.join(DIR_GLOBAL, json_file_settings["FOLDER_LINK"], FILE_NAMESPACES)
+        if not os.path.isfile(file_namespace_types):
             NewtCons.error_msg(
                 f"Missing namespace_types.json for config: {file}",
-                f"File must be here: {path_namespace_types}",
+                f"File must be here: {file_namespace_types}",
                 location="mwparser.check_todo : namespace_types.json missing"
             )
 
         # Get namespace types from file
-        ns_dict = NewtFiles.read_json_from_file(path_namespace_types)
+        ns_dict = NewtFiles.read_json_from_file(file_namespace_types)
         NewtCons.validate_type(
             ns_dict, dict, check_non_empty=True,
             location="mwparser.check_todo : ns_dict"
