@@ -458,7 +458,7 @@ def read_config(
     g_namespace_types_dict = namespace_types_data
 
     # Calculate max key length from namespace types for formatting
-    settings["ns_max_key_len"] = len(max(g_namespace_types_dict.keys(), key=len))
+    settings["ns_dict_key_len"] = len(max(g_namespace_types_dict.keys(), key=len))
 
     # Select Namespace Number if needed (for types with multiple namespaces)
     if g_wiki_list_type in (
@@ -487,13 +487,13 @@ def read_config(
 
     match g_wiki_list_type:
         case "allpages":
-            settings["file_name"] = os.path.join("allpages", f"{g_namespace_nr_int:0{settings['ns_max_key_len']}d}.csv")
+            settings["file_name"] = os.path.join("allpages", f"{g_namespace_nr_int:0{settings['ns_dict_key_len']}d}.csv")
 
         case "pageids":
             for folder_type in (FOLDER_RAW_PAGES, FOLDER_RAW_REDIRECT, FOLDER_RAW_REMOVED):
                 folder_to_remove = os.path.join(
                     DIR_GLOBAL, settings["FOLDER_LINK"], folder_type,
-                    str(g_namespace_nr_int).zfill(settings["ns_max_key_len"])
+                    str(g_namespace_nr_int).zfill(settings["ns_dict_key_len"])
                 )
                 if os.path.isdir(folder_to_remove):
                     print(f"Removing folder: {folder_to_remove}")
@@ -502,7 +502,7 @@ def read_config(
             settings["index_start"] = SETTING_INDEX_START
             path_allpages = os.path.join(
                 DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LISTS,
-                "allpages", f"{g_namespace_nr_int:0{settings['ns_max_key_len']}d}.csv"
+                "allpages", f"{g_namespace_nr_int:0{settings['ns_dict_key_len']}d}.csv"
             )
             list_allpages = NewtFiles.read_csv_from_file(path_allpages)
 
@@ -536,7 +536,7 @@ def read_config(
             settings["index_start"] = SETTING_INDEX_START
             path_allpages = os.path.join(
                 DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LISTS,
-                "allpages", f"{g_namespace_nr_int:0{settings['ns_max_key_len']}d}.csv"
+                "allpages", f"{g_namespace_nr_int:0{settings['ns_dict_key_len']}d}.csv"
             )
             list_files = NewtFiles.read_csv_from_file(path_allpages)
 
@@ -939,11 +939,11 @@ def restructure_json_pageids(
                 for missing_namespace in g_namespace_types_dict.keys():
                     missing_file = os.path.join(
                         DIR_GLOBAL, SETTINGS["FOLDER_LINK"], missing_folder,
-                        f"{int(missing_namespace):0{SETTINGS['ns_max_key_len']}d}", f"{page['pageid']:010d}.txt"
+                        f"{int(missing_namespace):0{SETTINGS['ns_dict_key_len']}d}", f"{page['pageid']:010d}.txt"
                     )
                     missing_target = os.path.join(
                         DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_RAW_REMOVED,
-                        f"{int(missing_namespace):0{SETTINGS['ns_max_key_len']}d}-{page['pageid']:010d}.txt"
+                        f"{int(missing_namespace):0{SETTINGS['ns_dict_key_len']}d}-{page['pageid']:010d}.txt"
                     )
                     if NewtFiles.check_file_exists(missing_file, stop=False, print_log=False):
                         NewtFiles.ensure_dir_exists(missing_target)
@@ -1035,7 +1035,7 @@ def restructure_json_pageids(
 
         text_for_file += "=== END ==="
 
-        path_file_pageid = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], folder_pages, f"{g_namespace_nr_int:0{SETTINGS['ns_max_key_len']}d}", f"{page['pageid']:010d}.txt")
+        path_file_pageid = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], folder_pages, f"{g_namespace_nr_int:0{SETTINGS['ns_dict_key_len']}d}", f"{page['pageid']:010d}.txt")
         NewtFiles.save_text_to_file(
             path_file_pageid,
             text_for_file,
@@ -1090,7 +1090,7 @@ def restructure_json_recentchanges(
         recentchanges_list.append([
             page["timestamp"],
             f"{page['pageid']:010d}",
-            f"{page['ns']:0{SETTINGS['ns_max_key_len']}d}",
+            f"{page['ns']:0{SETTINGS['ns_dict_key_len']}d}",
             f"{page['type']:>4}",
             page["title"],
         ])
@@ -1353,7 +1353,7 @@ if __name__ == "__main__":
                 "allpages",
                 "pageids",
                 ):
-            file_target_name = f"{g_wiki_list_type}-{g_namespace_nr_int:0{SETTINGS['ns_max_key_len']}d}.txt"
+    #         file_target_name = f"{g_wiki_list_type}-{g_namespace_nr_int:0{SETTINGS['ns_dict_key_len']}d}.txt"
         else:
             file_target_name = f"{g_wiki_list_type}.txt"
 
