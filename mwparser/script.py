@@ -62,9 +62,10 @@ FILE_NAMESPACES = os.path.join("data", "schemas", "namespace_types.json")
 # ==============================================================================
 
 # g_file_config = NewtFiles.choose_file_from_folder() in read_config()
-SELECT_CONFIG_FROM_FOLDER = True
-# SELECT_CONFIG_FROM_FOLDER = False  # TODO
-# If SELECT_CONFIG_FROM_FOLDER is False, set g_file_config here
+select_config_from_folder = True
+# select_config_from_folder = False  # TODO
+
+# If select_config_from_folder is False, set g_file_config here
 g_file_config = "xxx.json"  # TODO
 # dev-parser-mediawiki\mwparser\configs\xxx.json
 
@@ -73,7 +74,9 @@ if len(sys.argv) > 1 and sys.argv[1]:
     NewtFiles.check_file_exists(
         os.path.join(FOLDER_PROJECT_CONFIGS, g_file_config)
     )
-    SELECT_CONFIG_FROM_FOLDER = False
+    select_config_from_folder = False
+
+SELECT_CONFIG_FROM_FOLDER = select_config_from_folder
 
 # ==============================================================================
 
@@ -86,24 +89,28 @@ WIKI_LIST_TYPE_DICT = {
 }
 
 # g_wiki_list_type = NewtUtil.select_from_input() in read_config()
-SELECT_WIKI_LIST_TYPE_FROM_INPUT = True
-# SELECT_WIKI_LIST_TYPE_FROM_INPUT = False  # TODO
-# If SELECT_WIKI_LIST_TYPE_FROM_INPUT is False, set g_wiki_list_type here
+select_wiki_list_type_from_input = True
+# select_wiki_list_type_from_input = False  # TODO
+
+# If select_wiki_list_type_from_input is False, set g_wiki_list_type here
 g_wiki_list_type = WIKI_LIST_TYPE_DICT["1"]  # TODO
 
 if len(sys.argv) > 2 and sys.argv[2]:
     if sys.argv[2] in WIKI_LIST_TYPE_DICT:
         g_wiki_list_type = WIKI_LIST_TYPE_DICT[sys.argv[2]]
-        SELECT_WIKI_LIST_TYPE_FROM_INPUT = False
+        select_wiki_list_type_from_input = False
+
+SELECT_WIKI_LIST_TYPE_FROM_INPUT = select_wiki_list_type_from_input
 
 # ==============================================================================
 
 g_namespace_types_dict: dict = {}
 
 # g_namespace_nr_int = NewtUtil.select_from_input() in read_config()
-SELECT_NAMESPACE_NR_FROM_INPUT = True
-# SELECT_NAMESPACE_NR_FROM_INPUT = False  # TODO
-# If SELECT_NAMESPACE_NR_FROM_INPUT is False, set namespace_nr_int here
+select_namespace_nr_from_input = True
+# select_namespace_nr_from_input = False  # TODO
+
+# If select_namespace_nr_from_input is False, set namespace_nr_int here
 g_namespace_nr_int: int = 0  # TODO
 
 if len(sys.argv) > 3 and sys.argv[3]:
@@ -116,7 +123,9 @@ if len(sys.argv) > 3 and sys.argv[3]:
         )
 
     g_namespace_nr_int = int(sys.argv[3])
-    SELECT_NAMESPACE_NR_FROM_INPUT = False
+    select_namespace_nr_from_input = False
+
+SELECT_NAMESPACE_NR_FROM_INPUT = select_namespace_nr_from_input
 
 # ==============================================================================
 
