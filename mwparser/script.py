@@ -319,7 +319,7 @@ def check_todo(
             continue
 
         # Get settings from config file
-        json_file_settings = NewtFiles.read_json_from_file(file_project_config)
+        json_file_settings = NewtFiles.read_json_from_file(file_project_config, print_log=PRINT_LOG)
         NewtCons.validate_type(
             json_file_settings, dict, check_non_empty=True,
             location="mwparser.check_todo : json_file_settings"
@@ -353,7 +353,7 @@ def check_todo(
             )
 
         # Get namespace types from file
-        namespace_dict = NewtFiles.read_json_from_file(file_namespace_types)
+        namespace_dict = NewtFiles.read_json_from_file(file_namespace_types, print_log=PRINT_LOG)
         NewtCons.validate_type(
             namespace_dict, dict, check_non_empty=True,
             location="mwparser.check_todo : namespace_dict"
