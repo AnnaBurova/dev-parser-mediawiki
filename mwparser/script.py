@@ -55,7 +55,7 @@ FOLDER_RAW_REMOVED = os.path.join("data", "raw", "removed")
 FOLDER_RAW_IMAGES = os.path.join("data", "raw", "images")
 FOLDER_LOGS = os.path.join("data", "logs")
 FOLDER_LISTS = os.path.join("data", "lists")
-FILE_BLOCKED = os.path.join(FOLDER_LISTS, "blocked.txt")
+FILE_LISTS_BLOCKED = os.path.join(FOLDER_LISTS, "blocked.txt")
 FILE_RECENTCHANGES = os.path.join(FOLDER_LISTS, "recentchanges.csv")
 FILE_NAMESPACES = os.path.join("data", "schemas", "namespace_types.json")
 
@@ -631,7 +631,7 @@ def get_blocked_set(
     """Read blocked list from file and return as a set."""
 
     blocked_set = set()
-    path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FILE_BLOCKED)
+    path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FILE_LISTS_BLOCKED)
     blocked_list = NewtFiles.read_text_from_file(path_file_blocked)
     print()
 
@@ -653,7 +653,7 @@ def get_json_from_url(
     global g_wiki_list_type
     global g_namespace_types_dict
 
-    path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FILE_BLOCKED)
+    path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FILE_LISTS_BLOCKED)
     continue_page_for_block = None
 
     headers, params = headers_params_for_url
@@ -913,7 +913,7 @@ def restructure_json_pageids(
     global g_namespace_types_dict
     global g_namespace_nr_int
 
-    path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FILE_BLOCKED)
+    path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FILE_LISTS_BLOCKED)
     path_recentchanges_missing = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FILE_RECENTCHANGES)
 
     NewtUtil.check_dict_keys(
