@@ -56,7 +56,7 @@ FOLDER_RAW_IMAGES = os.path.join("data", "raw", "images")
 FOLDER_LOGS = os.path.join("data", "logs")
 FOLDER_LISTS = os.path.join("data", "lists")
 FILE_LISTS_BLOCKED = os.path.join(FOLDER_LISTS, "blocked.txt")
-FILE_RECENTCHANGES = os.path.join(FOLDER_LISTS, "recentchanges.csv")
+FILE_LISTS_RECENTCHANGES = os.path.join(FOLDER_LISTS, "recentchanges.csv")
 FILE_NAMESPACES = os.path.join("data", "schemas", "namespace_types.json")
 
 # ==============================================================================
@@ -526,11 +526,11 @@ def read_config(
             settings["page_ids"] = sorted([int(row[0]) for row in list_allpages[1:]])
 
         case "recentchanges":
-            settings["file_name"] = FILE_RECENTCHANGES
+            settings["file_name"] = FILE_LISTS_RECENTCHANGES
 
         case "pagesrecent":
             settings["index_start"] = SETTING_INDEX_START
-            path_recentchanges = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_RECENTCHANGES)
+            path_recentchanges = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_LISTS_RECENTCHANGES)
             list_recentchanges = NewtFiles.read_csv_from_file(path_recentchanges)
 
             NewtCons.validate_type(
@@ -914,7 +914,7 @@ def restructure_json_pageids(
     global g_namespace_nr_int
 
     path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FILE_LISTS_BLOCKED)
-    path_recentchanges_missing = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FILE_RECENTCHANGES)
+    path_recentchanges_missing = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FILE_LISTS_RECENTCHANGES)
 
     NewtUtil.check_dict_keys(
         json_data_dict, {"query", "batchcomplete"},
