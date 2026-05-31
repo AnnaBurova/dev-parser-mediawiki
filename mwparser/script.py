@@ -57,7 +57,7 @@ FOLDER_LOGS = os.path.join("data", "logs")
 FOLDER_LISTS = os.path.join("data", "lists")
 FILE_LISTS_BLOCKED = os.path.join(FOLDER_LISTS, "blocked.txt")
 FILE_LISTS_RECENTCHANGES = os.path.join(FOLDER_LISTS, "recentchanges.csv")
-FILE_NAMESPACES = os.path.join("data", "schemas", "namespace_types.json")
+FILE_SCHEMAS_NAMESPACES = os.path.join("data", "schemas", "namespace_types.json")
 
 # ==============================================================================
 
@@ -340,7 +340,7 @@ def check_todo(
 
         # Check if namespace_types.json exists for the config
         file_namespace_types = os.path.join(
-            DIR_GLOBAL, json_file_settings["FOLDER_LINK"], FILE_NAMESPACES)
+            DIR_GLOBAL, json_file_settings["FOLDER_LINK"], FILE_SCHEMAS_NAMESPACES)
 
         if not NewtFiles.check_file_exists(file_namespace_types, stop=False):
             create_namespace_types_file(json_file_settings["BASE_URL"], file_namespace_types)
@@ -452,7 +452,7 @@ def read_config(
     assert isinstance(g_wiki_list_type, str)  # for type checker
 
     json_namespace_types = NewtFiles.read_json_from_file(
-        os.path.join(DIR_GLOBAL, json_settings["FOLDER_LINK"], FILE_NAMESPACES)
+        os.path.join(DIR_GLOBAL, json_settings["FOLDER_LINK"], FILE_SCHEMAS_NAMESPACES)
     )
     NewtCons.validate_type(
         json_namespace_types, dict, check_non_empty=True,
