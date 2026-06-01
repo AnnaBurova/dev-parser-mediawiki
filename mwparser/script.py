@@ -204,14 +204,14 @@ def create_namespace_types_file(
         "siprop": "namespaces",
     }
 
-    data_str = fetch_data_from_mediawiki(base_url, namespace_types_params)
+    data_from_url = fetch_data_from_mediawiki(base_url, namespace_types_params)
     NewtCons.validate_type(
-        data_str, str, check_non_empty=True,
-        location="mwparser.create_namespace_types_file : data_str"
+        data_from_url, str, check_non_empty=True,
+        location="mwparser.create_namespace_types_file : data_from_url"
     )
-    assert isinstance(data_str, str)  # for type checker
+    assert isinstance(data_from_url, str)  # for type checker
 
-    data_dict = NewtFiles.convert_str_to_json(data_str)
+    data_dict = NewtFiles.convert_str_to_json(data_from_url)
     NewtCons.validate_type(
         data_dict, dict, check_non_empty=True,
         location="mwparser.create_namespace_types_file : data_dict"
