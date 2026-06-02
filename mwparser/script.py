@@ -166,6 +166,58 @@ FETCH_MODE = "auto"
 # ==============================================================================
 
 
+def remove_gremlins_from_names(
+        page_title
+        ) -> str:
+
+    replacements = {
+        "_": " ",
+        "$": "%24",
+        "&": "%26",
+        "=": "%3D",
+        "\\": "%5C",
+        "\xad": "%C2%AD",       # soft hyphen
+        "\u0060": "%60",        # grave accent
+        "\u00a8": "%C2%A8",     # diaeresis
+        "\u00b2": "%C2%B2",     # superscript two
+        "\u00b4": "%C2%B4",     # acute accent
+        "\u00b5": "%C2%B5",     # micro sign
+        "\u200b": "%E2%80%8B",  # zero width space
+        "\u2013": "%E2%80%93",  # en dash
+        "\u2014": "%E2%80%94",  # em dash
+        "\u201c": "%E2%80%9C",  # left double quotation mark
+        "\u201d": "%E2%80%9D",  # right double quotation mark
+        "\u2020": "%E2%80%A0",  # cross
+        "\u205e": "%E2%81%9E",  # vertical four dots
+        "\u2117": "%E2%84%97",  # sound recording copyright
+        "\u2022": "%E2%80%A2",  # bullet
+        "\u2265": "%E2%89%A5",  # greater-than or equal to
+        "\u2122": "%E2%84%A2",  # trademark
+        "\u2212": "%E2%88%92",  # minus sign
+        "\u256d": "%E2%95%AD",  # box drawing light arc down and right
+        "\u256e": "%E2%95%AE",  # box drawing light arc down and left
+        "\u2606": "%E2%98%86",  # white star
+        "\u263a": "%E2%98%BA",  # smiling face
+        "\u2665": "%E2%99%A5",  # black heart suit
+        "\uff21": "%EF%BC%A1",  # fullwidth A
+        "\uff25": "%EF%BC%A5",  # fullwidth E
+        "\uff28": "%EF%BC%A8",  # fullwidth H
+        "\uff29": "%EF%BC%A9",  # fullwidth I
+        "\uff2d": "%EF%BC%AD",  # fullwidth M
+        "\uff2f": "%EF%BC%AF",  # fullwidth O
+        "\uff33": "%EF%BC%B3",  # fullwidth S
+        "\uff34": "%EF%BC%B4",  # fullwidth T
+        "\uff37": "%EF%BC%B7",  # fullwidth W
+    }
+
+    for old, new in replacements.items():
+        page_title = page_title.replace(old, new)
+
+    page_title = page_title.replace("\xad", "%C2%AD")
+    page_title = page_title.replace("\u200b", "%E2%80%8B")
+    return page_title
+
+
 def fetch_data_from_mediawiki(
         base_url: str,
         additional_params: dict[str, str]
