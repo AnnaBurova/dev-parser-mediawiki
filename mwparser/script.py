@@ -904,33 +904,33 @@ def get_json_from_url(
 
 
 def restructure_json_allpages(
-        json_data_dict: dict
+        json_data: dict
         ) -> tuple[list[str], str]:
     """Process and save all pages from JSON data."""
 
     global g_namespace_nr_int
 
-    if "continue" in json_data_dict:
+    if "continue" in json_data:
         NewtUtil.check_dict_keys(
-            json_data_dict, {"query", "batchcomplete", "limits", "continue"},
-            location="mwparser.restructure_json_allpages : json_data_dict"
+            json_data, {"query", "batchcomplete", "limits", "continue"},
+            location="mwparser.restructure_json_allpages : json_data"
         )
 
     else:
         NewtUtil.check_dict_keys(
-            json_data_dict, {"query", "batchcomplete", "limits"},
-            location="mwparser.restructure_json_allpages : json_data_dict"
+            json_data, {"query", "batchcomplete", "limits"},
+            location="mwparser.restructure_json_allpages : json_data"
         )
 
     NewtUtil.check_dict_keys(
-        json_data_dict["query"], {"allpages"},
-        location="mwparser.restructure_json_allpages : json_data_dict[query]"
+        json_data["query"], {"allpages"},
+        location="mwparser.restructure_json_allpages : json_data[query]"
     )
 
     continue_page_backup = ""
     allpages_list = []
     allpages_list.append(["pageid", "title"])
-    for page in json_data_dict["query"]["allpages"]:
+    for page in json_data["query"]["allpages"]:
         NewtUtil.check_dict_keys(
             page, {"pageid", "ns", "title"},
             location="mwparser.restructure_json_allpages : page"
@@ -958,7 +958,7 @@ def restructure_json_allpages(
 
 
 def restructure_json_pageids(
-        json_data_dict: dict
+        json_data: dict
         ) -> None:
 
     global g_wiki_list_type
@@ -969,16 +969,16 @@ def restructure_json_pageids(
     path_recentchanges_missing = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FILE_LISTS_RECENTCHANGES)
 
     NewtUtil.check_dict_keys(
-        json_data_dict, {"query", "batchcomplete"},
-        location="mwparser.restructure_json_pageids : json_data_dict"
+        json_data, {"query", "batchcomplete"},
+        location="mwparser.restructure_json_pageids : json_data"
     )
 
     NewtUtil.check_dict_keys(
-        json_data_dict["query"], {"pages"},
-        location="mwparser.restructure_json_pageids : json_data_dict[query]"
+        json_data["query"], {"pages"},
+        location="mwparser.restructure_json_pageids : json_data[query]"
     )
 
-    for page in json_data_dict["query"]["pages"]:
+    for page in json_data["query"]["pages"]:
         skip_page = False
 
         if "missing" in page:
@@ -1104,33 +1104,33 @@ def restructure_json_pageids(
 
 
 def restructure_json_recentchanges(
-        json_data_dict: dict
+        json_data: dict
         ) -> list[str]:
     """Process and save all pages from JSON data."""
 
     global g_namespace_types_dict
 
-    if "continue" in json_data_dict:
+    if "continue" in json_data:
         NewtUtil.check_dict_keys(
-            json_data_dict, {"query", "batchcomplete", "limits", "continue"},
-            location="mwparser.restructure_json_recentchanges : json_data_dict"
+            json_data, {"query", "batchcomplete", "limits", "continue"},
+            location="mwparser.restructure_json_recentchanges : json_data"
         )
 
     else:
         NewtUtil.check_dict_keys(
-            json_data_dict, {"query", "batchcomplete", "limits"},
-            location="mwparser.restructure_json_recentchanges : json_data_dict"
+            json_data, {"query", "batchcomplete", "limits"},
+            location="mwparser.restructure_json_recentchanges : json_data"
         )
 
     NewtUtil.check_dict_keys(
-        json_data_dict["query"], {"recentchanges"},
-        location="mwparser.restructure_json_recentchanges : json_data_dict[query]"
+        json_data["query"], {"recentchanges"},
+        location="mwparser.restructure_json_recentchanges : json_data[query]"
     )
 
     recentchanges_list = []
     recentchanges_list.append(["timestamp", "pageid", "ns", "type", "title"])
 
-    for page in json_data_dict["query"]["recentchanges"]:
+    for page in json_data["query"]["recentchanges"]:
         NewtUtil.check_dict_keys(
             page, {"type", "ns", "title", "pageid", "revid", "old_revid", "rcid", "timestamp"},
             location="mwparser.restructure_json_recentchanges : page"
@@ -1159,28 +1159,28 @@ def restructure_json_recentchanges(
 
 
 def restructure_json_savefiles(
-        json_data_dict: dict
+        json_data: dict
         ) -> None:
 
     path_missing_image = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, "missing-images.txt")
 
-    if "batchcomplete" in json_data_dict:
+    if "batchcomplete" in json_data:
         NewtUtil.check_dict_keys(
-            json_data_dict, {"query", "batchcomplete"},
-            location="mwparser.restructure_json_savefiles : json_data_dict + batchcomplete"
+            json_data, {"query", "batchcomplete"},
+            location="mwparser.restructure_json_savefiles : json_data + batchcomplete"
         )
     else:
         NewtUtil.check_dict_keys(
-            json_data_dict, {"query", "continue"},
-            location="mwparser.restructure_json_savefiles : json_data_dict + continue"
+            json_data, {"query", "continue"},
+            location="mwparser.restructure_json_savefiles : json_data + continue"
         )
 
     NewtUtil.check_dict_keys(
-        json_data_dict["query"], {"pages"},
-        location="mwparser.restructure_json_savefiles : json_data_dict[query]"
+        json_data["query"], {"pages"},
+        location="mwparser.restructure_json_savefiles : json_data[query]"
     )
 
-    for image_data in json_data_dict["query"]["pages"]:
+    for image_data in json_data["query"]["pages"]:
         if "imageinfo" in image_data:
             NewtUtil.check_dict_keys(
                 image_data, {"pageid", "ns", "title", "imagerepository", "imageinfo"},
