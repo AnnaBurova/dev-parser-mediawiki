@@ -263,25 +263,25 @@ def create_namespace_types_file(
     )
     assert isinstance(data_from_url, str)  # for type checker
 
-    data_dict = NewtFiles.convert_str_to_json(data_from_url)
+    data_json = NewtFiles.convert_str_to_json(data_from_url)
     NewtCons.validate_type(
-        data_dict, dict, check_non_empty=True,
-        location="mwparser.create_namespace_types_file : data_dict"
+        data_json, dict, check_non_empty=True,
+        location="mwparser.create_namespace_types_file : data_json"
     )
-    assert isinstance(data_dict, dict)  # for type checker
+    assert isinstance(data_json, dict)  # for type checker
 
     NewtUtil.check_dict_keys(
-        data_dict, {"batchcomplete", "query"},
-        location="mwparser.create_namespace_types_file : data_dict"
+        data_json, {"batchcomplete", "query"},
+        location="mwparser.create_namespace_types_file : data_json"
     )
 
     NewtUtil.check_dict_keys(
-        data_dict["query"], {"namespaces"},
-        location="mwparser.create_namespace_types_file : data_dict[query]"
+        data_json["query"], {"namespaces"},
+        location="mwparser.create_namespace_types_file : data_json[query]"
     )
 
     namespaces = {}
-    for ns_nr, ns_data in data_dict["query"]["namespaces"].items():
+    for ns_nr, ns_data in data_json["query"]["namespaces"].items():
 
         if ns_data["name"] == "":
             ns_data["name"] = "Main"
@@ -294,7 +294,7 @@ def create_namespace_types_file(
             NewtUtil.check_dict_keys(
                 ns_data, {"id", "case", "name", "subpages", "content", "nonincludable",
                           "canonical", "namespaceprotection", "defaultcontentmodel"},
-                location="mwparser.create_namespace_types_file : data_dict[query][namespaces]"
+                location="mwparser.create_namespace_types_file : data_json[query][namespaces]"
                     + " + namespaceprotection + defaultcontentmodel"
             )
 
@@ -302,7 +302,7 @@ def create_namespace_types_file(
             NewtUtil.check_dict_keys(
                 ns_data, {"id", "case", "name", "subpages", "content", "nonincludable",
                           "canonical", "namespaceprotection"},
-                location="mwparser.create_namespace_types_file : data_dict[query][namespaces]"
+                location="mwparser.create_namespace_types_file : data_json[query][namespaces]"
                     + " + namespaceprotection"
             )
 
@@ -310,7 +310,7 @@ def create_namespace_types_file(
             NewtUtil.check_dict_keys(
                 ns_data, {"id", "case", "name", "subpages", "content", "nonincludable",
                           "canonical", "defaultcontentmodel"},
-                location="mwparser.create_namespace_types_file : data_dict[query][namespaces]"
+                location="mwparser.create_namespace_types_file : data_json[query][namespaces]"
                     + " + defaultcontentmodel"
             )
 
@@ -318,14 +318,14 @@ def create_namespace_types_file(
             NewtUtil.check_dict_keys(
                 ns_data, {"id", "case", "name", "subpages", "content", "nonincludable",
                           "canonical"},
-                location="mwparser.create_namespace_types_file : data_dict[query][namespaces]"
+                location="mwparser.create_namespace_types_file : data_json[query][namespaces]"
                     + " + canonical"
             )
 
         else:
             NewtUtil.check_dict_keys(
                 ns_data, {"id", "case", "name", "subpages", "content", "nonincludable"},
-                location="mwparser.create_namespace_types_file : data_dict[query][namespaces]"
+                location="mwparser.create_namespace_types_file : data_json[query][namespaces]"
                     + " + else"
             )
             namespaces[str(ns_nr)] = ns_data["name"]
