@@ -106,12 +106,12 @@ SELECT_WIKI_LIST_TYPE_FROM_INPUT = select_wiki_list_type_from_input
 
 g_namespace_types_dict: dict = {}
 
-# g_namespace_nr_int = NewtUtil.select_from_input() in read_config()
+# g_namespace_nr = NewtUtil.select_from_input() in read_config()
 select_namespace_nr_from_input = True
 # select_namespace_nr_from_input = False  # TODO
 
 # If select_namespace_nr_from_input is False, set namespace_nr_int here
-g_namespace_nr_int: int = 0  # TODO
+g_namespace_nr: int = 0  # TODO
 
 if len(sys.argv) > 3 and sys.argv[3]:
     try:
@@ -122,7 +122,7 @@ if len(sys.argv) > 3 and sys.argv[3]:
             location="global.namespace_nr_int"
         )
 
-    g_namespace_nr_int = int(sys.argv[3])
+    g_namespace_nr = int(sys.argv[3])
     select_namespace_nr_from_input = False
 
 SELECT_NAMESPACE_NR_FROM_INPUT = select_namespace_nr_from_input
@@ -454,7 +454,7 @@ def read_config(
     global g_file_config
     global g_wiki_list_type
     global g_namespace_types_dict
-    global g_namespace_nr_int
+    global g_namespace_nr
 
     # Select WIKI Project ------------------------------------------------------
     # Settings are at file beginning of script
@@ -533,7 +533,7 @@ def read_config(
                 location="mwparser.read_config : namespace_types_nr"
             )
             assert isinstance(namespace_types_nr, str)  # for type checker
-            g_namespace_nr_int = int(namespace_types_nr)
+            g_namespace_nr = int(namespace_types_nr)
 
     elif g_wiki_list_type == "savefiles":
         namespace_for_files = "File"
@@ -545,17 +545,17 @@ def read_config(
                 f"Keys: {keys}",
                 location="mwparser.read_config : savefiles"
             )
-        g_namespace_nr_int = int(keys[0])
+        g_namespace_nr = int(keys[0])
 
     match g_wiki_list_type:
         case "allpages":
-            settings["file_name"] = os.path.join("allpages", f"{g_namespace_nr_int:0{settings['ns_dict_key_len']}d}.csv")
+            settings["file_name"] = os.path.join("allpages", f"{g_namespace_nr:0{settings['ns_dict_key_len']}d}.csv")
 
         case "pageids":
             for folder_type in (FOLDER_RAW_PAGES, FOLDER_RAW_REDIRECT, FOLDER_RAW_REMOVED):
                 folder_to_remove = os.path.join(
                     DIR_GLOBAL, settings["FOLDER_LINK"], folder_type,
-                    str(g_namespace_nr_int).zfill(settings["ns_dict_key_len"])
+                    str(g_namespace_nr).zfill(settings["ns_dict_key_len"])
                 )
                 if os.path.isdir(folder_to_remove):
                     print(f"Removing folder: {folder_to_remove}")
@@ -564,7 +564,7 @@ def read_config(
             settings["index_start"] = SETTING_INDEX_START
             path_allpages = os.path.join(
                 DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LISTS,
-                "allpages", f"{g_namespace_nr_int:0{settings['ns_dict_key_len']}d}.csv"
+                "allpages", f"{g_namespace_nr:0{settings['ns_dict_key_len']}d}.csv"
             )
             list_allpages = NewtFiles.read_csv_from_file(path_allpages)
 
@@ -598,7 +598,7 @@ def read_config(
             settings["index_start"] = SETTING_INDEX_START
             path_allpages = os.path.join(
                 DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LISTS,
-                "allpages", f"{g_namespace_nr_int:0{settings['ns_dict_key_len']}d}.csv"
+                "allpages", f"{g_namespace_nr:0{settings['ns_dict_key_len']}d}.csv"
             )
             list_files = NewtFiles.read_csv_from_file(path_allpages)
 
@@ -627,7 +627,7 @@ def prep_headers_params_for_url(
     global time_start
     global time_end
     global g_wiki_list_type
-    global g_namespace_nr_int
+    global g_namespace_nr
 
     headers = {
         "User-Agent": "MyGuildWarsBot/1.2 (burova.anna+parser+bot@gmail.com)",
@@ -646,7 +646,7 @@ def prep_headers_params_for_url(
         case "allpages":
             params.update({"list": "allpages"})
             params.update({"aplimit": "max"})
-            params.update({"apnamespace": str(g_namespace_nr_int)})
+            params.update({"apnamespace": str(g_namespace_nr)})
 
         case "pageids" | "pagesrecent":
             params.update({"prop": "revisions"})
@@ -908,7 +908,7 @@ def restructure_json_allpages(
         ) -> tuple[list[str], str]:
     """Process and save all pages from JSON data."""
 
-    global g_namespace_nr_int
+    global g_namespace_nr
 
     if "continue" in json_data:
         NewtUtil.check_dict_keys(
@@ -936,7 +936,7 @@ def restructure_json_allpages(
             location="mwparser.restructure_json_allpages : page"
         )
 
-        if int(page["ns"]) != g_namespace_nr_int:
+        if int(page["ns"]) != g_namespace_nr:
             NewtCons.error_msg(
                 f"Unexpected namespace value: {page['ns']} for page ID {page['pageid']}",
                 f"Page: {page}",
@@ -963,7 +963,7 @@ def restructure_json_pageids(
 
     global g_wiki_list_type
     global g_namespace_types_dict
-    global g_namespace_nr_int
+    global g_namespace_nr
 
     path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FILE_LISTS_BLOCKED)
     path_recentchanges_missing = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FILE_LISTS_RECENTCHANGES)
@@ -1019,7 +1019,7 @@ def restructure_json_pageids(
             location="mwparser.restructure_json_pageids : page"
         )
 
-        check_ns = g_namespace_nr_int
+        check_ns = g_namespace_nr
 
         if g_wiki_list_type == "pagesrecent":
             if str(page["ns"]) in g_namespace_types_dict:
@@ -1095,7 +1095,7 @@ def restructure_json_pageids(
 
         text_for_file += "=== END ==="
 
-        path_file_pageid = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], folder_pages, f"{g_namespace_nr_int:0{SETTINGS['ns_dict_key_len']}d}", f"{page['pageid']:010d}.txt")
+        path_file_pageid = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], folder_pages, f"{g_namespace_nr:0{SETTINGS['ns_dict_key_len']}d}", f"{page['pageid']:010d}.txt")
         NewtFiles.save_text_to_file(
             path_file_pageid,
             text_for_file,
@@ -1413,7 +1413,7 @@ if __name__ == "__main__":
                 "allpages",
                 "pageids",
                 ):
-    #         file_target_name = f"{g_wiki_list_type}-{g_namespace_nr_int:0{SETTINGS['ns_dict_key_len']}d}.txt"
+    #         file_target_name = f"{g_wiki_list_type}-{g_namespace_nr:0{SETTINGS['ns_dict_key_len']}d}.txt"
         else:
             file_target_name = f"{g_wiki_list_type}.txt"
 
