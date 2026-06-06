@@ -104,7 +104,7 @@ SELECT_WIKI_LIST_TYPE_FROM_INPUT = select_wiki_list_type_from_input
 
 # ==============================================================================
 
-g_namespace_types_dict: dict = {}
+g_namespace_types: dict = {}
 
 # g_namespace_nr = NewtUtil.select_from_input() in read_config()
 select_namespace_nr_from_input = True
@@ -453,7 +453,7 @@ def read_config(
 
     global g_file_config
     global g_wiki_list_type
-    global g_namespace_types_dict
+    global g_namespace_types
     global g_namespace_nr
 
     # Select WIKI Project ------------------------------------------------------
@@ -512,9 +512,9 @@ def read_config(
     )
 
     # Calculate max key length from namespace types for formatting
-    settings["ns_dict_key_len"] = len(max(g_namespace_types_dict.keys(), key=len))
+    settings["ns_dict_key_len"] = len(max(g_namespace_types.keys(), key=len))
     assert isinstance(json_namespace_types, dict)  # for type checker
-    g_namespace_types_dict = json_namespace_types
+    g_namespace_types = json_namespace_types
 
     # Select Namespace Number if needed (for types with multiple namespaces) ---
     if g_wiki_list_type in (
@@ -526,7 +526,7 @@ def read_config(
                 [todo for todo in TODO_LIST if todo[0] == g_file_config and todo[1] == g_wiki_list_type], 3
             )
 
-            namespace_types_nr = NewtUtil.select_from_input(g_namespace_types_dict, count_namespace_types)
+            namespace_types_nr = NewtUtil.select_from_input(g_namespace_types, count_namespace_types)
 
             NewtCons.validate_type(
                 namespace_types_nr, str, check_non_empty=True,
@@ -537,7 +537,7 @@ def read_config(
 
     elif g_wiki_list_type == "savefiles":
         namespace_for_files = "File"
-        keys = [key for key, val in g_namespace_types_dict.items() if val == namespace_for_files]
+        keys = [key for key, val in g_namespace_types.items() if val == namespace_for_files]
 
         if len(keys) != 1:
             NewtCons.error_msg(
@@ -703,7 +703,7 @@ def get_json_from_url(
     """Fetch JSON data from a URL based on settings and save to file."""
 
     global g_wiki_list_type
-    global g_namespace_types_dict
+    global g_namespace_types
 
     path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FILE_LISTS_BLOCKED)
     continue_page_for_block = None
@@ -726,7 +726,7 @@ def get_json_from_url(
                 print(continue_page_wiki)
                 # Only without left and sep parts it will work in continue
                 left_part, sep_part, right_part = continue_page_wiki.partition(":")
-                if sep_part and left_part in set(g_namespace_types_dict.values()):
+                if sep_part and left_part in set(g_namespace_types.values()):
                     continue_page_wiki = right_part
 
                 params.update({"apcontinue": continue_page_wiki})
@@ -962,7 +962,7 @@ def restructure_json_pageids(
         ) -> None:
 
     global g_wiki_list_type
-    global g_namespace_types_dict
+    global g_namespace_types
     global g_namespace_nr
 
     path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FILE_LISTS_BLOCKED)
@@ -996,7 +996,7 @@ def restructure_json_pageids(
                 append=True, print_log=False
             )
             for missing_folder in (FOLDER_RAW_PAGES, FOLDER_RAW_REDIRECT):
-                for missing_namespace in g_namespace_types_dict.keys():
+                for missing_namespace in g_namespace_types.keys():
                     missing_file = os.path.join(
                         DIR_GLOBAL, SETTINGS["FOLDER_LINK"], missing_folder,
                         f"{int(missing_namespace):0{SETTINGS['ns_dict_key_len']}d}", f"{page['pageid']:010d}.txt"
@@ -1022,7 +1022,7 @@ def restructure_json_pageids(
         check_ns = g_namespace_nr
 
         if g_wiki_list_type == "pagesrecent":
-            if str(page["ns"]) in g_namespace_types_dict:
+            if str(page["ns"]) in g_namespace_types:
                 check_ns = int(page["ns"])
 
         if int(page["ns"]) != check_ns:
@@ -1036,7 +1036,7 @@ def restructure_json_pageids(
         folder_pages = FOLDER_RAW_PAGES
 
         text_for_file = ""
-        text_for_file += f"Namespace ::: {page['ns']} ::: {g_namespace_types_dict[str(page['ns'])]}\n"
+        text_for_file += f"Namespace ::: {page['ns']} ::: {g_namespace_types[str(page['ns'])]}\n"
         text_for_file += f"Page ID   ::: {page['pageid']}\n"
         text_for_file += f"Title     ::: {page['title']}\n\n"
 
@@ -1108,7 +1108,7 @@ def restructure_json_recentchanges(
         ) -> list[str]:
     """Process and save all pages from JSON data."""
 
-    global g_namespace_types_dict
+    global g_namespace_types
 
     if "continue" in json_data:
         NewtUtil.check_dict_keys(
@@ -1136,7 +1136,7 @@ def restructure_json_recentchanges(
             location="mwparser.restructure_json_recentchanges : page"
         )
 
-        if str(page["ns"]) not in g_namespace_types_dict:
+        if str(page["ns"]) not in g_namespace_types:
             NewtCons.error_msg(
                 f"Unexpected namespace value: {page['ns']} for page ID {page['title']}",
                 f"Page: {page}",
