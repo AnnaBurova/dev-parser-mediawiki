@@ -683,7 +683,7 @@ def get_blocked_set(
     """Read blocked list from file and return as a set."""
 
     blocked_set = set()
-    path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FILE_LISTS_BLOCKED)
+    path_file_blocked = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_LISTS_BLOCKED)
     blocked_list = NewtFiles.read_text_from_file(path_file_blocked)
     print()
 
@@ -705,7 +705,7 @@ def get_json_from_url(
     global g_wiki_list_type
     global g_namespace_types
 
-    path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FILE_LISTS_BLOCKED)
+    path_file_blocked = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_LISTS_BLOCKED)
     continue_page_for_block = None
 
     headers, params = headers_params_for_url
@@ -732,30 +732,30 @@ def get_json_from_url(
                 params.update({"apcontinue": continue_page_wiki})
 
         case "pageids" | "pagesrecent":
-            if len(SETTINGS["page_ids"]) == 0:
+            if len(settings["page_ids"]) == 0:
                 print()
                 print("No pages to process. Empty list.")
                 return {}
 
-            index_start = SETTINGS["index_start"]
+            index_start = settings["index_start"]
             index_max = SETTING_INDEX_MAX_PAGES
             index_end = index_start + index_max
 
-            if len(SETTINGS["page_ids"]) < index_start:
+            if len(settings["page_ids"]) < index_start:
                 print()
                 print("No more pages to process.")
                 return {}
 
             params.update({"pageids": "|".join(
-                map(str, SETTINGS["page_ids"][index_start:index_end])
+                map(str, settings["page_ids"][index_start:index_end])
             )})
-            SETTINGS["index_start"] = index_end
+            settings["index_start"] = index_end
 
             print()
             print(f"Processing page IDs from index {index_start} to {index_end}")
-            print(f"Progress max index: {len(SETTINGS['page_ids'])}")
+            print(f"Progress max index: {len(settings['page_ids'])}")
             print(f"Processing current page: {index_start / index_max}")
-            print(f"Progress max pages: {len(SETTINGS['page_ids']) / index_max}")
+            print(f"Progress max pages: {len(settings['page_ids']) / index_max}")
             print()
 
         case "recentchanges":
@@ -764,30 +764,30 @@ def get_json_from_url(
                 params.update({"rccontinue": continue_page_wiki})
 
         case "savefiles":
-            if len(SETTINGS["files_titles"]) == 0:
+            if len(settings["files_titles"]) == 0:
                 print()
                 print("No images to process. Empty list.")
                 return {}
 
-            index_start = SETTINGS["index_start"]
+            index_start = settings["index_start"]
             index_max = SETTING_INDEX_MAX_TITLES
             index_end = index_start + index_max
 
-            if len(SETTINGS["files_titles"]) < index_start:
+            if len(settings["files_titles"]) < index_start:
                 print()
                 print("No more images to process.")
                 return {}
 
             params.update({"titles": "|".join(
-                map(str, SETTINGS["files_titles"][index_start:index_end])
+                map(str, settings["files_titles"][index_start:index_end])
             )})
-            SETTINGS["index_start"] = index_end
+            settings["index_start"] = index_end
 
             print()
             print(f"Processing images IDs from index {index_start} to {index_end}")
-            print(f"Progress max index: {len(SETTINGS['files_titles'])}")
+            print(f"Progress max index: {len(settings['files_titles'])}")
             print(f"Processing current images: {index_start / index_max}")
-            print(f"Progress max pages: {len(SETTINGS['files_titles']) / index_max}")
+            print(f"Progress max pages: {len(settings['files_titles']) / index_max}")
             print()
 
         case _:
@@ -797,7 +797,7 @@ def get_json_from_url(
             )
 
     data_from_url = NewtNet.fetch_data_from_url(
-        SETTINGS["BASE_URL"], params, headers,
+        settings["BASE_URL"], params, headers,
         mode="auto", print_log=PRINT_LOG
     )
     print()
@@ -834,13 +834,13 @@ def get_json_from_url(
                 "pagesrecent",
                 ):
             for index_range in range(index_start, index_end):
-                if len(SETTINGS["page_ids"]) <= index_range:
+                if len(settings["page_ids"]) <= index_range:
                     break
 
-                params.update({"pageids": str(SETTINGS["page_ids"][index_range])})
+                params.update({"pageids": str(settings["page_ids"][index_range])})
 
                 data_from_url_small = NewtNet.fetch_data_from_url(
-                    SETTINGS["BASE_URL"], params, headers,
+                    settings["BASE_URL"], params, headers,
                     mode="auto", print_log=PRINT_LOG
                 )
                 print()
@@ -849,12 +849,12 @@ def get_json_from_url(
                 if not data_from_url_small:
                     NewtFiles.save_text_to_file(
                         path_file_blocked,
-                        f"---> Page ID: {SETTINGS['page_ids'][index_range]}",
+                        f"---> Page ID: {settings['page_ids'][index_range]}",
                         append=True
                     )
                     NewtCons.error_msg(
                         "Failed to read small JSON result, exiting",
-                        f"Page ID: {SETTINGS['page_ids'][index_range]}",
+                        f"Page ID: {settings['page_ids'][index_range]}",
                         location="mwparser.get_json_from_url : data_from_url_small=False"
                     )
 
@@ -965,8 +965,8 @@ def restructure_json_pageids(
     global g_namespace_types
     global g_namespace_nr
 
-    path_file_blocked = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FILE_LISTS_BLOCKED)
-    path_recentchanges_missing = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FILE_LISTS_RECENTCHANGES)
+    path_file_blocked = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_LISTS_BLOCKED)
+    path_recentchanges_missing = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_LISTS_RECENTCHANGES)
 
     NewtUtil.check_dict_keys(
         json_data, {"query", "batchcomplete"},
@@ -998,12 +998,12 @@ def restructure_json_pageids(
             for missing_folder in (FOLDER_RAW_PAGES, FOLDER_RAW_REDIRECT):
                 for missing_namespace in g_namespace_types.keys():
                     missing_file = os.path.join(
-                        DIR_GLOBAL, SETTINGS["FOLDER_LINK"], missing_folder,
-                        f"{int(missing_namespace):0{SETTINGS['ns_dict_key_len']}d}", f"{page['pageid']:010d}.txt"
+                        DIR_GLOBAL, settings["FOLDER_LINK"], missing_folder,
+                        f"{int(missing_namespace):0{settings['ns_dict_key_len']}d}", f"{page['pageid']:010d}.txt"
                     )
                     missing_target = os.path.join(
-                        DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_RAW_REMOVED,
-                        f"{int(missing_namespace):0{SETTINGS['ns_dict_key_len']}d}-{page['pageid']:010d}.txt"
+                        DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_RAW_REMOVED,
+                        f"{int(missing_namespace):0{settings['ns_dict_key_len']}d}-{page['pageid']:010d}.txt"
                     )
                     if NewtFiles.check_file_exists(missing_file, stop=False, print_log=False):
                         NewtFiles.ensure_dir_exists(missing_target)
@@ -1095,7 +1095,7 @@ def restructure_json_pageids(
 
         text_for_file += "=== END ==="
 
-        path_file_pageid = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], folder_pages, f"{g_namespace_nr:0{SETTINGS['ns_dict_key_len']}d}", f"{page['pageid']:010d}.txt")
+        path_file_pageid = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], folder_pages, f"{g_namespace_nr:0{settings['ns_dict_key_len']}d}", f"{page['pageid']:010d}.txt")
         NewtFiles.save_text_to_file(
             path_file_pageid,
             text_for_file,
@@ -1150,7 +1150,7 @@ def restructure_json_recentchanges(
         recentchanges_list.append([
             page["timestamp"],
             f"{page['pageid']:010d}",
-            f"{page['ns']:0{SETTINGS['ns_dict_key_len']}d}",
+            f"{page['ns']:0{settings['ns_dict_key_len']}d}",
             f"{page['type']:>4}",
             page["title"],
         ])
@@ -1162,7 +1162,7 @@ def restructure_json_savefiles(
         json_data: dict
         ) -> None:
 
-    path_missing_image = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, "missing-images.txt")
+    path_missing_image = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LISTS, "missing-images.txt")
 
     if "batchcomplete" in json_data:
         NewtUtil.check_dict_keys(
@@ -1221,7 +1221,7 @@ def restructure_json_savefiles(
 
             url_filename = os.path.basename(image_info["url"])
             filename = f"{image_data['pageid']:010d}-{url_filename}"
-            path_file_image = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_RAW_IMAGES, filename)
+            path_file_image = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_RAW_IMAGES, filename)
 
             if not NewtNet.fetch_data_from_url(
                 image_info["url"],
@@ -1245,14 +1245,14 @@ def save_data_list(
         ) -> None:
     """Save the restructured list data to a file."""
 
-    if "file_name" not in SETTINGS:
+    if "file_name" not in settings:
         NewtCons.error_msg(
-            "Missing 'file_name' in SETTINGS for saving data list",
+            "Missing 'file_name' in settings for saving data list",
             location="mwparser.save_data_list : file_name"
         )
 
     NewtFiles.save_csv_to_file(
-        os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, SETTINGS["file_name"]),
+        os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LISTS, settings["file_name"]),
         data_list,
         append=append
     )
@@ -1340,7 +1340,7 @@ def remove_duplicated_lines(
         ) -> None:
     """Remove duplicated lines from the recentchanges file."""
 
-    file_path = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LISTS, SETTINGS["file_name"])
+    file_path = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LISTS, settings["file_name"])
     lines = NewtFiles.read_csv_from_file(file_path)
 
     NewtCons.validate_type(
@@ -1377,7 +1377,7 @@ if __name__ == "__main__":
     NewtCons.check_location(DIR_GLOBAL, MUST_LOCATION)
 
     TODO_LIST = check_todo()
-    SETTINGS = read_config()
+    settings = read_config()
     headers_params_for_url = prep_headers_params_for_url()
     BLOCKED_SET = get_blocked_set()
     json_data = get_json_from_url()
@@ -1413,11 +1413,11 @@ if __name__ == "__main__":
                 "allpages",
                 "pageids",
                 ):
-    #         file_target_name = f"{g_wiki_list_type}-{g_namespace_nr:0{SETTINGS['ns_dict_key_len']}d}.txt"
+    #         file_target_name = f"{g_wiki_list_type}-{g_namespace_nr:0{settings['ns_dict_key_len']}d}.txt"
         else:
             file_target_name = f"{g_wiki_list_type}.txt"
 
-        path_target = os.path.join(DIR_GLOBAL, SETTINGS["FOLDER_LINK"], FOLDER_LOGS, file_target_name)
+        path_target = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LOGS, file_target_name)
 
     print("=== ✅ END ✅ ===")
 
