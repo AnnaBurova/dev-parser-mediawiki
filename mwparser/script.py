@@ -1,5 +1,5 @@
 """
-Updated on 2026-05
+Updated on 2026-06
 Created on 2025-11
 
 @author: NewtCode Anna Burova
@@ -20,31 +20,32 @@ import newtutils.files as NewtFiles
 # import newtutils.sql as NewtSQL
 import newtutils.network as NewtNet
 
+# TODO: check on config
+import script_config as _config
+
 # ==============================================================================
 
 DIR_PROJECT = os.path.dirname(os.path.realpath(__file__))
-print("DIR_PROJECT:", DIR_PROJECT)
+# print("DIR_PROJECT:", DIR_PROJECT)
 # D:\VS_Code\dev-parser-mediawiki\mwparser
 
 DIR_GLOBAL = os.path.dirname(os.path.dirname(DIR_PROJECT))
-print("DIR_GLOBAL: ", DIR_GLOBAL)
+# print("DIR_GLOBAL: ", DIR_GLOBAL)
 # D:\VS_Code
 
 # Add the project root directory to sys.path
 sys.path.append(DIR_GLOBAL)
 
-MUST_LOCATION = os.path.join("D:\\", "VS_Code")  # TODO
-print("MUST_LOCATION:", MUST_LOCATION)
+print("MUST_LOCATION:", _config.MUST_LOCATION)
 # D:\VS_Code
 
 # ==============================================================================
 
-BACK_IN_TIME_DAYS = 7
 TIME_NOW = datetime.now(timezone.utc)
 time_start = TIME_NOW - timedelta(days=0, hours=0)
-time_start = time_start.strftime("%Y-%m-%dT%H:%M:%SZ")
-time_end = TIME_NOW - timedelta(days=BACK_IN_TIME_DAYS, hours=0)
-time_end = time_end.strftime("%Y-%m-%dT%H:%M:%SZ")
+TIME_START = time_start.strftime("%Y-%m-%dT%H:%M:%SZ")
+time_end = TIME_NOW - timedelta(days=_config.BACK_IN_TIME_DAYS, hours=0)
+TIME_END = time_end.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 # ==============================================================================
 
@@ -61,22 +62,20 @@ FILE_SCHEMAS_NAMESPACES = os.path.join("data", "schemas", "namespace_types.json"
 
 # ==============================================================================
 
-# g_file_config = NewtFiles.choose_file_from_folder() in read_config()
-select_config_from_folder = True
-# select_config_from_folder = False  # TODO
-
-# If select_config_from_folder is False, set g_file_config here
-g_file_config = "xxx.json"  # TODO
-# dev-parser-mediawiki\mwparser\configs\xxx.json
+NewtFiles.check_file_exists(
+    os.path.join(FOLDER_PROJECT_CONFIGS, _config.DEFAULT_CONFIG_FILE)
+)
 
 if len(sys.argv) > 1 and sys.argv[1]:
-    g_file_config = sys.argv[1]
+    g_file_config: str = sys.argv[1]
     NewtFiles.check_file_exists(
         os.path.join(FOLDER_PROJECT_CONFIGS, g_file_config)
     )
-    select_config_from_folder = False
-
-SELECT_CONFIG_FROM_FOLDER = select_config_from_folder
+    SELECT_CONFIG_FROM_FOLDER = False
+else:
+    # g_file_config = NewtFiles.choose_file_from_folder() in read_current_config()
+    g_file_config: str = _config.DEFAULT_CONFIG_FILE
+    SELECT_CONFIG_FROM_FOLDER = _config.SELECT_CONFIG_FROM_FOLDER
 
 # ==============================================================================
 
@@ -88,80 +87,61 @@ WIKI_LIST_TYPE_DICT = {
     "5": "savefiles",
 }
 
-# g_wiki_list_type = NewtUtil.select_from_input() in read_config()
-select_wiki_list_type_from_input = True
-# select_wiki_list_type_from_input = False  # TODO
+# get arg 2 safely
+sys_arg_wiki_list = sys.argv[2] if len(sys.argv) > 2 else None
 
-# If select_wiki_list_type_from_input is False, set g_wiki_list_type here
-g_wiki_list_type = WIKI_LIST_TYPE_DICT["1"]  # TODO
-
-if len(sys.argv) > 2 and sys.argv[2]:
-    if sys.argv[2] in WIKI_LIST_TYPE_DICT:
-        g_wiki_list_type = WIKI_LIST_TYPE_DICT[sys.argv[2]]
-        select_wiki_list_type_from_input = False
-
-SELECT_WIKI_LIST_TYPE_FROM_INPUT = select_wiki_list_type_from_input
+if sys_arg_wiki_list and sys_arg_wiki_list in WIKI_LIST_TYPE_DICT:
+    g_wiki_list_type: str = WIKI_LIST_TYPE_DICT[sys_arg_wiki_list]
+    SELECT_WIKI_LIST_TYPE = False
+else:
+    if _config.DEFAULT_WIKI_LIST_TYPE not in WIKI_LIST_TYPE_DICT:
+        NewtCons.error_msg(
+            f"WIKI_LIST_TYPE_DICT.keys: {WIKI_LIST_TYPE_DICT.keys()}",
+            location="mwparser.global : DEFAULT_WIKI_LIST_TYPE"
+        )
+    # g_wiki_list_type = NewtUtil.select_from_input() in read_current_config()
+    g_wiki_list_type: str = WIKI_LIST_TYPE_DICT[_config.DEFAULT_WIKI_LIST_TYPE]
+    SELECT_WIKI_LIST_TYPE = _config.SELECT_WIKI_LIST_TYPE
 
 # ==============================================================================
-
-g_namespace_types: dict = {}
-
-# g_namespace_nr = NewtUtil.select_from_input() in read_config()
-select_namespace_nr_from_input = True
-# select_namespace_nr_from_input = False  # TODO
-
-# If select_namespace_nr_from_input is False, set namespace_nr_int here
-g_namespace_nr: int = 0  # TODO
 
 if len(sys.argv) > 3 and sys.argv[3]:
     try:
-        int(sys.argv[3])
+        g_namespace_nr: int = int(sys.argv[3])
     except ValueError as e:
         NewtCons.error_msg(
             f"ValueError: {e}",
-            location="global.namespace_nr_int"
+            location="mwparser.global : g_namespace_nr"
         )
+    SELECT_NAMESPACE_NR = False
+else:
+    # g_namespace_nr = NewtUtil.select_from_input() in read_current_config()
+    g_namespace_nr: int = _config.DEFAULT_NAMESPACE_NR
+    SELECT_NAMESPACE_NR = _config.SELECT_NAMESPACE_NR
 
-    g_namespace_nr = int(sys.argv[3])
-    select_namespace_nr_from_input = False
-
-SELECT_NAMESPACE_NR_FROM_INPUT = select_namespace_nr_from_input
-
-# ==============================================================================
-
-# If APCONTINUE_PARAM is not empty, set apcontinue value here
-# Extended functionality in prep_headers_params_for_url()
-# params.update({"apcontinue": APCONTINUE_PARAM})
-APCONTINUE_PARAM = ""  # TODO
+# Need for global scope
+g_namespace_types: dict = {}
 
 # ==============================================================================
 
-SETTING_INDEX_START = 0  # TODO
-# in read_config()
-
-# max 50 pages per MediaWiki Settings for no admin users
-SETTING_INDEX_MAX_PAGES = 50  # TODO
-# in get_json_from_url()
-
-# max 25 titles per MediaWiki Settings for no admin users
-SETTING_INDEX_MAX_TITLES = 25  # TODO
-# in get_json_from_url()
-
-# max 8 MB for images to avoid downloading very large files that may cause issues
-SETTING_IMAGE_MAX_MB_SIZE = 8  # TODO
-# in restructure_json_savefiles()
+if _config.ALLPAGES_APCONTINUE_NS:
+    NewtCons.error_msg(
+        f" !!! DON'T FORGET ABOUT ALLPAGES_APCONTINUE_NS = {_config.ALLPAGES_APCONTINUE_NS} !!! ",
+        location="ALLPAGES_APCONTINUE_NS",
+        stop=False
+    )
+    input("OK?")
 
 # ==============================================================================
 
-PRINT_LOG = True
-# PRINT_LOG = False  # TODO
-
-SAVE_LOG = True
-# SAVE_LOG = False  # TODO
-
-FETCH_MODE = "auto"
-# FETCH_MODE = "alert"
-# FETCH_MODE = "manual"
+# in read_current_config()
+if _config.BATCH_START_INDEX_DEFAULT > 0:
+    NewtCons.error_msg(
+        f" !!! DON'T FORGET ABOUT BATCH_START_INDEX_DEFAULT = {_config.BATCH_START_INDEX_DEFAULT} !!! ",
+        location="BATCH_START_INDEX_DEFAULT",
+        stop=False
+    )
+    input("OK?")
 
 # ==============================================================================
 
@@ -224,7 +204,7 @@ def fetch_data_from_mediawiki(
         ) -> str | bool:
 
     headers: dict[str, str] = {
-        "User-Agent": "MyGuildWarsBot/1.3 (burova.anna+mwparser@gmail.com)",
+        "User-Agent": "MyGuildWarsBot/1.5 (burova.anna+mwparser@gmail.com)",
         "Accept-Encoding": "gzip",
     }
 
@@ -238,10 +218,15 @@ def fetch_data_from_mediawiki(
 
     params.update(additional_params)
 
+    print()
     data_from_url = NewtNet.fetch_data_from_url(
-        base_url, headers, params,
-        mode=FETCH_MODE, print_log=PRINT_LOG
+        base_url,
+        headers,
+        params,
+        mode=_config.FETCH_MODE,
+        print_log=_config.PRINT_LOG
     )
+    print()
 
     return data_from_url
 
@@ -249,7 +234,7 @@ def fetch_data_from_mediawiki(
 def create_namespace_types_file(
         base_url: str,
         file_namespace_types: str
-        ):
+        ) -> None:
 
     namespace_types_params: dict[str, str] = {
         "meta": "siteinfo",
@@ -280,8 +265,11 @@ def create_namespace_types_file(
         location="mwparser.create_namespace_types_file : data_json[query]"
     )
 
-    namespaces = {}
+    json_query_namespaces = {}
     for ns_nr, ns_data in data_json["query"]["namespaces"].items():
+
+        if int(ns_nr) < 0:
+            continue
 
         if ns_data["name"] == "":
             ns_data["name"] = "Main"
@@ -289,35 +277,51 @@ def create_namespace_types_file(
             ns_data["name"] = "Main Talk"
 
         if all(key in ns_data for key in [
-            "canonical", "namespaceprotection", "defaultcontentmodel"
-        ]):
+                "canonical",
+                "namespaceprotection",
+                "defaultcontentmodel",
+                ]):
             NewtUtil.check_dict_keys(
-                ns_data, {"id", "case", "name", "subpages", "content", "nonincludable",
-                          "canonical", "namespaceprotection", "defaultcontentmodel"},
+                ns_data, {
+                    "id", "case", "name", "subpages", "content", "nonincludable",
+                    "canonical", "namespaceprotection", "defaultcontentmodel"
+                },
                 location="mwparser.create_namespace_types_file : data_json[query][namespaces]"
                     + " + namespaceprotection + defaultcontentmodel"
             )
 
-        elif all(key in ns_data for key in ["canonical", "namespaceprotection"]):
+        elif all(key in ns_data for key in [
+                "canonical",
+                "namespaceprotection",
+                ]):
             NewtUtil.check_dict_keys(
-                ns_data, {"id", "case", "name", "subpages", "content", "nonincludable",
-                          "canonical", "namespaceprotection"},
+                ns_data, {
+                    "id", "case", "name", "subpages", "content", "nonincludable",
+                    "canonical", "namespaceprotection"
+                },
                 location="mwparser.create_namespace_types_file : data_json[query][namespaces]"
                     + " + namespaceprotection"
             )
 
-        elif all(key in ns_data for key in ["canonical", "defaultcontentmodel"]):
+        elif all(key in ns_data for key in [
+                "canonical",
+                "defaultcontentmodel",
+                ]):
             NewtUtil.check_dict_keys(
-                ns_data, {"id", "case", "name", "subpages", "content", "nonincludable",
-                          "canonical", "defaultcontentmodel"},
+                ns_data, {
+                    "id", "case", "name", "subpages", "content", "nonincludable",
+                    "canonical", "defaultcontentmodel"
+                },
                 location="mwparser.create_namespace_types_file : data_json[query][namespaces]"
                     + " + defaultcontentmodel"
             )
 
         elif "canonical" in ns_data:
             NewtUtil.check_dict_keys(
-                ns_data, {"id", "case", "name", "subpages", "content", "nonincludable",
-                          "canonical"},
+                ns_data, {
+                    "id", "case", "name", "subpages", "content", "nonincludable",
+                    "canonical"
+                },
                 location="mwparser.create_namespace_types_file : data_json[query][namespaces]"
                     + " + canonical"
             )
@@ -328,7 +332,7 @@ def create_namespace_types_file(
                 location="mwparser.create_namespace_types_file : data_json[query][namespaces]"
                     + " + else"
             )
-            namespaces[str(ns_nr)] = ns_data["name"]
+            json_query_namespaces[str(ns_nr)] = ns_data["name"]
             continue
 
         if ns_data["canonical"] == "":
@@ -337,107 +341,109 @@ def create_namespace_types_file(
             ns_data["canonical"] = "Main Talk"
 
         if ns_data["name"] == ns_data["canonical"]:
-            namespaces[str(ns_nr)] = ns_data["name"]
+            json_query_namespaces[str(ns_nr)] = ns_data["name"]
         else:
-            namespaces[str(ns_nr)] = f"{ns_data["name"]} ({ns_data["canonical"]})"
+            json_query_namespaces[str(ns_nr)] = f"{ns_data["name"]} ({ns_data["canonical"]})"
 
-    NewtFiles.save_json_to_file(file_namespace_types, namespaces)
+    NewtFiles.save_json_to_file(file_namespace_types, json_query_namespaces)
 
 
-def check_todo(
-        ) -> list[tuple[str, str, str]]:
-    """ Check for missing log files based on existing config files and return a list of tasks to do. """
+def create_todo_list(
+        ) -> list[tuple[str, str, str | None, str | None]]:
 
-    todo_list: list[tuple] = []
+    todo_list: list[tuple[str, str, str | None, str | None]] = []
 
-    for p_file in os.listdir(FOLDER_PROJECT_CONFIGS):
-        file_project_config = os.path.join(FOLDER_PROJECT_CONFIGS, p_file)
+    for proj_config in os.listdir(FOLDER_PROJECT_CONFIGS):
+        file_config = os.path.join(FOLDER_PROJECT_CONFIGS, proj_config)
 
         # Skip if it's not a file (e.g., directory)
-        if not os.path.isfile(file_project_config):
+        if not os.path.isfile(file_config):
             continue
 
         # Skip non-config files
-        if not p_file.endswith(".json"):
+        if not proj_config.endswith(".json"):
             NewtCons.error_msg(
-                f"Found non-config file: {p_file}",
-                location="mwparser.check_todo : not p_file.endswith(.json)",
-                stop=False
+                f"Found non-config file: {proj_config}",
+                f"Folder: {FOLDER_PROJECT_CONFIGS}",
+                location="mwparser.create_todo_list : proj_config not endswith(json)"
             )
             continue
 
         # Skip specific config example file
-        if p_file == "xxx.json":
+        if proj_config == "xxx.json":
             continue
 
         # Get settings from config file
-        json_file_settings = NewtFiles.read_json_from_file(file_project_config, print_log=PRINT_LOG)
+        proj_settings = NewtFiles.read_json_from_file(file_config, print_log=_config.PRINT_LOG)
         NewtCons.validate_type(
-            json_file_settings, dict, check_non_empty=True,
-            location="mwparser.check_todo : json_file_settings"
+            proj_settings, dict, check_non_empty=True,
+            location="mwparser.create_todo_list : proj_settings"
         )
-        assert isinstance(json_file_settings, dict)  # for type checker
+        assert isinstance(proj_settings, dict)  # for type checker
 
-        # Check required keys in json_file_settings
+        # Check required keys in proj_settings
         NewtUtil.check_dict_keys(
-            json_file_settings, {"FOLDER_LINK", "BASE_URL"},
-            location="mwparser.check_todo : json_file_settings"
+            proj_settings, {"FOLDER_LINK", "BASE_URL"},
+            location="mwparser.create_todo_list : proj_settings"
         )
 
-        for value in json_file_settings.values():
+        for setting_value in proj_settings.values():
             NewtCons.validate_type(
-                value, str, check_non_empty=True,
-                location="mwparser.check_todo : json_file_settings[value]"
+                setting_value, str, check_non_empty=True,
+                location="mwparser.create_todo_list : proj_settings[setting_value]"
             )
 
         # Check if namespace_types.json exists for the config
         file_namespace_types = os.path.join(
-            DIR_GLOBAL, json_file_settings["FOLDER_LINK"], FILE_SCHEMAS_NAMESPACES)
+            DIR_GLOBAL, proj_settings["FOLDER_LINK"], FILE_SCHEMAS_NAMESPACES
+        )
 
         if not NewtFiles.check_file_exists(file_namespace_types, stop=False):
-            create_namespace_types_file(json_file_settings["BASE_URL"], file_namespace_types)
+            create_namespace_types_file(proj_settings["BASE_URL"], file_namespace_types)
 
         if not os.path.isfile(file_namespace_types):
             NewtCons.error_msg(
-                f"Missing namespace_types.json for config: {p_file}",
+                f"Missing namespace_types.json for config: {proj_config}",
                 f"File must be here: {file_namespace_types}",
-                location="mwparser.check_todo : namespace_types.json missing"
+                location="mwparser.create_todo_list : namespace_types.json missing"
             )
 
         # Get namespace types from file
-        namespace_dict = NewtFiles.read_json_from_file(file_namespace_types, print_log=PRINT_LOG)
+        namespace_dict = NewtFiles.read_json_from_file(file_namespace_types, print_log=_config.PRINT_LOG)
         NewtCons.validate_type(
             namespace_dict, dict, check_non_empty=True,
-            location="mwparser.check_todo : namespace_dict"
+            location="mwparser.create_todo_list : namespace_dict"
         )
         assert isinstance(namespace_dict, dict)  # for type checker
 
         # Calculate max key length from namespace types for formatting
-        ns_dict_key_len = len(max(namespace_dict.keys(), key=len))
+        ns_max_key_len = len(max(namespace_dict.keys(), key=len))
 
         # Check folder with logs to find missing logs for todo
         folder_with_logs = os.path.join(
-            DIR_GLOBAL, json_file_settings["FOLDER_LINK"], FOLDER_LOGS)
+            DIR_GLOBAL, proj_settings["FOLDER_LINK"], FOLDER_LOGS
+        )
 
         # Check if each wiki list type has log file
         for wiki_list_type in WIKI_LIST_TYPE_DICT.values():
-
             # This types has sub log for each namespace
-            if wiki_list_type in ("allpages", "pageids"):
+            if wiki_list_type in (
+                    "allpages",
+                    "pageids",
+                    ):
                 for ns_key, ns_value in namespace_dict.items():
-                    file_wiki_log = f"{wiki_list_type}-{int(ns_key):0{ns_dict_key_len}d}.txt"
+                    file_wiki_log = f"{wiki_list_type}-{int(ns_key):0{ns_max_key_len}d}.txt"
                     path_wiki_log = os.path.join(folder_with_logs, file_wiki_log)
                     if not os.path.isfile(path_wiki_log):
-                        todo_list.append((p_file, wiki_list_type, ns_key, ns_value))
+                        todo_list.append((proj_config, wiki_list_type, ns_key, ns_value))
 
             # Other types dont have sub logs, only 1
             else:
-                file_wiki_log = f"{wiki_list_type}.txt"
-                path_wiki_log = os.path.join(folder_with_logs, file_wiki_log)
+                path_wiki_log = os.path.join(folder_with_logs, f"{wiki_list_type}.txt")
                 if not os.path.isfile(path_wiki_log):
-                    todo_list.append((p_file, wiki_list_type, None, None))
+                    todo_list.append((proj_config, wiki_list_type, None, None))
 
-    if todo_list and PRINT_LOG:
+    if todo_list and _config.PRINT_LOG:
         print()
         print("=== TODO LIST ===")
         todo_list.reverse()
@@ -447,200 +453,180 @@ def check_todo(
     return todo_list
 
 
-def read_config(
+def read_current_config(
+        todo_list: list[tuple[str, str, str | None, str | None]]
         ) -> dict:
-    """Read configuration from a selected JSON file."""
 
     global g_file_config
     global g_wiki_list_type
     global g_namespace_types
     global g_namespace_nr
 
-    # Select WIKI Project ------------------------------------------------------
+    # --------------------------------------------------------------------------
+    # Select WIKI Project
     # Settings are at file beginning of script
     if SELECT_CONFIG_FROM_FOLDER:
-        count_file_config = NewtUtil.count_values_by_position(TODO_LIST, 0)
+        count_file_config = NewtUtil.count_values_by_position(
+            todo_list,
+            position = 0
+        )
 
         g_file_config = NewtFiles.choose_file_from_folder(
             FOLDER_PROJECT_CONFIGS,
             count_file_config
         )
 
-    NewtCons.validate_type(
-        g_file_config, str, check_non_empty=True,
-        location="mwparser.read_config : g_file_config"
-    )
-    assert isinstance(g_file_config, str)  # for type checker
-
     # Get settings content from config file
-    # Its structure is already checked in check_todo() function, so we can be sure it has all required keys and values
+    # Its structure is already checked in create_todo_list() function
+    # And file exists, so we can be sure it has all required keys and values
     path_config_file = os.path.join(FOLDER_PROJECT_CONFIGS, g_file_config)
 
-    json_settings = NewtFiles.read_json_from_file(path_config_file)
+    settings = NewtFiles.read_json_from_file(path_config_file, print_log=_config.PRINT_LOG)
     NewtCons.validate_type(
-        json_settings, dict, check_non_empty=True,
-        location="mwparser.read_config : json_settings"
+        settings, dict, check_non_empty=True,
+        location="mwparser.read_current_config : settings"
     )
-    assert isinstance(json_settings, dict)  # for type checker
+    assert isinstance(settings, dict)  # for type checker
 
-    # Select WIKI Data Type ----------------------------------------------------
-    if SELECT_WIKI_LIST_TYPE_FROM_INPUT:
+    # --------------------------------------------------------------------------
+    # Select WIKI Data Type
+    if SELECT_WIKI_LIST_TYPE:
         count_wiki_list_types = NewtUtil.count_values_by_position(
-            [todo for todo in TODO_LIST if todo[0] == g_file_config], 1
+            [todo for todo in todo_list if todo[0] == g_file_config],
+            position = 1
         )
 
         wiki_list_type_nr = NewtUtil.select_from_input(WIKI_LIST_TYPE_DICT, count_wiki_list_types)
         NewtCons.validate_type(
             wiki_list_type_nr, str, check_non_empty=True,
-            location="mwparser.read_config : wiki_list_type_nr"
+            location="mwparser.read_current_config : wiki_list_type_nr"
         )
         assert isinstance(wiki_list_type_nr, str)  # for type checker
+
         g_wiki_list_type = WIKI_LIST_TYPE_DICT[wiki_list_type_nr]
 
-    NewtCons.validate_type(
-        g_wiki_list_type, str, check_non_empty=True,
-        location="mwparser.read_config : g_wiki_list_type"
-    )
-    assert isinstance(g_wiki_list_type, str)  # for type checker
-
+    # --------------------------------------------------------------------------
+    # Put namespace types into global scope
     json_namespace_types = NewtFiles.read_json_from_file(
-        os.path.join(DIR_GLOBAL, json_settings["FOLDER_LINK"], FILE_SCHEMAS_NAMESPACES)
+        os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_SCHEMAS_NAMESPACES),
+        print_log=_config.PRINT_LOG
     )
     NewtCons.validate_type(
         json_namespace_types, dict, check_non_empty=True,
-        location="mwparser.read_config : json_namespace_types"
+        location="mwparser.read_current_config : json_namespace_types"
     )
-
-    # Calculate max key length from namespace types for formatting
-    settings["ns_dict_key_len"] = len(max(g_namespace_types.keys(), key=len))
     assert isinstance(json_namespace_types, dict)  # for type checker
+
     g_namespace_types = json_namespace_types
 
-    # Select Namespace Number if needed (for types with multiple namespaces) ---
+    # --------------------------------------------------------------------------
+    # Select Namespace Number if needed (for types with multiple namespaces)
     if g_wiki_list_type in (
-        "allpages",
-        "pageids",
-    ):
-        if SELECT_NAMESPACE_NR_FROM_INPUT:
+            "allpages",
+            "pageids",
+            ):
+        if SELECT_NAMESPACE_NR:
             count_namespace_types = NewtUtil.count_values_by_position(
-                [todo for todo in TODO_LIST if todo[0] == g_file_config and todo[1] == g_wiki_list_type], 3
+                [todo for todo in todo_list
+                if todo[0] == g_file_config and todo[1] == g_wiki_list_type],
+                position = 3
             )
 
             namespace_types_nr = NewtUtil.select_from_input(g_namespace_types, count_namespace_types)
 
             NewtCons.validate_type(
                 namespace_types_nr, str, check_non_empty=True,
-                location="mwparser.read_config : namespace_types_nr"
+                location="mwparser.read_current_config : namespace_types_nr"
             )
             assert isinstance(namespace_types_nr, str)  # for type checker
             g_namespace_nr = int(namespace_types_nr)
 
-    elif g_wiki_list_type == "savefiles":
-        namespace_for_files = "File"
-        keys = [key for key, val in g_namespace_types.items() if val == namespace_for_files]
+    # Calculate max key length from namespace types for formatting
+    settings["ns_max_key_len"] = len(max(g_namespace_types.keys(), key=len))
 
-        if len(keys) != 1:
-            NewtCons.error_msg(
-                f"Unexpected result of namespaces with value '{namespace_for_files}':",
-                f"Keys: {keys}",
-                location="mwparser.read_config : savefiles"
-            )
-        g_namespace_nr = int(keys[0])
+    # --------------------------------------------------------------------------
+    # Set index start for batch results
+    if g_wiki_list_type in (
+            "pageids",
+            "pagesrecent",
+            "savefiles",
+            ):
+        settings["index_start"] = _config.BATCH_START_INDEX_DEFAULT
 
-    match g_wiki_list_type:
-        case "allpages":
-            settings["file_name"] = os.path.join("allpages", f"{g_namespace_nr:0{settings['ns_dict_key_len']}d}.csv")
-
-        case "pageids":
+    # --------------------------------------------------------------------------
+    # Get Page IDs from allpages
+    if g_wiki_list_type == "pageids":
+        if _config.BATCH_START_INDEX_DEFAULT == 0 and _config.DELETE_FOLDERS:
             for folder_type in (FOLDER_RAW_PAGES, FOLDER_RAW_REDIRECT, FOLDER_RAW_REMOVED):
                 folder_to_remove = os.path.join(
-                    DIR_GLOBAL, settings["FOLDER_LINK"], folder_type,
-                    str(g_namespace_nr).zfill(settings["ns_dict_key_len"])
+                    DIR_GLOBAL,
+                    settings["FOLDER_LINK"],
+                    folder_type,
+                    f"{g_namespace_nr:0{settings['ns_max_key_len']}d}"
                 )
                 if os.path.isdir(folder_to_remove):
                     print(f"Removing folder: {folder_to_remove}")
                     shutil.rmtree(folder_to_remove)
+                    print()
 
-            settings["index_start"] = SETTING_INDEX_START
-            path_allpages = os.path.join(
-                DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LISTS,
-                "allpages", f"{g_namespace_nr:0{settings['ns_dict_key_len']}d}.csv"
-            )
-            list_allpages = NewtFiles.read_csv_from_file(path_allpages)
+        path_allpages = os.path.join(
+            DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LISTS,
+            "allpages", f"{g_namespace_nr:0{settings['ns_max_key_len']}d}.csv"
+        )
+        list_allpages = NewtFiles.read_csv_from_file(path_allpages)
+        NewtCons.validate_type(
+            list_allpages, list, check_non_empty=True,
+            location="mwparser.read_current_config : list_allpages"
+        )
+        assert isinstance(list_allpages, list)  # for type checker
 
-            NewtCons.validate_type(
-                list_allpages, list, check_non_empty=True,
-                location="mwparser.read_config : list_allpages"
-            )
-            assert isinstance(list_allpages, list)  # for type checker
+        # skip header and get only ids from first column
+        settings["page_ids"] = sorted([int(row[0]) for row in list_allpages[1:]])
 
-            # skip header and get only ids from first column
-            settings["page_ids"] = sorted([int(row[0]) for row in list_allpages[1:]])
+    # --------------------------------------------------------------------------
+    # Get Page IDs from recentchanges
+    elif g_wiki_list_type == "pagesrecent":
+        path_recentchanges = os.path.join(
+            DIR_GLOBAL, settings["FOLDER_LINK"], FILE_LISTS_RECENTCHANGES
+        )
+        list_recentchanges = NewtFiles.read_csv_from_file(path_recentchanges)
+        NewtCons.validate_type(
+            list_recentchanges, list, check_non_empty=True,
+            location="mwparser.read_current_config : list_recentchanges"
+        )
+        assert isinstance(list_recentchanges, list)  # for type checker
 
-        case "recentchanges":
-            settings["file_name"] = FILE_LISTS_RECENTCHANGES
+        # skip header and get only ids from second column, filter out 0, check unique and sort
+        settings["page_ids"] = sorted(list(set(
+            [int(row[1]) for row in list_recentchanges[1:] if int(row[1]) > 0]
+        )))
 
-        case "pagesrecent":
-            settings["index_start"] = SETTING_INDEX_START
-            path_recentchanges = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_LISTS_RECENTCHANGES)
-            list_recentchanges = NewtFiles.read_csv_from_file(path_recentchanges)
+    # --------------------------------------------------------------------------
+    # Get Page IDs for Files from allpages
+    elif g_wiki_list_type == "savefiles":
+        g_namespace_nr = 6  # Standard Files Namespace
 
-            NewtCons.validate_type(
-                list_recentchanges, list, check_non_empty=True,
-                location="mwparser.read_config : list_recentchanges"
-            )
-            assert isinstance(list_recentchanges, list)  # for type checker
+        path_allpages = os.path.join(
+            DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LISTS,
+            "allpages", f"{g_namespace_nr:0{settings['ns_max_key_len']}d}.csv"
+        )
+        list_files = NewtFiles.read_csv_from_file(path_allpages)
+        NewtCons.validate_type(
+            list_files, list, check_non_empty=True,
+            location="mwparser.read_current_config : list_files"
+        )
+        assert isinstance(list_files, list)  # for type checker
 
-            # skip header and get only ids from second column, convert them to int, filter out 0, check unique and sort
-            settings["page_ids"] = sorted(list(set([int(row[1]) for row in list_recentchanges[1:] if int(row[1]) > 0])))
-
-        case "savefiles":
-            settings["index_start"] = SETTING_INDEX_START
-            path_allpages = os.path.join(
-                DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LISTS,
-                "allpages", f"{g_namespace_nr:0{settings['ns_dict_key_len']}d}.csv"
-            )
-            list_files = NewtFiles.read_csv_from_file(path_allpages)
-
-            NewtCons.validate_type(
-                list_files, list, check_non_empty=True,
-                location="mwparser.read_config : list_files"
-            )
-            assert isinstance(list_files, list)  # for type checker
-
-            # skip header
-            settings["files_titles"] = sorted([str(row[1]) for row in list_files[1:]])
-
-        case _:
-            NewtCons.error_msg(
-                f"Unexpected g_wiki_list_type: {g_wiki_list_type}",
-                location="mwparser.read_config : match g_wiki_list_type default case"
-            )
+        # skip header and get only file titles from second column
+        settings["files_titles"] = sorted([str(row[1]) for row in list_files[1:]])
 
     return settings
 
 
-def prep_headers_params_for_url(
-        ) -> tuple:
-    """Set headers and parameters for the URL request based on settings."""
+def prep_params_for_url(
+        ) -> dict:
 
-    global time_start
-    global time_end
-    global g_wiki_list_type
-    global g_namespace_nr
-
-    headers = {
-        "User-Agent": "MyGuildWarsBot/1.2 (burova.anna+parser+bot@gmail.com)",
-        "Accept-Encoding": "gzip",
-    }
-
-    params = {
-        "action": "query",
-        "format": "json",
-        "maxlag": "2",
-        "utf8": "true",
-        "formatversion": "2",
-    }
+    params = {}
 
     match g_wiki_list_type:
         case "allpages":
@@ -648,7 +634,10 @@ def prep_headers_params_for_url(
             params.update({"aplimit": "max"})
             params.update({"apnamespace": str(g_namespace_nr)})
 
-        case "pageids" | "pagesrecent":
+            if _config.ALLPAGES_APCONTINUE_PARAM and _config.ALLPAGES_APCONTINUE_NS == g_namespace_nr:
+                params.update({"apcontinue": _config.ALLPAGES_APCONTINUE_PARAM})
+
+        case "pageids":
             params.update({"prop": "revisions"})
             params.update({"rvprop": "content"})
             params.update({"rvslots": "*"})
@@ -657,8 +646,13 @@ def prep_headers_params_for_url(
             params.update({"list": "recentchanges"})
             params.update({"rcnamespace": "*"})
             params.update({"rclimit": "max"})
-            params.update({"rcstart": str(time_start)})
-            params.update({"rcend": str(time_end)})
+            params.update({"rcstart": str(TIME_START)})
+            params.update({"rcend": str(TIME_END)})
+
+        case "pagesrecent":
+            params.update({"prop": "revisions"})
+            params.update({"rvprop": "content"})
+            params.update({"rvslots": "*"})
 
         case "savefiles":
             params.update({"maxlag": "5"})
@@ -668,153 +662,128 @@ def prep_headers_params_for_url(
         case _:
             NewtCons.error_msg(
                 f"Unexpected config type: {g_wiki_list_type}",
-                location="mwparser.prep_headers_params_for_url : g_wiki_list_type default case"
+                location="mwparser.prep_params_for_url : g_wiki_list_type default case"
             )
 
-    if g_wiki_list_type == "allpages":
-        if APCONTINUE_PARAM:
-            params.update({"apcontinue": APCONTINUE_PARAM})
-
-    return (headers, params)
+    return params
 
 
 def get_blocked_set(
+        settings: dict[str, str]
         ) -> set[str]:
-    """Read blocked list from file and return as a set."""
 
     blocked_set = set()
     path_file_blocked = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_LISTS_BLOCKED)
-    blocked_list = NewtFiles.read_text_from_file(path_file_blocked)
-    print()
+
+    if not NewtFiles.check_file_exists(path_file_blocked, stop=False):
+        NewtFiles.save_text_to_file(
+            path_file_blocked,
+            "",
+            append=False,
+            print_log=_config.PRINT_LOG
+        )
+
+    blocked_list = NewtFiles.read_text_from_file(path_file_blocked, print_log=_config.PRINT_LOG)
 
     if blocked_list:
         for line in blocked_list.splitlines():
             line = line.strip()
-            if line:
+            if line and not line.startswith("!"):
                 blocked_set.add(line)
 
     return blocked_set
 
 
 def get_json_from_url(
-        continue_page_wiki: str | None = None,
-        continue_page_backup: str | None = None
+        settings: dict[str, str],
+        additional_params: dict[str, str]
         ) -> dict:
-    """Fetch JSON data from a URL based on settings and save to file."""
-
-    global g_wiki_list_type
-    global g_namespace_types
 
     path_file_blocked = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_LISTS_BLOCKED)
-    continue_page_for_block = None
 
-    headers, params = headers_params_for_url
-
-    match g_wiki_list_type:
-        case "allpages":
-            if continue_page_wiki is not None:
-                # continue_page_wiki - current page title from wiki
-                # continue_page_backup - previous page title from wiki, we saved in case current page is blocked
-                # continue_page_for_block - what we will block incase no result
-                continue_page_wiki = continue_page_wiki.replace(" ", "_")
-                continue_page_for_block = continue_page_wiki
-                if continue_page_wiki in BLOCKED_SET and continue_page_backup is not None:
-                    print(continue_page_wiki)
-                    continue_page_wiki = continue_page_backup.replace(" ", "_")
-                    continue_page_for_block = continue_page_wiki
-
-                print(continue_page_wiki)
-                # Only without left and sep parts it will work in continue
-                left_part, sep_part, right_part = continue_page_wiki.partition(":")
-                if sep_part and left_part in set(g_namespace_types.values()):
-                    continue_page_wiki = right_part
-
-                params.update({"apcontinue": continue_page_wiki})
-
-        case "pageids" | "pagesrecent":
-            if len(settings["page_ids"]) == 0:
-                print()
-                print("No pages to process. Empty list.")
-                return {}
-
-            index_start = settings["index_start"]
-            index_max = SETTING_INDEX_MAX_PAGES
-            index_end = index_start + index_max
-
-            if len(settings["page_ids"]) < index_start:
-                print()
-                print("No more pages to process.")
-                return {}
-
-            params.update({"pageids": "|".join(
-                map(str, settings["page_ids"][index_start:index_end])
-            )})
-            settings["index_start"] = index_end
-
+    if g_wiki_list_type in (
+            "pageids",
+            "pagesrecent",
+            ):
+        if len(settings["page_ids"]) == 0:
             print()
-            print(f"Processing page IDs from index {index_start} to {index_end}")
-            print(f"Progress max index: {len(settings['page_ids'])}")
-            print(f"Processing current page: {index_start / index_max}")
-            print(f"Progress max pages: {len(settings['page_ids']) / index_max}")
+            print("No pages to process. Empty list.")
+            return {}
+
+        index_start = int(settings["index_start"])
+        index_max = _config.BATCH_MAX_PAGE_IDS
+        index_end = index_start + index_max
+
+        if len(settings["page_ids"]) < index_start:
             print()
+            print("No more pages to process. Done.")
+            return {}
 
-        case "recentchanges":
-            if continue_page_wiki is not None:
-                print(continue_page_wiki)
-                params.update({"rccontinue": continue_page_wiki})
-
-        case "savefiles":
-            if len(settings["files_titles"]) == 0:
-                print()
-                print("No images to process. Empty list.")
-                return {}
-
-            index_start = settings["index_start"]
-            index_max = SETTING_INDEX_MAX_TITLES
-            index_end = index_start + index_max
-
-            if len(settings["files_titles"]) < index_start:
-                print()
-                print("No more images to process.")
-                return {}
-
-            params.update({"titles": "|".join(
-                map(str, settings["files_titles"][index_start:index_end])
-            )})
-            settings["index_start"] = index_end
-
+        if len(settings["page_ids"][index_start:index_end]) == 0:
             print()
-            print(f"Processing images IDs from index {index_start} to {index_end}")
-            print(f"Progress max index: {len(settings['files_titles'])}")
-            print(f"Processing current images: {index_start / index_max}")
-            print(f"Progress max pages: {len(settings['files_titles']) / index_max}")
+            print("No more pages to process. Done.")
+            return {}
+
+        additional_params.update({"pageids": "|".join(
+            map(str, settings["page_ids"][index_start:index_end])
+        )})
+
+        settings["index_start"] = str(index_end)
+
+        print()
+        print(f"Processing page IDs from index {index_start} to {index_end}")
+        print(f"    Max index: {len(settings['page_ids'])}")
+        print(f"Processing current page: {index_start / index_max}")
+        print(f"    Max pages: {len(settings['page_ids']) / index_max}")
+
+    elif g_wiki_list_type == "savefiles":
+        if len(settings["files_titles"]) == 0:
             print()
+            print("No images to process. Empty list.")
+            return {}
 
-        case _:
-            NewtCons.error_msg(
-                f"Unexpected config type: {g_wiki_list_type}",
-                location="mwparser.get_json_from_url : g_wiki_list_type default case"
-            )
+        index_start = int(settings["index_start"])
+        index_max = _config.BATCH_MAX_IMAGE_TITLES
+        index_end = index_start + index_max
 
-    data_from_url = NewtNet.fetch_data_from_url(
-        settings["BASE_URL"], params, headers,
-        mode="auto", print_log=PRINT_LOG
+        if len(settings["files_titles"]) < index_start:
+            print()
+            print("No more images to process. Done.")
+            return {}
+
+        if len(settings["files_titles"][index_start:index_end]) == 0:
+            print()
+            print("No more images to process. Done.")
+            return {}
+
+        additional_params.update({"titles": "|".join(
+            map(str, settings["files_titles"][index_start:index_end])
+        )})
+
+        settings["index_start"] = str(index_end)
+
+        print()
+        print(f"Processing images IDs from index {index_start} to {index_end}")
+        print(f"    Max index: {len(settings['files_titles'])}")
+        print(f"Processing current page: {index_start / index_max}")
+        print(f"    Max pages: {len(settings['files_titles']) / index_max}")
+
+    data_from_url = fetch_data_from_mediawiki(
+        settings["BASE_URL"],
+        additional_params
     )
-    print()
 
-    # None data mostly comes from 403 Forbidden error, so we save continue_page_for_block to blocked list and skip it next time
-    if not data_from_url:
-        if continue_page_for_block is not None:
+    # None data mostly comes from 403 Forbidden error, so we save apcontinue to blocked list and skip it next time
+    if data_from_url is False:
+        if "apcontinue" in additional_params:
+            clean_apcontinue = remove_gremlins_from_names(
+                g_namespace_types[str(g_namespace_nr)]+":"+additional_params["apcontinue"]
+            )
             NewtFiles.save_text_to_file(
                 path_file_blocked,
-                continue_page_for_block,
+                clean_apcontinue,
                 append=True
             )
-
-        NewtCons.error_msg(
-            "Failed to read JSON result, exiting",
-            location="mwparser.get_json_from_url : data_from_url=False"
-        )
 
     NewtCons.validate_type(
         data_from_url, str, check_non_empty=True,
@@ -829,70 +798,66 @@ def get_json_from_url(
         # so we need to try to split request into pieces, if possible, to be sure it will return all data
         data_from_url_chunks = {"batchcomplete": True, "query": {"pages": []}}
 
-        if g_wiki_list_type in (
-                "pageids",
-                "pagesrecent",
-                ):
-            for index_range in range(index_start, index_end):
-                if len(settings["page_ids"]) <= index_range:
-                    break
+        match g_wiki_list_type:
+            case "pageids" | "pagesrecent":
+                for index_range in range(index_start, index_end):
+                    if len(settings["page_ids"]) <= index_range:
+                        break
 
-                params.update({"pageids": str(settings["page_ids"][index_range])})
+                    additional_params.update({"pageids": str(settings["page_ids"][index_range])})
 
-                data_from_url_small = NewtNet.fetch_data_from_url(
-                    settings["BASE_URL"], params, headers,
-                    mode="auto", print_log=PRINT_LOG
-                )
-                print()
-
-                # None data mostly comes from 403 Forbidden error, so we need to catch page id and add it to blocked list to skip it next time
-                if not data_from_url_small:
-                    NewtFiles.save_text_to_file(
-                        path_file_blocked,
-                        f"---> Page ID: {settings['page_ids'][index_range]}",
-                        append=True
-                    )
-                    NewtCons.error_msg(
-                        "Failed to read small JSON result, exiting",
-                        f"Page ID: {settings['page_ids'][index_range]}",
-                        location="mwparser.get_json_from_url : data_from_url_small=False"
+                    data_chunk_from_url = fetch_data_from_mediawiki(
+                        settings["BASE_URL"],
+                        additional_params
                     )
 
-                NewtCons.validate_type(
-                    data_from_url_small, str, check_non_empty=True,
-                    location="mwparser.get_json_from_url : data_from_url_small"
+                    NewtCons.validate_type(
+                        data_chunk_from_url, str, check_non_empty=True,
+                        location="mwparser.get_json_from_url : data_chunk_from_url"
+                    )
+                    assert isinstance(data_chunk_from_url, str)  # for type checker
+
+                    json_chunk_from_url = NewtFiles.convert_str_to_json(data_chunk_from_url)
+
+                    if not NewtCons.validate_type(
+                        json_chunk_from_url, dict, check_non_empty=True, stop=False,
+                        location="mwparser.get_json_from_url : json_chunk_from_url Dict"
+                    ):
+                        NewtCons.validate_type(
+                            json_chunk_from_url, type(None), check_non_empty=True,
+                            location="mwparser.get_json_from_url : json_chunk_from_url None"
+                        )
+
+                        NewtFiles.save_text_to_file(
+                            path_file_blocked,
+                            f"!NoneValueChunk:{g_namespace_nr}:{g_namespace_types[str(g_namespace_nr)]} > {additional_params}",
+                            append=True
+                        )
+                        continue
+
+                    assert isinstance(json_chunk_from_url, dict)  # for type checker
+
+                    NewtUtil.check_dict_keys(
+                        json_chunk_from_url, {"query", "batchcomplete"},
+                        location="mwparser.get_json_from_url : json_chunk_from_url"
+                    )
+
+                    NewtUtil.check_dict_keys(
+                        json_chunk_from_url["query"], {"pages"},
+                        location="mwparser.get_json_from_url : json_chunk_from_url[query]"
+                    )
+
+                    data_from_url_chunks["query"]["pages"].extend(
+                        json_chunk_from_url.get("query", {}).get("pages", [])
+                    )
+
+                json_from_url = data_from_url_chunks
+
+            case _:
+                NewtCons.error_msg(
+                    f"Unexpected config type: {g_wiki_list_type}",
+                    location="mwparser.get_json_from_url : g_wiki_list_type default case"
                 )
-                assert isinstance(data_from_url_small, str)  # for type checker
-
-                json_from_url_small = NewtFiles.convert_str_to_json(data_from_url_small)
-
-                if not NewtCons.validate_type(
-                    json_from_url_small, dict, check_non_empty=True, stop=False,
-                    location="mwparser.get_json_from_url : json_from_url_small != dict"
-                ):
-                    continue
-                assert isinstance(json_from_url_small, dict)  # for type checker
-
-                NewtUtil.check_dict_keys(
-                    json_from_url_small, {"query", "batchcomplete"},
-                    location="mwparser.get_json_from_url : json_from_url_small"
-                )
-
-                NewtUtil.check_dict_keys(
-                    json_from_url_small["query"], {"pages"},
-                    location="mwparser.get_json_from_url : json_from_url_small[query]"
-                )
-
-                data_from_url_chunks["query"]["pages"].extend(
-                    json_from_url_small.get("query", {}).get("pages", [])
-                )
-        else:
-            NewtCons.error_msg(
-                "Failed to read JSON result, exiting",
-                location="mwparser.get_json_from_url : json_from_url=False and not pageids"
-            )
-
-        json_from_url = data_from_url_chunks
 
     NewtCons.validate_type(
         json_from_url, dict, check_non_empty=True,
@@ -904,22 +869,20 @@ def get_json_from_url(
 
 
 def restructure_json_allpages(
-        json_data: dict
-        ) -> tuple[list[str], str]:
-    """Process and save all pages from JSON data."""
-
-    global g_namespace_nr
+        json_data: dict,
+        blocked_set: set
+        ) -> tuple[list[list[str]], str]:
 
     if "continue" in json_data:
         NewtUtil.check_dict_keys(
             json_data, {"query", "batchcomplete", "limits", "continue"},
-            location="mwparser.restructure_json_allpages : json_data"
+            location="mwparser.restructure_json_allpages : json_data + continue"
         )
 
     else:
         NewtUtil.check_dict_keys(
             json_data, {"query", "batchcomplete", "limits"},
-            location="mwparser.restructure_json_allpages : json_data"
+            location="mwparser.restructure_json_allpages : json_data no continue"
         )
 
     NewtUtil.check_dict_keys(
@@ -927,7 +890,7 @@ def restructure_json_allpages(
         location="mwparser.restructure_json_allpages : json_data[query]"
     )
 
-    continue_page_backup = ""
+    title_backup = ""
     allpages_list = []
     allpages_list.append(["pageid", "title"])
     for page in json_data["query"]["allpages"]:
@@ -943,30 +906,25 @@ def restructure_json_allpages(
                 location="mwparser.restructure_json_allpages : page[ns]"
             )
 
-        if page["title"].replace(" ", "_") not in BLOCKED_SET:
-            continue_page_backup = page["title"].replace(" ", "_")
+        if g_namespace_types[str(g_namespace_nr)] == "Main":
+            page["title"] = "Main:"+page["title"]
+        if g_namespace_types[str(g_namespace_nr)] == "Main Talk":
+            page["title"] = "Main "+page["title"]
 
-        if page["title"].replace(" ", "_") in BLOCKED_SET:
+        if remove_gremlins_from_names(page["title"]) in blocked_set:
             continue
 
-        allpages_list.append([
-            f"{page['pageid']:010d}",
-            page["title"],
-        ])
+        title_backup = page["title"]
 
-    return (allpages_list, continue_page_backup)
+        allpages_list.append([f"{page['pageid']:010d}", remove_gremlins_from_names(page["title"])])
+
+    return (allpages_list, title_backup)
 
 
 def restructure_json_pageids(
-        json_data: dict
+        json_data: dict,
+        settings: dict
         ) -> None:
-
-    global g_wiki_list_type
-    global g_namespace_types
-    global g_namespace_nr
-
-    path_file_blocked = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_LISTS_BLOCKED)
-    path_recentchanges_missing = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_LISTS_RECENTCHANGES)
 
     NewtUtil.check_dict_keys(
         json_data, {"query", "batchcomplete"},
@@ -979,39 +937,17 @@ def restructure_json_pageids(
     )
 
     for page in json_data["query"]["pages"]:
-        skip_page = False
-
-        if "missing" in page:
-            # Print warning to fix log later
-            # Save this page id to recentchanges log to check later
-            # Move affected files to removed folder to avoid processing them again until we check what is wrong with them
-            NewtCons.error_msg(
-                f"Page ID {page['pageid']} data is missing",
-                f"Page: {page}",
-                location="mwparser.restructure_json_pageids : 'missing' in page",
-                stop=False
+        if "missing" in page and page["missing"] is True:
+            NewtUtil.check_dict_keys(
+                page, {"pageid", "missing"},
+                location="mwparser.restructure_json_pageids : missing"
             )
+            path_file_blocked = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_LISTS_BLOCKED)
             NewtFiles.save_text_to_file(
-                path_recentchanges_missing, f"Page ID {page['pageid']} data is missing",
-                append=True, print_log=False
+                path_file_blocked,
+                f"!MissingPageid:{g_namespace_nr}:{g_namespace_types[str(g_namespace_nr)]} > {page['pageid']}",
+                append=True
             )
-            for missing_folder in (FOLDER_RAW_PAGES, FOLDER_RAW_REDIRECT):
-                for missing_namespace in g_namespace_types.keys():
-                    missing_file = os.path.join(
-                        DIR_GLOBAL, settings["FOLDER_LINK"], missing_folder,
-                        f"{int(missing_namespace):0{settings['ns_dict_key_len']}d}", f"{page['pageid']:010d}.txt"
-                    )
-                    missing_target = os.path.join(
-                        DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_RAW_REMOVED,
-                        f"{int(missing_namespace):0{settings['ns_dict_key_len']}d}-{page['pageid']:010d}.txt"
-                    )
-                    if NewtFiles.check_file_exists(missing_file, stop=False, print_log=False):
-                        NewtFiles.ensure_dir_exists(missing_target)
-                        shutil.move(missing_file, missing_target)
-                        NewtFiles.save_text_to_file(
-                            path_recentchanges_missing, f"{missing_target}",
-                            append=True, print_log=False
-                        )
             continue
 
         NewtUtil.check_dict_keys(
@@ -1019,13 +955,13 @@ def restructure_json_pageids(
             location="mwparser.restructure_json_pageids : page"
         )
 
-        check_ns = g_namespace_nr
+        check_namespace_nr = g_namespace_nr
 
         if g_wiki_list_type == "pagesrecent":
             if str(page["ns"]) in g_namespace_types:
-                check_ns = int(page["ns"])
+                check_namespace_nr = int(page["ns"])
 
-        if int(page["ns"]) != check_ns:
+        if int(page["ns"]) != check_namespace_nr:
             NewtCons.error_msg(
                 f"Unexpected namespace value: {page['ns']} for page ID {page['pageid']}",
                 f"Page: {page}",
@@ -1038,7 +974,8 @@ def restructure_json_pageids(
         text_for_file = ""
         text_for_file += f"Namespace ::: {page['ns']} ::: {g_namespace_types[str(page['ns'])]}\n"
         text_for_file += f"Page ID   ::: {page['pageid']}\n"
-        text_for_file += f"Title     ::: {page['title']}\n\n"
+        text_for_file += f"Title     ::: {page['title']}\n"
+        text_for_file += "\n" + "-" * 80 + "\n\n"
 
         for revision in page["revisions"]:
             NewtUtil.check_dict_keys(
@@ -1056,46 +993,35 @@ def restructure_json_pageids(
                 location="mwparser.restructure_json_pageids : revision[slots][main]"
             )
 
-            if revision["slots"]["main"]["contentmodel"] != "wikitext":
-                NewtCons.error_msg(
-                    f"Unexpected Contentmodel : {revision['slots']['main']['contentmodel']}",
-                    f"Title: {page['title']}",
-                    f"Page: {page['pageid']}",
-                    location="mwparser.restructure_json_pageids : revision[slots][main][contentmodel]",
-                    stop=False
-                )
-                NewtFiles.save_text_to_file(
-                    path_file_blocked,
-                    page["title"].replace(" ", "_"),
-                    append=True
-                )
-                skip_page = True
-                break
+            text_for_file += f"contentmodel  ::: {revision['slots']['main']['contentmodel']}\n"
+            text_for_file += f"contentformat ::: {revision['slots']['main']['contentformat']}\n"
+            text_for_file += "\n" + "-" * 80 + "\n\n"
 
-            if revision["slots"]["main"]["contentformat"] != "text/x-wiki":
-                NewtCons.error_msg(
-                    f"Unexpected Contentformat : {revision['slots']['main']['contentformat']}",
-                    f"Title: {page['title']}",
-                    f"Page: {page['pageid']}",
-                    location="mwparser.restructure_json_pageids : revision[slots][main][contentformat]"
-                )
-
-            if len(revision["slots"]["main"]["content"]) < 6:
+            if len(revision["slots"]["main"]["content"]) == 0:
                 folder_pages = FOLDER_RAW_REMOVED
 
-            if revision["slots"]["main"]["content"].lower().startswith("#redirect"):
+            if revision["slots"]["main"]["content"].strip().lower().startswith("#redirect"):
                 folder_pages = FOLDER_RAW_REDIRECT
 
-            text_for_file += "-" * 80 + "\n"
-            text_for_file += f"{revision['slots']['main']['content']}\n\n"
-
-        # It helps to skip outer for if break was in inner for
-        if skip_page:
-            continue
+            text_for_file += f"{revision['slots']['main']['content']}\n"
+            text_for_file += "\n" + "-" * 80 + "\n\n"
 
         text_for_file += "=== END ==="
 
-        path_file_pageid = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], folder_pages, f"{g_namespace_nr:0{settings['ns_dict_key_len']}d}", f"{page['pageid']:010d}.txt")
+        formatted_id = f"{page['pageid']:010d}"
+        filename = os.path.join(
+            f"{formatted_id[0:4]}",
+            f"{formatted_id[4:7]}",
+            f"{formatted_id}.txt"
+        )
+        path_file_pageid = os.path.join(
+            DIR_GLOBAL,
+            settings["FOLDER_LINK"],
+            folder_pages,
+            f"{g_namespace_nr:0{settings['ns_max_key_len']}d}",
+            filename
+        )
+
         NewtFiles.save_text_to_file(
             path_file_pageid,
             text_for_file,
@@ -1104,22 +1030,21 @@ def restructure_json_pageids(
 
 
 def restructure_json_recentchanges(
-        json_data: dict
-        ) -> list[str]:
-    """Process and save all pages from JSON data."""
-
-    global g_namespace_types
+        json_data: dict,
+        settings: dict,
+        blocked_set: set
+        ) -> list[list[str]]:
 
     if "continue" in json_data:
         NewtUtil.check_dict_keys(
             json_data, {"query", "batchcomplete", "limits", "continue"},
-            location="mwparser.restructure_json_recentchanges : json_data"
+            location="mwparser.restructure_json_recentchanges : json_data + continue"
         )
 
     else:
         NewtUtil.check_dict_keys(
             json_data, {"query", "batchcomplete", "limits"},
-            location="mwparser.restructure_json_recentchanges : json_data"
+            location="mwparser.restructure_json_recentchanges : json_data no continue"
         )
 
     NewtUtil.check_dict_keys(
@@ -1129,7 +1054,6 @@ def restructure_json_recentchanges(
 
     recentchanges_list = []
     recentchanges_list.append(["timestamp", "pageid", "ns", "type", "title"])
-
     for page in json_data["query"]["recentchanges"]:
         NewtUtil.check_dict_keys(
             page, {"type", "ns", "title", "pageid", "revid", "old_revid", "rcid", "timestamp"},
@@ -1144,13 +1068,23 @@ def restructure_json_recentchanges(
                 stop=False
             )
 
+        if g_namespace_types[str(g_namespace_nr)] == "Main":
+            page["title"] = "Main:"+page["title"]
+        if g_namespace_types[str(g_namespace_nr)] == "Main Talk":
+            page["title"] = "Main "+page["title"]
+
         if page["pageid"] == 0:
+            continue
+
+        page["title"] = remove_gremlins_from_names(page["title"])
+
+        if page["title"] in blocked_set:
             continue
 
         recentchanges_list.append([
             page["timestamp"],
             f"{page['pageid']:010d}",
-            f"{page['ns']:0{settings['ns_dict_key_len']}d}",
+            f"{page['ns']:0{settings['ns_max_key_len']}d}",
             f"{page['type']:>4}",
             page["title"],
         ])
@@ -1159,26 +1093,28 @@ def restructure_json_recentchanges(
 
 
 def restructure_json_savefiles(
-        json_data: dict
+        json_data: dict,
+        settings: dict
         ) -> None:
 
-    path_missing_image = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LISTS, "missing-images.txt")
-
-    if "batchcomplete" in json_data:
-        NewtUtil.check_dict_keys(
-            json_data, {"query", "batchcomplete"},
-            location="mwparser.restructure_json_savefiles : json_data + batchcomplete"
-        )
-    else:
+    if "continue" in json_data:
         NewtUtil.check_dict_keys(
             json_data, {"query", "continue"},
             location="mwparser.restructure_json_savefiles : json_data + continue"
+        )
+
+    else:
+        NewtUtil.check_dict_keys(
+            json_data, {"query", "batchcomplete"},
+            location="mwparser.restructure_json_savefiles : json_data + batchcomplete"
         )
 
     NewtUtil.check_dict_keys(
         json_data["query"], {"pages"},
         location="mwparser.restructure_json_savefiles : json_data[query]"
     )
+
+    path_file_blocked = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FILE_LISTS_BLOCKED)
 
     for image_data in json_data["query"]["pages"]:
         if "imageinfo" in image_data:
@@ -1194,8 +1130,8 @@ def restructure_json_savefiles(
             )
 
             NewtFiles.save_text_to_file(
-                path_missing_image,
-                f"{image_data['pageid']:010d} > {image_data['title']}",
+                path_file_blocked,
+                remove_gremlins_from_names(image_data['title']),
                 append=True
             )
             continue
@@ -1207,8 +1143,8 @@ def restructure_json_savefiles(
             )
 
             NewtFiles.save_text_to_file(
-                path_missing_image,
-                f"Unknown > {image_data['title']}",
+                path_file_blocked,
+                remove_gremlins_from_names(image_data['title']),
                 append=True
             )
             continue
@@ -1220,206 +1156,294 @@ def restructure_json_savefiles(
             )
 
             url_filename = os.path.basename(image_info["url"])
-            filename = f"{image_data['pageid']:010d}-{url_filename}"
+            formatted_id = f"{image_data['pageid']:010d}"
+            filename = os.path.join(f"{formatted_id[0:4]}", f"{formatted_id[4:7]}", f"{formatted_id}-{url_filename}")
             path_file_image = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_RAW_IMAGES, filename)
 
             if not NewtNet.fetch_data_from_url(
                 image_info["url"],
+                mode=_config.FETCH_MODE,
                 save_path=path_file_image,
-                max_mb_size=SETTING_IMAGE_MAX_MB_SIZE,
-                mode="auto",
+                max_mb_size=_config.IMAGE_DOWNLOAD_MAX_MB,
                 repeat_on_fail=False,
-                print_log=PRINT_LOG
+                print_log=_config.PRINT_LOG
             ):
                 NewtFiles.save_text_to_file(
-                    path_missing_image,
-                    f"{image_info['url']} > {path_file_image}",
+                    path_file_blocked,
+                    f"!ImageFalse:{g_namespace_nr}:{g_namespace_types[str(g_namespace_nr)]} > {image_info['url']} > {path_file_image}",
                     append=True
                 )
+            else:
+                print()
+                print("Local image: ", path_file_image)
         print()
 
 
 def save_data_list(
-        data_list: list[str],
+        settings: dict,
+        data_list: list[list[str]],
         append: bool = True
         ) -> None:
-    """Save the restructured list data to a file."""
 
-    if "file_name" not in settings:
-        NewtCons.error_msg(
-            "Missing 'file_name' in settings for saving data list",
-            location="mwparser.save_data_list : file_name"
-        )
+    match g_wiki_list_type:
+        case "allpages":
+            csv_file_path = os.path.join(
+                DIR_GLOBAL,
+                settings["FOLDER_LINK"],
+                FOLDER_LISTS,
+                g_wiki_list_type,
+                f"{g_namespace_nr:0{settings['ns_max_key_len']}d}.csv"
+            )
+
+        case "recentchanges":
+            csv_file_path = os.path.join(
+                DIR_GLOBAL,
+                settings["FOLDER_LINK"],
+                FILE_LISTS_RECENTCHANGES
+            )
+
+        case _:
+            NewtCons.error_msg(
+                f"Unexpected config type: {g_wiki_list_type}",
+                location="mwparser.save_data_list : g_wiki_list_type default case"
+            )
 
     NewtFiles.save_csv_to_file(
-        os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LISTS, settings["file_name"]),
+        csv_file_path,
         data_list,
-        append=append
+        append=append,
+        print_log=_config.PRINT_LOG
     )
-    print()
 
 
 def loop_next_pages(
         json_data: dict,
-        continue_page_backup: str | None = None
+        blocked_set: set,
+        settings: dict[str, str],
+        additional_params: dict[str, str],
+        title_backup: str
         ) -> None:
-    """Loop to fetch next pages based on the config type."""
 
-    global g_wiki_list_type
-
-    try:
-        while True:
-            match g_wiki_list_type:
-                case "allpages":
-                    if "continue" not in json_data:
-                        break
-
-                    NewtUtil.check_dict_keys(
-                        json_data["continue"], {"apcontinue", "continue"},
-                        location="mwparser.loop_next_pages : json_data[continue]"
-                    )
-
-                    json_data = get_json_from_url(
-                        continue_page_wiki = json_data["continue"]["apcontinue"],
-                        continue_page_backup = continue_page_backup
-                        )
-
-                    data_list, continue_page_backup = restructure_json_allpages(json_data)
-                    save_data_list(data_list)
-
-                case "pageids" | "pagesrecent":
-                    if json_data == {}:
-                        break
-
-                    if "query" not in json_data:
-                        break
-
-                    restructure_json_pageids(json_data)
-                    json_data = get_json_from_url()
-
-                case "recentchanges":
-                    if "continue" not in json_data:
-                        break
-
-                    NewtUtil.check_dict_keys(
-                        json_data["continue"], {"rccontinue", "continue"},
-                        location="mwparser.loop_next_pages : json_data[continue]"
-                    )
-
-                    json_data = get_json_from_url(
-                        continue_page_wiki = json_data["continue"]["rccontinue"]
-                    )
-
-                    data_list = restructure_json_recentchanges(json_data)
-                    save_data_list(data_list)
-
-                case "savefiles":
-                    if json_data == {}:
-                        break
-
-                    restructure_json_savefiles(json_data)
-                    json_data = get_json_from_url()
-
-                case _:
+    while True:
+        match g_wiki_list_type:
+            case "allpages":
+                if "continue" not in json_data:
                     break
 
-    except Exception as e:
-        NewtCons.error_msg(
-            f"Script encountered an error: {e}",
-            location="mwparser.loop_next_pages : Exception"
-        )
+                NewtUtil.check_dict_keys(
+                    json_data["continue"], {"apcontinue", "continue"},
+                    location="mwparser.loop_next_pages : allpages : json_data[continue]"
+                )
 
-    except SystemExit:
-        NewtCons.error_msg(
-            "SystemExit on fetching all pages",
-            location="mwparser.loop_next_pages : SystemExit"
-        )
+                ns_type = g_namespace_types[str(g_namespace_nr)]
+
+                # Only without left and sep parts it will work in continue
+                left_part, sep_part, right_part = title_backup.partition(":")
+                if sep_part and left_part == ns_type:
+                    title_backup = right_part
+
+                check_apcontinue = remove_gremlins_from_names(
+                    ns_type+":"+json_data["continue"]["apcontinue"]
+                )
+
+                if check_apcontinue in blocked_set and title_backup:
+                    additional_params.update({"apcontinue": title_backup})
+                else:
+                    additional_params.update({"apcontinue": json_data["continue"]["apcontinue"]})
+
+                json_data = get_json_from_url(
+                    settings,
+                    additional_params
+                )
+
+                data_list, title_backup = restructure_json_allpages(json_data, blocked_set)
+                save_data_list(settings, data_list)
+
+            case "pageids" | "pagesrecent":
+                if json_data == {}:
+                    break
+
+                if "query" not in json_data:
+                    NewtUtil.check_dict_keys(
+                        json_data, {"batchcomplete"},
+                        location="mwparser.loop_next_pages : pageids : json_data"
+                    )
+                    break
+
+                restructure_json_pageids(json_data, settings)
+
+                json_data = get_json_from_url(
+                    settings,
+                    additional_params
+                )
+
+            case "recentchanges":
+                if "continue" not in json_data:
+                    break
+
+                NewtUtil.check_dict_keys(
+                    json_data["continue"], {"rccontinue", "continue"},
+                    location="mwparser.loop_next_pages : recentchanges : json_data[continue]"
+                )
+
+                additional_params.update({"rccontinue": json_data["continue"]["rccontinue"]})
+
+                json_data = get_json_from_url(
+                    settings,
+                    additional_params
+                )
+
+                data_list = restructure_json_recentchanges(json_data, settings, blocked_set)
+                save_data_list(settings, data_list)
+
+            case "savefiles":
+                if json_data == {}:
+                    break
+
+                restructure_json_savefiles(json_data, settings)
+                json_data = get_json_from_url(
+                    settings,
+                    additional_params
+                )
+
+            case _:
+                NewtCons.error_msg(
+                    f"Unexpected config type: {g_wiki_list_type}",
+                    location="mwparser.loop_next_pages : g_wiki_list_type default case"
+                )
 
 
-def remove_duplicated_lines(
+def sort_and_deduplicate_lines(
+        settings: dict,
         ) -> None:
-    """Remove duplicated lines from the recentchanges file."""
 
-    file_path = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LISTS, settings["file_name"])
-    lines = NewtFiles.read_csv_from_file(file_path)
+    match g_wiki_list_type:
+        case "allpages":
+            csv_file_path = os.path.join(
+                DIR_GLOBAL,
+                settings["FOLDER_LINK"],
+                FOLDER_LISTS,
+                g_wiki_list_type,
+                f"{g_namespace_nr:0{settings['ns_max_key_len']}d}.csv"
+            )
 
-    NewtCons.validate_type(
-        lines, list, check_non_empty=True,
-        location="mwparser.remove_duplicated_lines : lines"
+        case "recentchanges":
+            csv_file_path = os.path.join(
+                DIR_GLOBAL,
+                settings["FOLDER_LINK"],
+                FILE_LISTS_RECENTCHANGES
+            )
+
+        case _:
+            NewtCons.error_msg(
+                f"Unexpected config type: {g_wiki_list_type}",
+                location="mwparser.sort_and_deduplicate_lines : g_wiki_list_type default case"
+            )
+
+    print()
+    csv_lines = NewtFiles.read_csv_from_file(
+        csv_file_path,
+        print_log=_config.PRINT_LOG
     )
-    assert isinstance(lines, list)  # for type checker
+    NewtCons.validate_type(
+        csv_lines, list, check_non_empty=True,
+        location="mwparser.sort_and_deduplicate_lines : csv_lines"
+    )
+    assert isinstance(csv_lines, list)  # for type checker
 
     # Separate header from data
-    row_header = lines[0] if lines else []
-    rows_data = lines[1:] if len(lines) > 1 else []
+    row_header = csv_lines[0] if csv_lines else []
+    rows_data = csv_lines[1:] if len(csv_lines) > 1 else []
 
     # Ensure header does not exist in data_lines
-    data_lines = [line for line in rows_data if line != row_header]
-
-    # Remove duplicates from data only
-    unique_lines = [list(t) for t in dict.fromkeys(map(tuple, data_lines))]
-    unique_lines.sort()
+    data_lines = {tuple(line) for line in rows_data if line != row_header}
+    unique_lines = [list(line) for line in sorted(data_lines)]
 
     # Prepend header back
     sorted_lines = [row_header] + unique_lines
 
     NewtFiles.save_csv_to_file(
-        file_path,
-        sorted_lines
+        csv_file_path,
+        sorted_lines,
+        print_log=_config.PRINT_LOG
     )
-    print()
+
+
+def main_func(
+        ) -> dict:
+
+    todo_list_tuple = create_todo_list()
+    wiki_settings = read_current_config(todo_list_tuple)
+    params_for_url = prep_params_for_url()
+    blocked_set = get_blocked_set(wiki_settings)
+    json_data = get_json_from_url(wiki_settings, params_for_url)
+
+    match g_wiki_list_type:
+        case "allpages":
+            data_list, title_backup = restructure_json_allpages(json_data, blocked_set)
+            save_data_list(wiki_settings, data_list, False)
+            loop_next_pages(json_data, blocked_set, wiki_settings, params_for_url, title_backup)
+            sort_and_deduplicate_lines(wiki_settings)
+
+        case "pageids" | "pagesrecent" | "savefiles":
+            loop_next_pages(json_data, blocked_set, wiki_settings, params_for_url, "")
+
+        case "recentchanges":
+            data_list = restructure_json_recentchanges(json_data, wiki_settings, blocked_set)
+            save_data_list(wiki_settings, data_list, False)
+            loop_next_pages(json_data, blocked_set, wiki_settings, params_for_url, "")
+            sort_and_deduplicate_lines(wiki_settings)
+
+        case _:
+            NewtCons.error_msg(
+                f"Unexpected config type: {g_wiki_list_type}",
+                location="mwparser.main_func : g_wiki_list_type default case"
+            )
+
+    return wiki_settings
 
 
 if __name__ == "__main__":
-    if SAVE_LOG:
+    if _config.SAVE_LOG:
         SETUP_LOGGING_DATA = NewtFiles.setup_logging(DIR_GLOBAL)
 
-    NewtCons.check_location(DIR_GLOBAL, MUST_LOCATION)
-
-    TODO_LIST = check_todo()
-    settings = read_config()
-    headers_params_for_url = prep_headers_params_for_url()
-    BLOCKED_SET = get_blocked_set()
-    json_data = get_json_from_url()
+    NewtCons.check_location(DIR_GLOBAL, _config.MUST_LOCATION)
 
     try:
-        match g_wiki_list_type:
-            case "allpages":
-                data_list, continue_page_backup = restructure_json_allpages(json_data)
-                save_data_list(data_list, False)
-                loop_next_pages(json_data, continue_page_backup)
-                remove_duplicated_lines()
+        settings = main_func()
 
-            case "pageids" | "pagesrecent" | "savefiles":
-                loop_next_pages(json_data)
-
-            case "recentchanges":
-                data_list = restructure_json_recentchanges(json_data)
-                save_data_list(data_list, False)
-                loop_next_pages(json_data)
-                remove_duplicated_lines()
-
-            case _:
-                NewtCons.error_msg(
-                    f"Unexpected config type: {g_wiki_list_type}",
-                    location="mwparser.main : g_wiki_list_type default case"
-                )
     except KeyboardInterrupt:
         print()
         print("=== Script interrupted by user ===")
 
-    if SAVE_LOG:
+    except SystemExit:
+        time_error = datetime.now(timezone.utc)
+        NewtCons.error_msg(
+            "Time stop: " + time_error.strftime("%Y-%m-%d %H:%M:%S"),
+            "SystemExit on fetching all pages",
+            location="mwparser.main_func : SystemExit"
+        )
+
+    print()
+    print("=== ✅ END ✅ ===")
+
+    if _config.SAVE_LOG:
         if g_wiki_list_type in (
                 "allpages",
                 "pageids",
                 ):
-    #         file_target_name = f"{g_wiki_list_type}-{g_namespace_nr:0{settings['ns_dict_key_len']}d}.txt"
+            path_target = os.path.join(
+                DIR_GLOBAL,
+                settings["FOLDER_LINK"],
+                FOLDER_LOGS,
+                f"{g_wiki_list_type}-{g_namespace_nr:0{settings['ns_max_key_len']}d}.txt"
+            )
         else:
-            file_target_name = f"{g_wiki_list_type}.txt"
+            path_target = os.path.join(
+                DIR_GLOBAL,
+                settings["FOLDER_LINK"],
+                FOLDER_LOGS,
+                f"{g_wiki_list_type}.txt"
+            )
 
-        path_target = os.path.join(DIR_GLOBAL, settings["FOLDER_LINK"], FOLDER_LOGS, file_target_name)
-
-    print("=== ✅ END ✅ ===")
-
-    if SAVE_LOG:
         NewtFiles.cleanup_logging(SETUP_LOGGING_DATA, path_target)
