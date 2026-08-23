@@ -53,12 +53,12 @@ BATCH_MAX_IMAGE_TITLES = 20
 IMAGE_DOWNLOAD_MAX_MB = 2
 # in restructure_json_savefiles()
 
-PRINT_LOG = True
-# PRINT_LOG = False
+# PRINT_LOG = True
+PRINT_LOG = False
 
 SAVE_LOG = True
 # SAVE_LOG = False
 
-FETCH_MODE = "auto"
-# FETCH_MODE = "alert"
+# FETCH_MODE = "auto"
+FETCH_MODE = "alert"
 # FETCH_MODE = "manual"

@@ -1,99 +1,103 @@
-# 🦎 Parser MediaWiki — Configurable API crawler for multiple Wikis by `NewtCode`
+# About <PROJECT_NAME> (NewtCode)
 
-Parser MediaWiki is a Python MediaWiki API crawler designed to collect content from multiple wiki installations using separate settings per wiki (endpoints, namespaces, rate limits, auth, and export rules). It retrieves pages, revisions, categories, and related metadata and normalizes the output for downstream processing. Built for repeatable runs, it helps keep large-scale wiki data collection consistent across sources.
+[![Version](https://img.shields.io/badge/version-v0.1.0-orange.svg)](https://github.com/AnnaBurova/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/python-3.14-blue.svg)](https://www.python.org/)
 
-[![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
----
-
-## 📖 Overview
-
-Parser MediaWiki automates the collection of wiki content through the MediaWiki API. It supports multiple wiki sources simultaneously, each with its own configuration for endpoints, namespaces, rate limiting, authentication, and export rules. The tool is designed for researchers, archivists, and developers who need to systematically collect and process large amounts of wiki data.
-
-### Key Capabilities
-
-- **Multi-wiki support**: Configure multiple wiki sources in separate config files
-- **Namespace filtering**: Target specific content namespaces (articles, templates, categories, etc.)
-- **Rate limiting**: Built-in rate limiting to respect API guidelines
-- **Data normalization**: Consistent output format across different wiki sources
-- **Incremental updates**: Resume interrupted collections and track changes over time
-- **Content classification**: Automatic categorization of pages, redirects, and removed content
+Short description of the project, its purpose, and key features.
 
 ---
 
-## 🧩 Features
+## Overview
 
-### 📊 Data Collection Modes
-
-- **All Pages**: Enumerate all pages in specified namespaces
-- **Recent Changes**: Track recent edits and page modifications
-- **Page Content**: Download full page content and revision history
-- **Recent Page Content**: Focus on recently changed pages for incremental updates
-
-### 🔧 Configuration Management
-
-- **JSON-based configs**: Easy-to-edit configuration files for each wiki source
-- **Namespace mapping**: Automatic namespace number-to-name conversion
-- **Rate limit control**: Configurable delays between API requests
-- **Output customization**: Flexible folder structures and file naming
-
-### 📁 Output Organization
-
-```
-data/
-├── raw/
-│   ├── pages/          # Full page content
-│   ├── redirect/       # Redirect pages
-│   └── removed/        # Deleted/missing pages
-├── lists/              # CSV indexes and metadata
-└── logs/               # Execution logs and timestamps
-```
+Longer description of the project, its goals, and how it fits into the ecosystem.
 
 ---
 
-## ⚙️ Requirements
+## Features
 
-- **Python 3.10+** (tested with Python 3.10, 3.11, 3.12, 3.13)
+| Path | Purpose |
+|------|---------|
+| `.gitignore` | Specifies files and directories that should not be tracked by Git. |
+| `.gitattributes` | Ensures consistent text normalization (LF endings), defines diff rules, and marks binary files. |
+| `AUTHORS` | Credits contributors and external resources. |
+| `CHANGELOG.md` | List of changes and updates for the repository. |
+| `CONTRIBUTING.md` | Contribution guidelines and repository conventions. |
+| `COPYRIGHT` | Copyright information for original and included materials. |
+| `INSTALLATION.md` | Installation instructions and development setup guide. |
+| `LICENSE` | The MIT license governing repository use. |
+| `requirements.txt` | List of Python dependencies for the project. |
+| `TODO` | List of tasks and improvements for the project. |
+| `new-repo/` | Starter repository templates for bootstrapping new projects. |
+| `new-repo/tests/` | Test suite for the repository. Must pass before merging PRs. |
+| `new-repo/tests/TESTING.md` | Documentation for the testing process. |
+| `new-repo/tests/_list.sh` | Script to list all test files in the `tests/` directory. |
+
+---
+
+## Requirements
+
+- Python 3.10
+- Python 3.11
+- Python 3.12
+- Python 3.13
+- Python 3.14
 - Full type hint support with `from __future__ import annotations`
 
-## 📦 Dependencies
+---
 
-All core functionality relies only on the Python Standard Library. The project uses custom utility modules (`newtutils`) for enhanced file operations, network requests, and console output.
+## Dependencies
+
+This repository is self-contained and relies only on the Python Standard Library.
+
+This project uses the following third-party libraries:
+
+- [NewtUtils](https://github.com/AnnaBurova/dev-newtutils)
+- [Colorama](https://github.com/tartley/colorama) (BSD 3-Clause License)
+- [PyTest](https://github.com/pytest-dev/pytest) (MIT License)
+- [Requests](https://github.com/psf/requests) (Apache License 2.0)
+
+All other modules rely only on the Python Standard Library.
+
+For more details on dependencies, see the [LICENSE](LICENSE) file.
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
-See [Installation Guide](INSTALL.md) for detailed setup instructions.
-
----
-
-## 📋 Usage Examples
-
-### Running Different Collection Types
-
-The script supports multiple collection modes:
-
-1. **All Pages** - Complete wiki enumeration
-2. **Recent Changes** - Track recent modifications
-3. **Page Content** - Download full page text
-4. **Recent Content** - Incremental content updates
-
-Each mode can be selected interactively when running the script.
+- [Installation Guide](INSTALLATION.md) — Instructions for installing and setting up the project for development.
 
 ---
 
-## 📋 Development Notes
+## Development Notes
 
-- [TODO list](TODO) — Planned improvements and known issues
-- [CHANGELOG](CHANGELOG.md) — Version history and release notes
-- [CONTRIBUTING](CONTRIBUTING.md) — Guidelines for contributors
+- [TODO list](TODO) — Planned improvements and features for this repository.
+- [CHANGELOG](CHANGELOG.md) — Version history and release notes.
+- [CONTRIBUTING](CONTRIBUTING.md) — Guidelines for contributing to the project.
+- [Testing Guide](tests/README.md) — Instructions for running tests and contributing test cases.
 
 ---
 
-## 🪪 License & Credits
+## License
 
+- [AUTHORS](AUTHORS) — Credits to contributors and external resources.
 - [COPYRIGHT](COPYRIGHT) — Copyright information for original and included materials.
-- [LICENSE](LICENSE) — The license governing the use of this repository (MIT).
-- [AUTHORS](AUTHORS) — List of contributors and credits for external resources.
+- [LICENSE](LICENSE) — The license governing repository use.
+
+---
+
+## Development Workflow
+
+1. Fork and clone the repository.
+2. Read [CHANGELOG.md](CHANGELOG.md) for recent changes.
+3. Review [CONTRIBUTING.md](CONTRIBUTING.md) before opening PRs.
+4. Explore `tests/` for usage examples.
+5. Create feature branch: `git checkout -b feature/short-description`.
+6. Make changes in `folder/` or `tests/`.
+7. Run tests: `pytest tests/`.
+8. Commit: Follow [Conventional Commits](https://www.conventionalcommits.org).
+9. Push and open PR.

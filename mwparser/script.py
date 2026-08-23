@@ -153,11 +153,9 @@ def remove_gremlins_from_names(
     replacements = {
         "_": " ",
         "$": "%24",
-        "&": "%26",
         "=": "%3D",
         "\\": "%5C",
         "\xad": "%C2%AD",       # soft hyphen
-        "\u0060": "%60",        # grave accent
         "\u00a8": "%C2%A8",     # diaeresis
         "\u00b2": "%C2%B2",     # superscript two
         "\u00b4": "%C2%B4",     # acute accent
@@ -1165,7 +1163,7 @@ def restructure_json_savefiles(
                 mode=_config.FETCH_MODE,
                 save_path=path_file_image,
                 max_mb_size=_config.IMAGE_DOWNLOAD_MAX_MB,
-                repeat_on_fail=False,
+                # repeat_on_fail=False,
                 print_log=_config.PRINT_LOG
             ):
                 NewtFiles.save_text_to_file(

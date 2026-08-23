@@ -1,103 +1,247 @@
-# 🤝 Contributing Guidelines — *NewtCode*
+# Contributing to NewtCode
 
-Welcome to the **NewtCode** project.
-To keep this repository clean, consistent, and easy to maintain, please follow the rules below when contributing.
+Thank you for your interest in contributing to NewtCode.
 
----
+This project accepts contributions selectively to keep the codebase coherent, maintainable, and technically justified.
 
-## 1. 💬 General Conduct
-
-* Be respectful, constructive, and professional when discussing issues or reviews.
-* Focus contributions on improving functionality, maintainability, or documentation.
-* Do not include unrelated or sensitive content in commits or pull requests.
+Please read this guide before opening an issue or pull request.
 
 ---
 
-## 2. 🧩 Types of Contributions
+## Project Standards
 
-You can contribute by:
+Contributions should be:
 
-* 🧠 **Improving code** — adding features, fixing bugs, or refactoring.
-* 📝 **Updating documentation** — improving `README.md`, `INSTALL.md`, or `CHANGELOG.md`.
-* ⚙️ **Improving configuration** — updating `.gitattributes`, or build settings.
-* 🧪 **Enhancing tests** — adding new test cases under `tests/`.
+- technically correct;
+- clearly motivated;
+- small enough to review;
+- consistent with the current project structure and goals;
+- backed by tests or strong justification when tests are not applicable.
+
+Contributions may be declined if they add noise, unnecessary abstraction, speculative features, or low-value cleanup.
 
 ---
 
-## 3. 🌿 Branching and Commits
+## Contribution Types
 
-### Branch Names
+Contributions are welcome when they:
 
-Use clear prefixes for branches:
+- fix a real bug;
+- improve reliability, correctness, or maintainability;
+- add a useful feature aligned with project scope;
+- improve documentation that affects real usage or contributor workflow;
+- improve tests, type safety, or developer tooling.
 
-```
+If a contribution creates more review burden than project value, it is likely to be closed.
+
+---
+
+## Before pull requests
+
+For anything non-trivial, open an issue or discussion first, if you wish to:
+
+- add a new feature;
+- change public behavior;
+- introduce a new dependency;
+- modify project structure or architecture;
+- affect multiple modules.
+
+Small, obvious fixes may be submitted directly as pull requests.
+
+---
+
+## Branch Naming
+
+Use short, descriptive branch names with one of these prefixes:
+
+```text
 feature/<short-description>
 fix/<short-description>
+docs/<short-description>
 chore/<short-description>
+refactor/<short-description>
+test/<short-description>
 ```
 
-### Commit Messages
+Examples:
 
-Follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/):
-
-```
-feat(scope): Add a new feature
-fix(scope): Correct a bug
-chore(scope): Routine maintenance or configuration
-docs(scope): Documentation updates
-style(scope): Formatting or code style only
+```text
+fix/path-normalization
+feature/sql-parser
+docs/update-installation
 ```
 
-✅ **Tips:**
+---
 
-* Use the **imperative mood** — «Add», «Fix», «Update».
-* Keep messages short (~50 characters).
-* Make each commit **atomic** — one logical change per commit.
+## Commit Messages
+
+Follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) format with a type, optional scope, and concise description:
+
+```text
+feat(parser): add a new feature
+fix(cli): correct a bug
+docs(readme): update installation
+test(api): add or update a test
+refactor(core): simplify internal logic
+chore(scope): update dependencies
+```
+
+Rules:
+
+- Use the imperative mood: add, fix, update; not added or fixed.
+- Keep the subject small, concise and specific.
+- Make commits atomic: one logical change per commit.
+- Do not mix refactoring, formatting, and behavior changes in one commit.
 
 ---
 
-## 4. 🔄 Pull Requests
+## Pull Request Rules
 
-Before submitting a PR:
+Every Pull Request should:
 
-1. Ensure your branch is up to date with `main`.
-2. Describe clearly what was changed and why.
-3. Reference related issues or previous discussions.
-4. Ensure that the code passes all tests (see [Testing](#5--testing) below).
+- target a single problem or change set;
+- explain what changed and why;
+- reference the relevant issue or discussion when applicable;
+- include tests for behavior changes, bug fixes, or new features;
+- update documentation when user-facing behavior changes;
+- pass all relevant checks before review.
 
----
+Pull Requests may be closed without merge if they are:
 
-## 5. 🧪 Testing
-
-All scripts and utilities should be tested in the `tests/` directory.
-
-When adding new functionality:
-
-* Provide at least one test case that demonstrates correct behavior.
-* Avoid committing large test data files — use minimal reproducible examples.
-
----
-
-## 6. 🧰 Code Style and Formatting
-
-* Respect `.gitattributes` settings for line endings and encoding.
-* Use meaningful docstrings in **Google style** (`"""Args: Returns: Raises:"""`).
-* All Python modules **must** include `from __future__ import annotations` at the top to unify type hint behavior.
-* Provide **explicit type hints** for all public function parameters and return values.
-* Avoid wildcard imports (`from x import *`); prefer explicit imports for clarity and static analysis.
-
+- too broad;
+- poorly explained;
+- not aligned with project direction;
+- missing tests without justification;
+- based on subjective cleanup rather than a concrete need;
+- generated mechanically and not meaningfully reviewed by the author.
 
 ---
 
-## 7. 🧾 Review Process
+## Testing
 
-* All contributions are reviewed before merging.
-* Be open to feedback and suggested revisions.
-* Once approved, the branch will be merged into `main` and the next release prepared.
+Quality is required. If your change affects behavior, you are expected to prove it.
+
+General rules:
+
+- Add or update tests for bug fixes and new features.
+- Prefer small, deterministic tests.
+- Use `pytest` for Python tests.
+
+Minimum expectations:
+
+- Bug fix: include a regression test when possible.
+- New feature: include at least one test for expected behavior and one edge case where reasonable.
+- Refactor: no behavior change; existing tests must still pass, and new tests may be required if coverage was previously weak.
+- Docs/config-only changes: tests are not always required, but the change must still be accurate and justified.
+
+Run tests before submitting:
+
+```bash
+pytest tests/
+```
+
+If additional commands are required in this repository, document them in the pull request.
 
 ---
 
-## ❤️ Thank You
+## Code Quality Expectations
 
-Every contribution helps make **NewtCode** more useful, reliable, and fun to work with.
-Your attention to detail and consistency keeps the *NewtCode* ecosystem growing!
+Submitted code must be intentional, readable, and maintainable.
+
+Required standards:
+
+- Prefer simple solutions over clever ones.
+- Preserve the existing architecture unless there is a strong reason to change it.
+- Avoid premature abstraction.
+- Avoid dead code, commented-out code, and placeholder implementations.
+- Avoid broad rewrites when a targeted fix is enough.
+- Use explicit names.
+- Keep functions and modules cohesive.
+- Public functions must have type hints.
+- New code should include or preserve meaningful docstrings where appropriate.
+- Use explicit imports; do not use wildcard imports.
+
+Python-specific rules:
+
+- Include `from __future__ import annotations` where the project standard requires it.
+- Provide explicit type hints for public APIs.
+- Prefer clear, testable functions over implicit side effects.
+- Keep module-level behavior minimal.
+- Check for guidelines for more details and examples:
+  - [guidelines/code-style-python.md](https://github.com/AnnaBurova/dev-configs/blob/main/guidelines/projects/code-style-python.md)
+  - [guidelines/docstring.py](https://github.com/AnnaBurova/dev-configs/blob/main/guidelines/projects/docstring.py)
+  - [guidelines/script.py](https://github.com/AnnaBurova/dev-configs/blob/main/guidelines/projects/script.py)
+
+Not acceptable:
+
+- code that works but is hard to understand;
+- code copied from AI tools without adaptation;
+- unnecessary wrappers, layers, or factories;
+- changes that increase complexity without measurable benefit;
+- code that does not match surrounding style and design choices.
+
+---
+
+## Documentation Changes
+
+Documentation contributions are welcome when they improve actual understanding or usage.
+
+Good documentation changes:
+
+- clarify installation or usage;
+- explain non-obvious behavior;
+- document limitations, edge cases, or workflow;
+- keep examples accurate and minimal.
+
+Documentation-only Pull Requests may be rejected if they are verbose, generic, redundant, or disconnected from the real project.
+
+---
+
+## Security and Secrets
+
+Never commit:
+
+- API keys;
+- tokens;
+- passwords;
+- `.env` files with real values;
+- private credentials or internal endpoints.
+
+If you notice a security issue, do not open a public issue with sensitive details. Report it privately through the appropriate project contact method. Check for email or other contact information in the [AUTHORS](AUTHORS) file.
+
+---
+
+## Review and Merge Policy
+
+All contributions are reviewed before merge.
+
+Please expect feedback. Review comments are part of the process, not a personal attack.
+
+Maintainers reserve the right to reject contributions that do not fit the project, even if they are technically functional.
+
+Opening a pull request does not guarantee merge.
+
+---
+
+## Contributor Checklist
+
+Before opening a pull request, make sure you have:
+
+- read this file;
+- checked that the change fits project scope;
+- kept the Pull Request focused;
+- written a clear commit history;
+- added or updated tests when needed;
+- updated docs when behavior changed;
+- removed debug code and temporary files;
+- verified that no secrets or local artifacts are included.
+
+---
+
+## Final Notes
+
+The best contributions solve a real problem with the smallest justified change.
+
+If your pull request is thoughtful, technically sound, and easy to review, it is welcome.
+
+❤️ Thank You

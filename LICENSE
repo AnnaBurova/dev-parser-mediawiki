@@ -1,13 +1,13 @@
-MIT License
+The MIT License (MIT)
 
-Copyright (c) 2025-2026 Anna Burova
+Copyright (c) XXXX Anna Burova
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
@@ -22,14 +22,84 @@ SOFTWARE.
 
 ================================================================================
 
+All rights reserved
+
+Copyright (c) XXXX Anna Burova
+
+Without written permission from Anna Burova, it is prohibited to:
+- copy
+- modify
+- distribute
+- sell
+- use for commercial purposes
+- publish online
+
+================================================================================
+
 This project uses components from the Python standard library,
 licensed under the Python Software Foundation License (PSF License):
 https://docs.python.org/3/license.html
+https://docs.python.org/3/library/index.html
 
-- __future__ - future feature imports
+- __future__ — Future statement definitions
 
-- sys - interpreter and runtime
-- os - file system and environment
-- datetime - date and time objects
-- shutil - file operations
-- re - regular expressions
+- gc — Garbage Collector interface for memory management
+- inspect — Inspect live objects
+- sys — System-specific parameters and functions
+- os — Miscellaneous operating system interfaces for file and directory management
+- subprocess — Subprocess management
+
+- unittest — Unit testing framework
+- unittest.mock — mock object library
+- tempfile — Generate temporary files and directories
+- random — Generate pseudo-random numbers
+- shutil — High-level file operations
+
+- typing — Support for type hints (Any, TextIO)
+- collections — Container datatypes
+- collections.abc — Abstract Base Classes for Containers
+- time — Time access and conversions
+- datetime — Basic date and time types
+- urllib — URL handling modules
+- urllib.parse — Parse URLs into components
+
+- csv — CSV File Reading and Writing
+- json — JSON encoder and decoder
+- sqlite3 — DB-API 2.0 interface for SQLite databases
+
+- winsound — Sound-playing interface for Windows only
+
+================================================================================
+
+- sqlite3 — included with Python under the PSF License;
+  the underlying SQLite engine is in the Public Domain:
+  https://sqlite.org/copyright.html
+  (Released into the public domain by D. Richard Hipp)
+
+================================================================================
+
+This project uses the following third-party libraries:
+
+- NewtUtils
+  Copyright (c) 2025-2026 Anna Burova
+  https://github.com/AnnaBurova/dev-newtutils
+
+- Colorama (BSD 3-Clause License)
+  Copyright (c) 2010-2026 Jonathan Hartley & Arnon Yaari
+  https://github.com/tartley/colorama
+  https://pypi.org/project/colorama/
+
+- PyTest (MIT License)
+  Copyright (c) 2004-2026 Holger Krekel
+  https://github.com/pytest-dev/pytest
+  https://pypi.org/project/pytest/
+
+- PyTest-Cov (MIT License)
+  Copyright (c) 2010-2026 Marc Schlaich and Ionel Cristian Maries
+  https://github.com/pytest-dev/pytest-cov
+  https://pypi.org/project/pytest-cov/
+
+- Requests (Apache License 2.0)
+  Copyright (c) 2011-2026 Kenneth Reitz & contributors
+  https://github.com/psf/requests
+  https://pypi.org/project/requests/
